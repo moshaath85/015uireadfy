@@ -1,0 +1,117 @@
+{
+  "mode": "execute",
+  "organizationId": "gallery-015",
+  "startedAt": "2026-07-14T21:05:05.269Z",
+  "sources": {
+    "settings": "settings.json",
+    "media": "media.json",
+    "artists": "artists.json",
+    "collections": "collections.json",
+    "artworks": "artworks.json",
+    "exhibitions": "exhibitions.json",
+    "exhibitionArtists": "exhibition_artists.json",
+    "exhibitionArtworks": "exhibition_artworks.json",
+    "projects": "projects.json",
+    "projectArtists": "project_artists.json",
+    "projectArtworks": "project_artworks.json",
+    "services": "services.json",
+    "news": "news.json",
+    "publications": "publications.json",
+    "certificates": "certificates.json"
+  },
+  "entities": {
+    "settings": {
+      "found": 1,
+      "inserted": 1,
+      "updated": 0,
+      "skipped": 0
+    },
+    "media": {
+      "found": 16,
+      "inserted": 10,
+      "updated": 6,
+      "skipped": 0
+    },
+    "artists": {
+      "found": 2,
+      "inserted": 0,
+      "updated": 2,
+      "skipped": 0
+    },
+    "collections": {
+      "found": 2,
+      "inserted": 0,
+      "updated": 2,
+      "skipped": 0
+    },
+    "artworks": {
+      "found": 4,
+      "inserted": 0,
+      "updated": 4,
+      "skipped": 0
+    },
+    "exhibitions": {
+      "found": 2,
+      "inserted": 0,
+      "updated": 2,
+      "skipped": 0
+    },
+    "exhibitionArtists": {
+      "found": 0,
+      "inserted": 0,
+      "updated": 0,
+      "skipped": 0
+    },
+    "exhibitionArtworks": {
+      "found": 0,
+      "inserted": 0,
+      "updated": 0,
+      "skipped": 0
+    },
+    "projects": {
+      "found": 1,
+      "inserted": 0,
+      "updated": 1,
+      "skipped": 0
+    },
+    "projectArtists": {
+      "found": 0,
+      "inserted": 0,
+      "updated": 0,
+      "skipped": 0
+    },
+    "projectArtworks": {
+      "found": 0,
+      "inserted": 0,
+      "updated": 0,
+      "skipped": 0
+    },
+    "services": {
+      "found": 1,
+      "inserted": 0,
+      "updated": 1,
+      "skipped": 0
+    },
+    "news": {
+      "found": 1,
+      "inserted": 0,
+      "updated": 1,
+      "skipped": 0
+    },
+    "publications": {
+      "found": 1,
+      "inserted": 0,
+      "updated": 1,
+      "skipped": 0
+    },
+    "certificates": {
+      "found": 0,
+      "inserted": 0,
+      "updated": 0,
+      "skipped": 0
+    }
+  },
+  "warnings": [],
+  "errors": [],
+  "completedAt": "2026-07-14T21:05:16.989Z"
+}
