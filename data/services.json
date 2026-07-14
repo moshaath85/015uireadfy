@@ -1,0 +1,26 @@
+[
+  {
+    "id": "svc-001",
+    "slug": "art-advisory",
+    "title_en": "Art Advisory",
+    "title_ar": "استشارات فنية",
+    "description_en": "Personalized art advisory for private collectors and corporate clients.",
+    "description_ar": "استشارات فنية شخصية لهواة الجمع والعملاء من الشركات.",
+    "features_en": [
+      "Collection building",
+      "Art market analysis",
+      "Acquisition support"
+    ],
+    "features_ar": [
+      "بناء المجموعات",
+      "تحليل سوق الفن",
+      "دعم الاقتناء"
+    ],
+    "price_info": {
+      "type": "upon_request"
+    },
+    "visibility_status": "public",
+    "created_at": "2024-01-05T09:00:00Z",
+    "updated_at": "2024-01-05T09:00:00Z"
+  }
+]

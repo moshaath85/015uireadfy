@@ -1,0 +1,24 @@
+[
+  {
+    "id": "col-001",
+    "slug": "echoes-of-light",
+    "title_en": "Echoes of Light",
+    "title_ar": "أصداء الضوء",
+    "description_en": "Works exploring the interplay of light and shadow in contemporary Middle Eastern art.",
+    "description_ar": "أعمال تستكشف تداخل الضوء والظل في الفن المعاصر في الشرق الأوسط.",
+    "visibility_status": "public",
+    "created_at": "2024-01-10T08:00:00Z",
+    "updated_at": "2024-01-10T08:00:00Z"
+  },
+  {
+    "id": "col-002",
+    "slug": "urban-narratives",
+    "title_en": "Urban Narratives",
+    "title_ar": "روايات حضرية",
+    "description_en": "A collection focusing on cityscapes, architecture, and urban identity.",
+    "description_ar": "مجموعة تركز على مناظر المدن والعمارة والهوية الحضرية.",
+    "visibility_status": "public",
+    "created_at": "2024-02-01T09:00:00Z",
+    "updated_at": "2024-02-01T09:00:00Z"
+  }
+]

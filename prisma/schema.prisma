@@ -1,0 +1,568 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SystemConfigurationScope {
+  PLATFORM
+  ORGANIZATION
+}
+
+enum SystemConfigurationValueType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+  ENUM
+  URL
+  EMAIL
+  LOCALE
+  TIMEZONE
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  OTHER
+}
+
+enum MediaVisibility {
+  PUBLIC
+  PRIVATE
+  VIP
+  HIDDEN
+}
+
+model Organization {
+  id           String    @id @default(cuid())
+  name         String
+  slug         String    @unique
+  status       String    @default("active")
+  legalName    String?
+  description  String?
+  websiteUrl   String?
+  contactEmail String?
+  locale       String?
+  timezone     String?
+  archivedAt   DateTime?
+  suspendedAt  DateTime?
+  metadata             Json?
+  artists              Artist[]
+  artworks             Artwork[]
+  collections          Collection[]
+  exhibitions          Exhibition[]
+  exhibitionArtists    ExhibitionArtist[]
+  exhibitionArtworks   ExhibitionArtwork[]
+  media                Media[]
+  news                 News[]
+  publications         Publication[]
+  services             Service[]
+  certificates         Certificate[]
+  projects             Project[]
+  projectArtists       ProjectArtist[]
+  projectArtworks      ProjectArtwork[]
+  projectMedia         ProjectMedia[]
+  systemConfigurations SystemConfiguration[]
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  @@index([status])
+}
+
+model SystemConfiguration {
+  id               String                       @id @default(cuid())
+  key              String
+  scope            SystemConfigurationScope
+  organizationId   String?
+  organization     Organization?               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  valueType        SystemConfigurationValueType
+  value            Json
+  description      String?
+  validationSchema Json?
+  isActive         Boolean                      @default(true)
+  archivedAt       DateTime?
+  reason           String?
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+
+  @@index([key])
+  @@index([scope, key])
+  @@index([organizationId, key])
+  @@index([organizationId, scope, key])
+  @@index([isActive, key])
+  @@index([updatedAt])
+  @@index([archivedAt])
+}
+
+model Media {
+  id               String          @id @default(cuid())
+  organizationId   String          @map("organization_id")
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  filename         String
+  originalFilename String          @map("original_filename")
+  mimeType         String          @map("mime_type")
+  mediaType        MediaType       @map("media_type")
+  storagePath      String          @map("storage_path")
+  altText          String?         @map("alt_text")
+  width            Int?
+  height           Int?
+  fileSize         Int             @map("file_size")
+  visibility       MediaVisibility @default(PRIVATE)
+  checksum         String?
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+  archivedAt       DateTime?       @map("archived_at")
+  artistProfiles   Artist[]        @relation("ArtistProfileImage")
+  artworkPrimaries Artwork[]       @relation("ArtworkPrimaryMedia")
+  collectionCovers Collection[]    @relation("CollectionCoverMedia")
+  exhibitionCovers   Exhibition[]   @relation("ExhibitionCoverMedia")
+  newsImages         News[]         @relation("NewsImage")
+  publicationCovers Publication[]  @relation("PublicationCoverMedia")
+  projectCovers      Project[]      @relation("ProjectCoverMedia")
+  serviceCovers      Service[]      @relation("ServiceCoverMedia")
+  projectMedia       ProjectMedia[] @relation("ProjectMediaAsset")
+
+  @@unique([organizationId, id])
+  @@index([organizationId])
+  @@index([mediaType])
+  @@index([mimeType])
+  @@index([visibility])
+  @@index([archivedAt])
+  @@index([updatedAt])
+}
+
+model Artist {
+  id                   String       @id
+  organizationId       String       @map("organization_id")
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  slug                 String
+  nameEn               String       @map("name_en")
+  nameAr               String       @map("name_ar")
+  bioEn                String       @map("bio_en")
+  bioAr                String       @map("bio_ar")
+  birthYear            Int          @map("birth_year")
+  nationalityEn        String       @map("nationality_en")
+  nationalityAr        String       @map("nationality_ar")
+  website              String?
+  email                String?
+  instagram            String?
+  profileImageId       String?      @map("profile_image_id")
+  profileImage         Media?       @relation("ArtistProfileImage", fields: [organizationId, profileImageId], references: [organizationId, id], onDelete: Restrict)
+  featured             Boolean      @default(false)
+  displayOrder         Int          @default(0) @map("display_order")
+  representationStatus String       @map("representation_status")
+  visibilityStatus     String       @default("private") @map("visibility_status")
+  artworks             Artwork[]    @relation("ArtworkArtist")
+  exhibitionRelations  ExhibitionArtist[]
+  projectRelations     ProjectArtist[]
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+  archivedAt           DateTime?    @map("archived_at")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([visibilityStatus])
+  @@index([featured])
+  @@index([displayOrder])
+  @@index([organizationId, profileImageId])
+  @@index([archivedAt])
+}
+
+model Collection {
+  id               String       @id
+  organizationId   String       @map("organization_id")
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  slug             String
+  titleEn          String       @map("title_en")
+  titleAr          String       @map("title_ar")
+  descriptionEn    String       @map("description_en")
+  descriptionAr    String       @map("description_ar")
+  coverMediaId     String?      @map("cover_media_id")
+  coverMedia       Media?       @relation("CollectionCoverMedia", fields: [organizationId, coverMediaId], references: [organizationId, id], onDelete: Restrict)
+  featured         Boolean      @default(false)
+  visibilityStatus String       @default("private") @map("visibility_status")
+  displayOrder     Int          @default(0) @map("display_order")
+  artworks         Artwork[]    @relation("ArtworkCollection")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  archivedAt       DateTime?    @map("archived_at")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([visibilityStatus])
+  @@index([featured])
+  @@index([displayOrder])
+  @@index([organizationId, coverMediaId])
+  @@index([archivedAt])
+}
+
+model Artwork {
+  id                 String       @id
+  organizationId     String       @map("organization_id")
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  slug               String
+  titleEn            String       @map("title_en")
+  titleAr            String       @map("title_ar")
+  descriptionEn      String       @map("description_en")
+  descriptionAr      String       @map("description_ar")
+  artistId           String       @map("artist_id")
+  artist             Artist       @relation("ArtworkArtist", fields: [organizationId, artistId], references: [organizationId, id], onDelete: Restrict)
+  collectionId       String?      @map("collection_id")
+  collection         Collection?  @relation("ArtworkCollection", fields: [organizationId, collectionId], references: [organizationId, id], onDelete: Restrict)
+  primaryMediaId     String       @map("primary_media_id")
+  primaryMedia       Media        @relation("ArtworkPrimaryMedia", fields: [organizationId, primaryMediaId], references: [organizationId, id], onDelete: Restrict)
+  exhibitionRelations ExhibitionArtwork[]
+  projectRelations    ProjectArtwork[]
+  certificates        Certificate[]
+  yearCreated        Int          @map("year_created")
+  medium             String
+  dimensions         String
+  priceVisibility    String       @map("price_visibility")
+  availabilityStatus String       @map("availability_status")
+  featured           Boolean      @default(false)
+  displayOrder       Int          @default(0) @map("display_order")
+  visibilityStatus   String       @default("private") @map("visibility_status")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+  archivedAt         DateTime?    @map("archived_at")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([artistId])
+  @@index([collectionId])
+  @@index([primaryMediaId])
+  @@index([priceVisibility])
+  @@index([availabilityStatus])
+  @@index([visibilityStatus])
+  @@index([featured])
+  @@index([displayOrder])
+  @@index([archivedAt])
+}
+
+model Certificate {
+  id                String       @id
+  organizationId    String       @map("organization_id")
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  certificateNumber String       @map("certificate_number")
+  artworkId         String       @map("artwork_id")
+  artwork           Artwork      @relation(fields: [organizationId, artworkId], references: [organizationId, id], onDelete: Restrict)
+  issuedDate        DateTime     @map("issued_date")
+  templateId        String?      @map("template_id")
+  qrCode            String?      @map("qr_code")
+  verificationUrl   String       @map("verification_url")
+  status            String       @default("draft")
+  issuedBy          String       @map("issued_by")
+  approvedBy        String       @map("approved_by")
+  issuedVersion     Int          @default(1) @map("issued_version")
+  issuedAt          DateTime     @map("issued_at")
+  lastUpdated       DateTime     @updatedAt @map("last_updated")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  archivedAt        DateTime?    @map("archived_at")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, certificateNumber])
+  @@unique([organizationId, verificationUrl])
+  @@index([organizationId])
+  @@index([certificateNumber])
+  @@index([artworkId])
+  @@index([status])
+  @@index([issuedDate])
+  @@index([issuedAt])
+  @@index([archivedAt])
+}
+
+model Exhibition {
+  id               String                @id
+  organizationId   String                @map("organization_id")
+  organization     Organization          @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  slug             String
+  titleEn          String                @map("title_en")
+  titleAr          String                @map("title_ar")
+  descriptionEn    String                @map("description_en")
+  descriptionAr    String                @map("description_ar")
+  startDate        DateTime              @map("start_date")
+  endDate          DateTime              @map("end_date")
+  venueEn          String                @map("venue_en")
+  venueAr          String                @map("venue_ar")
+  coverMediaId     String?               @map("cover_media_id")
+  coverMedia       Media?                @relation("ExhibitionCoverMedia", fields: [organizationId, coverMediaId], references: [organizationId, id], onDelete: Restrict)
+  status           String                @default("planned")
+  featured         Boolean               @default(false)
+  visibilityStatus String                @default("private") @map("visibility_status")
+  displayOrder     Int                   @default(0) @map("display_order")
+  artists          ExhibitionArtist[]
+  artworks         ExhibitionArtwork[]
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+  archivedAt       DateTime?             @map("archived_at")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([status])
+  @@index([visibilityStatus])
+  @@index([featured])
+  @@index([displayOrder])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([organizationId, coverMediaId])
+  @@index([archivedAt])
+}
+
+model ExhibitionArtist {
+  id             String       @id @default(cuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  exhibitionId   String       @map("exhibition_id")
+  exhibition     Exhibition   @relation(fields: [organizationId, exhibitionId], references: [organizationId, id], onDelete: Restrict)
+  artistId       String       @map("artist_id")
+  artist         Artist       @relation(fields: [organizationId, artistId], references: [organizationId, id], onDelete: Restrict)
+  role           String       @default("artist")
+  displayOrder   Int          @default(0) @map("display_order")
+  addedAt        DateTime     @default(now()) @map("added_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  archivedAt     DateTime?    @map("archived_at")
+
+  @@unique([organizationId, exhibitionId, artistId])
+  @@index([organizationId])
+  @@index([exhibitionId])
+  @@index([artistId])
+  @@index([role])
+  @@index([displayOrder])
+  @@index([archivedAt])
+}
+
+model ExhibitionArtwork {
+  id             String       @id @default(cuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  exhibitionId   String       @map("exhibition_id")
+  exhibition     Exhibition   @relation(fields: [organizationId, exhibitionId], references: [organizationId, id], onDelete: Restrict)
+  artworkId      String       @map("artwork_id")
+  artwork        Artwork      @relation(fields: [organizationId, artworkId], references: [organizationId, id], onDelete: Restrict)
+  displayOrder   Int          @default(0) @map("display_order")
+  addedAt        DateTime     @default(now()) @map("added_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  archivedAt     DateTime?    @map("archived_at")
+
+  @@unique([organizationId, exhibitionId, artworkId])
+  @@index([organizationId])
+  @@index([exhibitionId])
+  @@index([artworkId])
+  @@index([displayOrder])
+  @@index([archivedAt])
+}
+
+model Project {
+  id               String           @id
+  organizationId   String           @map("organization_id")
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  slug             String
+  titleEn          String           @map("title_en")
+  titleAr          String           @map("title_ar")
+  descriptionEn    String           @map("description_en")
+  descriptionAr    String           @map("description_ar")
+  clientEn         String?          @map("client_en")
+  clientAr         String?          @map("client_ar")
+  type             String
+  year             Int
+  status           String
+  featured         Boolean          @default(false)
+  coverMediaId     String?          @map("cover_media_id")
+  coverMedia       Media?           @relation("ProjectCoverMedia", fields: [organizationId, coverMediaId], references: [organizationId, id], onDelete: Restrict)
+  visibilityStatus String           @default("private") @map("visibility_status")
+  displayOrder     Int              @default(0) @map("display_order")
+  artists          ProjectArtist[]
+  artworks         ProjectArtwork[]
+  media            ProjectMedia[]
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  archivedAt       DateTime?        @map("archived_at")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([type])
+  @@index([year])
+  @@index([status])
+  @@index([visibilityStatus])
+  @@index([featured])
+  @@index([displayOrder])
+  @@index([archivedAt])
+}
+
+model ProjectArtist {
+  id             String       @id @default(cuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  projectId      String       @map("project_id")
+  project        Project      @relation(fields: [organizationId, projectId], references: [organizationId, id], onDelete: Restrict)
+  artistId       String       @map("artist_id")
+  artist         Artist       @relation(fields: [organizationId, artistId], references: [organizationId, id], onDelete: Restrict)
+  role           String       @default("artist")
+  displayOrder   Int          @default(0) @map("display_order")
+  addedAt        DateTime     @default(now()) @map("added_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  archivedAt     DateTime?    @map("archived_at")
+
+  @@unique([organizationId, projectId, artistId])
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([artistId])
+  @@index([role])
+  @@index([displayOrder])
+  @@index([archivedAt])
+}
+
+model ProjectArtwork {
+  id             String       @id @default(cuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  projectId      String       @map("project_id")
+  project        Project      @relation(fields: [organizationId, projectId], references: [organizationId, id], onDelete: Restrict)
+  artworkId      String       @map("artwork_id")
+  artwork        Artwork      @relation(fields: [organizationId, artworkId], references: [organizationId, id], onDelete: Restrict)
+  inclusionNote  String?      @map("inclusion_note")
+  displayOrder   Int          @default(0) @map("display_order")
+  addedAt        DateTime     @default(now()) @map("added_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  archivedAt     DateTime?    @map("archived_at")
+
+  @@unique([organizationId, projectId, artworkId])
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([artworkId])
+  @@index([displayOrder])
+  @@index([archivedAt])
+}
+
+model ProjectMedia {
+  id             String       @id @default(cuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  projectId      String       @map("project_id")
+  project        Project      @relation(fields: [organizationId, projectId], references: [organizationId, id], onDelete: Restrict)
+  mediaId        String       @map("media_id")
+  media          Media        @relation("ProjectMediaAsset", fields: [organizationId, mediaId], references: [organizationId, id], onDelete: Restrict)
+  role           String       @default("supporting")
+  displayOrder   Int          @default(0) @map("display_order")
+  addedAt        DateTime     @default(now()) @map("added_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  archivedAt     DateTime?    @map("archived_at")
+
+  @@unique([organizationId, projectId, mediaId, role])
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([mediaId])
+  @@index([role])
+  @@index([displayOrder])
+  @@index([archivedAt])
+}
+
+
+model News {
+  id               String       @id
+  organizationId   String       @map("organization_id")
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  slug             String
+  titleEn          String       @map("title_en")
+  titleAr          String       @map("title_ar")
+  contentEn        String       @map("content_en")
+  contentAr        String       @map("content_ar")
+  excerptEn        String       @map("excerpt_en")
+  excerptAr        String       @map("excerpt_ar")
+  category         String
+  publishDate      DateTime     @map("publish_date")
+  imageId          String?      @map("image_id")
+  image            Media?       @relation("NewsImage", fields: [organizationId, imageId], references: [organizationId, id], onDelete: Restrict)
+  visibilityStatus String       @default("private") @map("visibility_status")
+  displayOrder     Int          @default(0) @map("display_order")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  archivedAt       DateTime?    @map("archived_at")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([category])
+  @@index([publishDate])
+  @@index([visibilityStatus])
+  @@index([displayOrder])
+  @@index([organizationId, imageId])
+  @@index([archivedAt])
+}
+
+model Publication {
+  id               String       @id
+  organizationId   String       @map("organization_id")
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  slug             String
+  titleEn          String       @map("title_en")
+  titleAr          String       @map("title_ar")
+  descriptionEn    String       @map("description_en")
+  descriptionAr    String       @map("description_ar")
+  type             String
+  fileUrl          String       @map("file_url")
+  coverImageId     String?      @map("cover_image_id")
+  coverImage       Media?       @relation("PublicationCoverMedia", fields: [organizationId, coverImageId], references: [organizationId, id], onDelete: Restrict)
+  publishDate      DateTime     @map("publish_date")
+  visibilityStatus String       @default("private") @map("visibility_status")
+  displayOrder     Int          @default(0) @map("display_order")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  archivedAt       DateTime?    @map("archived_at")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([type])
+  @@index([publishDate])
+  @@index([visibilityStatus])
+  @@index([displayOrder])
+  @@index([organizationId, coverImageId])
+  @@index([archivedAt])
+}
+
+model Service {
+  id               String       @id
+  organizationId   String       @map("organization_id")
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  slug             String
+  titleEn          String       @map("title_en")
+  titleAr          String       @map("title_ar")
+  descriptionEn    String       @map("description_en")
+  descriptionAr    String       @map("description_ar")
+  featuresEn       Json         @map("features_en")
+  featuresAr       Json         @map("features_ar")
+  priceInfo        Json?        @map("price_info")
+  coverMediaId     String?      @map("cover_media_id")
+  coverMedia       Media?       @relation("ServiceCoverMedia", fields: [organizationId, coverMediaId], references: [organizationId, id], onDelete: Restrict)
+  visibilityStatus String       @default("private") @map("visibility_status")
+  displayOrder     Int          @default(0) @map("display_order")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
+  archivedAt       DateTime?    @map("archived_at")
+
+  @@unique([organizationId, id])
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([visibilityStatus])
+  @@index([displayOrder])
+  @@index([organizationId, coverMediaId])
+  @@index([archivedAt])
+}

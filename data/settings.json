@@ -1,0 +1,15 @@
+{
+  "site_name_en": "Gallery 015",
+  "site_name_ar": "جاليري 015",
+  "description_en": "Contemporary art gallery based in Riyadh, representing emerging and established artists from the Middle East.",
+  "description_ar": "جاليري فني معاصر في الرياض، يمثل فنانين ناشئين ومخضرمين من الشرق الأوسط.",
+  "contact_email": "info@gallery015.com",
+  "contact_phone": "+966-12-345-6789",
+  "address_en": "King Fahd Road, Al Olaya District, Riyadh",
+  "address_ar": "طريق الملك فهد، حي العليا، الرياض",
+  "social_media": {
+    "instagram": "@gallery015",
+    "twitter": "@gallery015",
+    "facebook": "gallery015"
+  }
+}

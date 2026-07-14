@@ -1,0 +1,15 @@
+[
+  {
+    "id": "pub-001",
+    "slug": "desert-reflections-catalogue",
+    "title_en": "Desert Reflections — Exhibition Catalogue",
+    "title_ar": "انعكاسات صحراوية — كتالوج المعرض",
+    "description_en": "Full-colour catalogue accompanying the Desert Reflections exhibition.",
+    "description_ar": "كتالوج ملون يصاحب معرض انعكاسات صحراوية.",
+    "type": "catalogue",
+    "file_url": "https://cdn.gallery015.com/publications/pub-001.pdf",
+    "cover_image_id": null,
+    "publish_date": "2024-09-15",
+    "visibility_status": "public"
+  }
+]

@@ -1,0 +1,1 @@
+export default function ContactPage(){return <main><h1>Contact</h1><p>Contact form will be added later.</p><address>Gallery 015<br />Email: info@gallery015.com<br />Phone: +966-12-345-6789</address></main>}

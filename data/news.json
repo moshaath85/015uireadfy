@@ -1,0 +1,16 @@
+[
+  {
+    "id": "news-001",
+    "slug": "gallery-015-opens-new-space",
+    "title_en": "Gallery 015 Opens New Space",
+    "title_ar": "جاليري 015 يفتتح مساحة جديدة",
+    "content_en": "Full article content here.",
+    "content_ar": "محتوى المقال كامل هنا.",
+    "excerpt_en": "Gallery 015 announces the opening of a new exhibition space in Jeddah.",
+    "excerpt_ar": "يعلن جاليري 015 عن افتتاح مساحة عرض جديدة في جدة.",
+    "category": "announcement",
+    "publish_date": "2024-08-20",
+    "image_id": null,
+    "visibility_status": "public"
+  }
+]

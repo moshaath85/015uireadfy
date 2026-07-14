@@ -1,0 +1,32 @@
+[
+  {
+    "id": "ex-001",
+    "slug": "desert-reflections",
+    "title_en": "Desert Reflections",
+    "title_ar": "انعكاسات صحراوية",
+    "description_en": "A group exhibition exploring the desert as metaphor and reality.",
+    "description_ar": "معرض جماعي يستكشف الصحراء كمجاز وواقع.",
+    "start_date": "2024-09-15",
+    "end_date": "2024-11-30",
+    "venue_en": "Gallery 015 Main Hall, Riyadh",
+    "venue_ar": "القاعة الرئيسية، جاليري 015، الرياض",
+    "visibility_status": "public",
+    "created_at": "2024-07-01T10:00:00Z",
+    "updated_at": "2024-07-01T10:00:00Z"
+  },
+  {
+    "id": "ex-002",
+    "slug": "concrete-poetry",
+    "title_en": "Concrete Poetry",
+    "title_ar": "شعر خرساني",
+    "description_en": "Omar Farouk solo exhibition of urban mixed-media works.",
+    "description_ar": "معرض فردي لعمر فاروق لأعمال الوسائط المتعددة الحضرية.",
+    "start_date": "2025-02-01",
+    "end_date": "2025-03-15",
+    "venue_en": "Gallery 015 Annex, Jeddah",
+    "venue_ar": "الملحق، جاليري 015، جدة",
+    "visibility_status": "public",
+    "created_at": "2024-09-15T14:00:00Z",
+    "updated_at": "2024-09-15T14:00:00Z"
+  }
+]
