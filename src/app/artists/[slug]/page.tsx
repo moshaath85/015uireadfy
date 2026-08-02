@@ -5,6 +5,8 @@ import { artistsRepository } from '@/lib/repositories/artists';
 import { artworksRepository } from '@/lib/repositories/artworks';
 import { mediaRepository } from '@/lib/repositories/media';
 import { SITE } from '@/lib/metadata';
+import { getServerLanguage } from '@/lib/i18n/server-language';
+import type { Language } from '@/lib/i18n/language';
 
 interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
@@ -24,8 +26,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ArtistDetailPage({ params }: Props) {
   const { slug } = await params;
+  const lang = await getServerLanguage();
   const artist = await artistsRepository.getPublicBySlug(slug);
   if (!artist) notFound();
+
+  const ar = lang === 'ar';
+  const name = ar && artist.name_ar ? artist.name_ar : artist.name_en;
+  const bio = ar && artist.bio_ar ? artist.bio_ar : artist.bio_en;
+  const nationality = ar && artist.nationality_ar ? artist.nationality_ar : artist.nationality_en;
 
   const allArtworks = await artworksRepository.getPublicAll();
 
@@ -56,12 +64,10 @@ export default async function ArtistDetailPage({ params }: Props) {
     : 'Gallery Artist';
 
   const facts = [
-    { label: 'Nationality', value: artist.nationality_en },
-    { label: 'Born', value: artist.birth_year > 1900 ? String(artist.birth_year) : undefined },
-    { label: 'Representation', value: representationLabel },
-    { label: 'Works in collection', value: artistWorks.length ? String(artistWorks.length) : undefined },
-    artist.website ? { label: 'Website', value: artist.website } : undefined,
-    artist.instagram ? { label: 'Instagram', value: `@${artist.instagram.replace('@', '')}` } : undefined,
+    { label: ar ? 'الجنسية' : 'Nationality', value: nationality },
+    { label: ar ? 'مواليد' : 'Born', value: artist.birth_year > 1900 ? String(artist.birth_year) : undefined },
+    { label: ar ? 'التمثيل' : 'Representation', value: representationLabel },
+    { label: ar ? 'أعمال في المجموعة' : 'Works in collection', value: artistWorks.length ? String(artistWorks.length) : undefined },
   ].filter((f): f is { label: string; value: string } => Boolean(f?.value));
 
   return (
@@ -73,12 +79,8 @@ export default async function ArtistDetailPage({ params }: Props) {
       <section className="experience-detail__hero">
         <div className="experience-detail__heading">
           <p className="experience-kicker">Artist</p>
-          <h1>{artist.name_en}</h1>
-          {artist.name_ar ? (
-            <p className="experience-detail__subtitle" dir="rtl" lang="ar">
-              {artist.name_ar}
-            </p>
-          ) : null}
+          <h1>{name}</h1>
+          {artist.name_ar && <p className="experience-detail__subtitle" dir="rtl" lang="ar">{artist.name_ar}</p>}
         </div>
         <figure className="experience-detail__media">
           {profileMedia ? (
@@ -105,15 +107,10 @@ export default async function ArtistDetailPage({ params }: Props) {
             </div>
           ))}
         </dl>
-        {artist.bio_en ? (
+        {bio ? (
           <div className="experience-body">
-            {artist.bio_en
-              .split(/\n{2,}/)
-              .map((p) => p.trim())
-              .filter(Boolean)
-              .map((paragraph, index) => (
-                <p key={`bio-${index}`}>{paragraph}</p>
-              ))}
+            {bio.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+              .map((paragraph, index) => <p key={`bio-${index}`}>{paragraph}</p>)}
           </div>
         ) : null}
       </section>
@@ -122,7 +119,7 @@ export default async function ArtistDetailPage({ params }: Props) {
         <section className="experience-related" aria-labelledby="artist-works-title">
           <header>
             <p className="experience-kicker">Collection</p>
-            <h2 id="artist-works-title">Works by {artist.name_en}</h2>
+            <h2 id="artist-works-title">{ar ? `أعمال ${name}` : `Works by ${name}`}</h2>
           </header>
           <div className="experience-related__list">
             {workItems.map((work) => (
@@ -154,10 +151,10 @@ export default async function ArtistDetailPage({ params }: Props) {
       ) : null}
 
       <section className="experience-inquiry">
-        <p className="experience-kicker">Private viewings and advisory</p>
-        <h2>Enquire about {artist.name_en}</h2>
-        <p>Contact the gallery for available works and private viewing appointments.</p>
-        <Link href="/contact">Contact the gallery</Link>
+        <p className="experience-kicker">{ar ? 'مشاهدة خاصة واستشارات' : 'Private viewings and advisory'}</p>
+        <h2>{ar ? `استفسر عن ${name}` : `Enquire about ${name}`}</h2>
+        <p>{ar ? 'تواصل مع الغاليري للاستفسار عن الأعمال المتاحة ومواعيد المشاهدة الخاصة.' : 'Contact the gallery for available works and private viewing appointments.'}</p>
+        <Link href="/contact">{ar ? 'تواصل مع الغاليري' : 'Contact the gallery'}</Link>
       </section>
     </main>
   );
