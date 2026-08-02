@@ -3,6 +3,7 @@ import { ExhibitionExperience } from '@/components/experience';
 import { exhibitionsRepository } from '@/lib/repositories/exhibitions';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 import type { ExhibitionExperienceData } from '@/lib/experience/exhibition-experience';
+import { ExhibitionEventLd, BreadcrumbListLd } from '@/lib/jsonld';
 
 interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
@@ -43,5 +44,20 @@ export default async function ExhibitionDetailPage({ params }: Props) {
   const data = await exhibitionsRepository.getPublicExperienceBySlug(slug);
   if (!data) notFound();
 
-  return <ExhibitionExperience data={localizeData(data, ar)} />;
+  return (
+    <>
+      <ExhibitionEventLd
+        name={data.exhibition.title}
+        alternateName={data.exhibition.titleAr || undefined}
+        description={data.exhibition.statement?.slice(0, 300)}
+        startDate={data.exhibition.startDate}
+        endDate={data.exhibition.endDate}
+        locationName={data.exhibition.venue}
+        url={`https://gallery015.com/exhibitions/${slug}`}
+        image={data.coverMedia?.url}
+      />
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Exhibitions', url: 'https://gallery015.com/exhibitions' }, { name: data.exhibition.title, url: `https://gallery015.com/exhibitions/${slug}` }]} />
+      <ExhibitionExperience data={localizeData(data, ar)} />
+    </>
+  );
 }

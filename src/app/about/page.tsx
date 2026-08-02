@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 import type { Language } from '@/lib/i18n/language';
+import { BreadcrumbListLd } from '@/lib/jsonld';
 
 const T = {
   kicker: { ar: 'حول', en: 'About' },
@@ -29,6 +30,8 @@ export const metadata: Metadata = {
 export default async function AboutPage() {
   const lang = await getServerLanguage();
   return (
+    <>
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'About', url: 'https://gallery015.com/about' }]} />
     <main className="g-page">
       <div className="g-page__grid">
         <header className="g-page__header">
@@ -60,5 +63,6 @@ export default async function AboutPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

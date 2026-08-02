@@ -4,6 +4,7 @@ import { newsRepository } from '@/lib/repositories/news';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 import type { Language } from '@/lib/i18n/language';
 import type { Metadata } from 'next';
+import { BreadcrumbListLd } from '@/lib/jsonld';
 
 const T = {
   eyebrow: { ar: 'مجلة ٠١٥', en: '015 Journal' },
@@ -57,11 +58,14 @@ export default async function NewsPage() {
   );
 
   return (
+    <>
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Journal', url: 'https://gallery015.com/news' }]} />
     <EditorialIndex
       eyebrow={t('eyebrow', lang)}
       title={t('title', lang)}
       introduction={t('introduction', lang)}
       items={items}
     />
+    </>
   );
 }

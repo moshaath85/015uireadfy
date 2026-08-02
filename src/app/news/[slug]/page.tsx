@@ -6,6 +6,7 @@ import { newsRepository } from '@/lib/repositories/news';
 import { SITE } from '@/lib/metadata';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 import type { Language } from '@/lib/i18n/language';
+import { ArticleLd, BreadcrumbListLd } from '@/lib/jsonld';
 
 const T = {
   published: { ar: 'نُشر', en: 'Published' },
@@ -76,6 +77,17 @@ export default async function NewsDetailPage({ params }: Props) {
   );
 
   return (
+    <>
+      <ArticleLd
+        headline={item.title_en}
+        alternateName={item.title_ar || undefined}
+        description={item.excerpt_en?.slice(0, 300) || item.content_en?.slice(0, 300)}
+        author="Gallery 015"
+        datePublished={item.publish_date}
+        url={`https://gallery015.com/news/${slug}`}
+        image={image?.url}
+      />
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Journal', url: 'https://gallery015.com/news' }, { name: item.title_en, url: `https://gallery015.com/news/${slug}` }]} />
     <EditorialDetail
       eyebrow={formatCategory(item.category)}
       title={ar && item.title_ar ? item.title_ar : item.title_en}
@@ -97,5 +109,6 @@ export default async function NewsDetailPage({ params }: Props) {
         items={related}
       />
     </EditorialDetail>
+    </>
   );
 }

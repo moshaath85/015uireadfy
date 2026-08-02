@@ -5,6 +5,7 @@ import { artworksRepository } from '@/lib/repositories/artworks';
 import { SITE } from '@/lib/metadata';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 import type { ArtworkExperienceData } from '@/lib/experience/artwork-experience';
+import { VisualArtworkLd, BreadcrumbListLd } from '@/lib/jsonld';
 
 interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
@@ -60,5 +61,21 @@ export default async function ArtworkDetailPage({ params }: Props) {
   const ar = lang === 'ar';
   const data = await artworksRepository.getPublicExperienceBySlug(slug);
   if (!data) notFound();
-  return <ArtworkExperience data={localizeData(data, ar)} />;
+  const localized = localizeData(data, ar);
+  return (
+    <>
+      <VisualArtworkLd
+        name={data.artwork.title}
+        alternateName={data.artwork.titleAr || undefined}
+        description={data.artwork.description?.slice(0, 300)}
+        creatorName={data.artist.name}
+        creatorUrl={`https://gallery015.com/artists/${data.artist.slug}`}
+        dateCreated={String(data.artwork.year)}
+        artMedium={data.artwork.medium}
+        url={`https://gallery015.com/artworks/${slug}`}
+      />
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Artworks', url: 'https://gallery015.com/artworks' }, { name: data.artwork.title, url: `https://gallery015.com/artworks/${slug}` }]} />
+      <ArtworkExperience data={localized} />
+    </>
+  );
 }

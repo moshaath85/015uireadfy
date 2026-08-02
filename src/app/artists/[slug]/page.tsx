@@ -7,6 +7,7 @@ import { mediaRepository } from '@/lib/repositories/media';
 import { SITE } from '@/lib/metadata';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 import type { Language } from '@/lib/i18n/language';
+import { PersonLd, BreadcrumbListLd } from '@/lib/jsonld';
 
 interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
@@ -71,6 +72,18 @@ export default async function ArtistDetailPage({ params }: Props) {
   ].filter((f): f is { label: string; value: string } => Boolean(f?.value));
 
   return (
+    <>
+      <PersonLd
+        name={artist.name_en}
+        alternateName={artist.name_ar || undefined}
+        description={artist.bio_en?.slice(0, 300)}
+        birthDate={artist.birth_year > 1900 ? String(artist.birth_year) : undefined}
+        nationality={artist.nationality_en}
+        url={`https://gallery015.com/artists/${slug}`}
+        image={profileMedia?.url}
+        sameAs={artist.instagram ? [`https://www.instagram.com/${artist.instagram.replace('@', '')}`] : undefined}
+      />
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Artists', url: 'https://gallery015.com/artists' }, { name: artist.name_en, url: `https://gallery015.com/artists/${slug}` }]} />
     <main className="experience-detail experience-detail--artist">
       <Link className="experience-detail__back" href="/artists">
         ← All artists
@@ -157,5 +170,6 @@ export default async function ArtistDetailPage({ params }: Props) {
         <Link href="/contact">{ar ? 'تواصل مع الغاليري' : 'Contact the gallery'}</Link>
       </section>
     </main>
+    </>
   );
 }

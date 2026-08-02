@@ -3,6 +3,7 @@ import { artistsRepository } from '@/lib/repositories/artists';
 import { artworksRepository } from '@/lib/repositories/artworks';
 import { mediaRepository } from '@/lib/repositories/media';
 import type { Metadata } from 'next';
+import { BreadcrumbListLd } from '@/lib/jsonld';
 
 export const metadata: Metadata = {
   title: 'Artworks | Gallery 015',
@@ -26,5 +27,10 @@ export default async function ArtworksPage() {
     };
   }));
 
-  return <EditorialIndex eyebrow="Selected works" title="Artworks" introduction="A focused selection of contemporary works available through Gallery 015." items={items} />;
+  return (
+    <>
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Artworks', url: 'https://gallery015.com/artworks' }]} />
+      <EditorialIndex eyebrow="Selected works" title="Artworks" introduction="A focused selection of contemporary works available through Gallery 015." items={items} />
+    </>
+  );
 }

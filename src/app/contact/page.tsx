@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import ContactForm from '@/components/public/ContactForm';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 import type { Language } from '@/lib/i18n/language';
+import { BreadcrumbListLd } from '@/lib/jsonld';
 
 export const metadata: Metadata = {
   title: 'Contact | Gallery 015',
@@ -23,6 +24,8 @@ function t(key: keyof typeof T, lang: Language) { return lang === 'ar' ? T[key].
 export default async function ContactPage() {
   const lang = await getServerLanguage();
   return (
+    <>
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Contact', url: 'https://gallery015.com/contact' }]} />
     <main className="g-contact">
       <div className="g-contact__grid">
         <header className="g-contact__header">
@@ -51,5 +54,6 @@ export default async function ContactPage() {
         </div>
       </div>
     </main>
+    </>
   );
 }

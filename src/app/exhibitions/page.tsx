@@ -4,6 +4,7 @@ import { mediaRepository } from '@/lib/repositories/media';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 import type { Language } from '@/lib/i18n/language';
 import type { Metadata } from 'next';
+import { BreadcrumbListLd } from '@/lib/jsonld';
 
 const T = {
   eyebrow: { ar: 'البرنامج', en: 'Programme' },
@@ -47,5 +48,10 @@ export default async function ExhibitionsPage() {
       image: media ? { src: media.url, alt: media.alt_ar && ar ? media.alt_ar : media.alt_en || exhibition.title_en } : null,
     };
   }));
-  return <EditorialIndex eyebrow={t('eyebrow', lang)} title={t('title', lang)} introduction={t('introduction', lang)} items={items} variant="exhibitions" />;
+  return (
+    <>
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Exhibitions', url: 'https://gallery015.com/exhibitions' }]} />
+      <EditorialIndex eyebrow={t('eyebrow', lang)} title={t('title', lang)} introduction={t('introduction', lang)} items={items} variant="exhibitions" />
+    </>
+  );
 }

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import '@/styles/home-2026.css';
 import HeroRotator, { type HeroSlide } from '@/components/public/home/HeroRotator';
+import { OrganizationLd, ArtGalleryLd, BreadcrumbListLd } from '@/lib/jsonld';
 import { artistsRepository } from '@/lib/repositories/artists';
 import { artworksRepository } from '@/lib/repositories/artworks';
 import { exhibitionsRepository } from '@/lib/repositories/exhibitions';
@@ -149,7 +150,11 @@ export default async function HomePage() {
     .slice(0, 3);
 
   return (
-    <div className="hp">
+    <>
+      <OrganizationLd />
+      <ArtGalleryLd />
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }]} />
+      <div className="hp">
 
       <HeroRotator slides={heroSlides} />
 
@@ -336,5 +341,6 @@ export default async function HomePage() {
       </section>
 
     </div>
+    </>
   );
 }

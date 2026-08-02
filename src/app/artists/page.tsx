@@ -4,6 +4,7 @@ import { artworksRepository } from '@/lib/repositories/artworks';
 import { mediaRepository } from '@/lib/repositories/media';
 import type { Artwork } from '@/types';
 import type { Metadata } from 'next';
+import { BreadcrumbListLd } from '@/lib/jsonld';
 
 export const metadata: Metadata = {
   title: 'Artists | Gallery 015',
@@ -67,6 +68,8 @@ export default async function ArtistsPage() {
   }));
 
   return (
+    <>
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Artists', url: 'https://gallery015.com/artists' }]} />
     <main className="artist-roster-page">
       <header className="artist-roster-hero">
         <h1>The roster</h1>
@@ -79,5 +82,6 @@ export default async function ArtistsPage() {
         <ArtistRoster artists={items} />
       </section>
     </main>
+    </>
   );
 }

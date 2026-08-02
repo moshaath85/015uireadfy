@@ -4,6 +4,7 @@ import { projectsRepository } from '@/lib/repositories/projects';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 import type { Language } from '@/lib/i18n/language';
 import type { Metadata } from 'next';
+import { BreadcrumbListLd } from '@/lib/jsonld';
 
 const T = {
   eyebrow: { ar: 'الفن في المكان', en: 'Art in place' },
@@ -36,5 +37,10 @@ export default async function ProjectsPage() {
       image: media ? { src: media.url, alt: media.alt_ar && ar ? media.alt_ar : media.alt_en || project.title_en } : null,
     };
   }));
-  return <EditorialIndex eyebrow={t('eyebrow', lang)} title={t('title', lang)} introduction={t('introduction', lang)} items={items} variant="projects" />;
+  return (
+    <>
+      <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Projects', url: 'https://gallery015.com/projects' }]} />
+      <EditorialIndex eyebrow={t('eyebrow', lang)} title={t('title', lang)} introduction={t('introduction', lang)} items={items} variant="projects" />
+    </>
+  );
 }
