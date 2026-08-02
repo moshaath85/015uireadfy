@@ -157,10 +157,10 @@ export default function GalleryHall({ artworks }: { artworks: ArtworkData[] }) {
       <hemisphereLight args={["#fff9ef", "#555045", 0.85]} />
       <ambientLight intensity={0.42} color="#faf6ed" />
 
-      {/* Cove — ceiling recess */}
-      <AccentLight position={[0, H - 0.22, -hd + 0.15]} rotation={[0, 0, 0]} width={W - 2} height={COVE_WIDTH} intensity={1.6} />
-      <AccentLight position={[-hw + 0.15, H - 0.22, 0]} rotation={[0, -Math.PI / 2, 0]} width={D - 2} height={COVE_WIDTH} intensity={1.3} />
-      <AccentLight position={[hw - 0.15, H - 0.22, 0]} rotation={[0, Math.PI / 2, 0]} width={D - 2} height={COVE_WIDTH} intensity={1.3} />
+      {/* Cove — hidden in ceiling recess, washing walls */}
+      <AccentLight position={[0, H - 0.08, -hd + 0.1]} rotation={[-0.3, 0, 0]} width={W - 2} height={COVE_WIDTH * 0.7} intensity={1.6} />
+      <AccentLight position={[-hw + 0.1, H - 0.08, 0]} rotation={[-0.3, -Math.PI / 2, 0]} width={D - 2} height={COVE_WIDTH * 0.7} intensity={1.3} />
+      <AccentLight position={[hw - 0.1, H - 0.08, 0]} rotation={[-0.3, Math.PI / 2, 0]} width={D - 2} height={COVE_WIDTH * 0.7} intensity={1.3} />
 
       {/* Artwork accent */}
       <AccentLight position={[-BACK_WALL_PLACEMENTS[0].position[0], EYE + 0.7, -hd + WT / 2 + 0.6]} rotation={[0, 0, 0]} width={2.65} height={1.5} intensity={2.0} />
