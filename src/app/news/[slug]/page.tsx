@@ -4,6 +4,22 @@ import { EditorialDetail, EditorialRelated, type EditorialIndexItem } from '@/co
 import { mediaRepository } from '@/lib/repositories/media';
 import { newsRepository } from '@/lib/repositories/news';
 import { SITE } from '@/lib/metadata';
+import { getServerLanguage } from '@/lib/i18n/server-language';
+import type { Language } from '@/lib/i18n/language';
+
+const T = {
+  published: { ar: 'نُشر', en: 'Published' },
+  category: { ar: 'الفئة', en: 'Category' },
+  reading_time: { ar: 'وقت القراءة', en: 'Reading time' },
+  min_read: { ar: 'دقيقة قراءة', en: 'min read' },
+  back_label: { ar: 'كل المجلة', en: 'All journal' },
+  cta_title: { ar: 'تواصل مع الغاليري', en: 'Contact the gallery' },
+  further_reading: { ar: 'قراءة إضافية', en: 'Further reading' },
+  related_articles: { ar: 'مقالات ذات صلة', en: 'Related articles' },
+  article_not_found: { ar: 'المقال غير موجود', en: 'Article Not Found' },
+};
+
+function t(key: keyof typeof T, lang: Language): string { return lang === 'ar' ? T[key].ar : T[key].en; }
 
 interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
@@ -11,15 +27,15 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const item = (await newsRepository.getPublicAll()).find(c => c.slug === slug);
-  if (!item) return { title: 'Article Not Found' };
+  if (!item) return { title: t('article_not_found', 'en') };
   const desc = (item.excerpt_en ?? '').slice(0, 155).replace(/\n/g, ' ') || '015 Journal article.';
   return { title: `${item.title_en} | ${SITE.name}`, description: desc };
 }
 
-const fullDate = (value: string) => {
+const fullDate = (value: string, ar: boolean) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+  return new Intl.DateTimeFormat(ar ? 'ar' : 'en', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 };
 
 function formatCategory(value: string): string {
@@ -29,14 +45,16 @@ function formatCategory(value: string): string {
     .join(' ');
 }
 
-function readingTime(body: string): string {
+function readingTime(body: string, lang: Language): string {
   const words = body.trim().split(/\s+/).length;
   const minutes = Math.max(1, Math.ceil(words / 200));
-  return `${minutes} min read`;
+  return `${minutes} ${t('min_read', lang)}`;
 }
 
 export default async function NewsDetailPage({ params }: Props) {
   const { slug } = await params;
+  const lang = await getServerLanguage();
+  const ar = lang === 'ar';
   const item = (await newsRepository.getPublicAll()).find((candidate) => candidate.slug === slug);
   if (!item) notFound();
 
@@ -50,9 +68,9 @@ export default async function NewsDetailPage({ params }: Props) {
         const relatedImage = candidate.image_id ? await mediaRepository.getPublicById(candidate.image_id) : null;
         return {
           href: `/news/${candidate.slug}`,
-          title: candidate.title_en,
-          meta: fullDate(candidate.publish_date),
-          image: relatedImage ? { src: relatedImage.url, alt: relatedImage.alt_en || candidate.title_en } : null,
+          title: ar && candidate.title_ar ? candidate.title_ar : candidate.title_en,
+          meta: fullDate(candidate.publish_date, ar),
+          image: relatedImage ? { src: relatedImage.url, alt: relatedImage.alt_ar && ar ? relatedImage.alt_ar : relatedImage.alt_en || candidate.title_en } : null,
         };
       }),
   );
@@ -60,22 +78,22 @@ export default async function NewsDetailPage({ params }: Props) {
   return (
     <EditorialDetail
       eyebrow={formatCategory(item.category)}
-      title={item.title_en}
-      subtitle={item.title_ar}
-      image={image ? { src: image.url, alt: image.alt_en || item.title_en } : null}
+      title={ar && item.title_ar ? item.title_ar : item.title_en}
+      subtitle={ar && item.title_ar ? item.title_en : item.title_ar}
+      image={image ? { src: image.url, alt: image.alt_ar && ar ? image.alt_ar : image.alt_en || item.title_en } : null}
       facts={[
-        { label: 'Published', value: fullDate(item.publish_date) },
-        { label: 'Category', value: formatCategory(item.category) },
-        { label: 'Reading time', value: readingTime(item.content_en || item.excerpt_en) },
+        { label: t('published', lang), value: fullDate(item.publish_date, ar) },
+        { label: t('category', lang), value: formatCategory(item.category) },
+        { label: t('reading_time', lang), value: readingTime(item.content_en || item.excerpt_en, lang) },
       ]}
-      body={item.content_en || item.excerpt_en}
+      body={ar && item.content_ar ? item.content_ar : item.content_en || item.excerpt_en}
       backHref="/news"
-      backLabel="All journal"
-      ctaTitle="Contact the gallery"
+      backLabel={t('back_label', lang)}
+      ctaTitle={t('cta_title', lang)}
     >
       <EditorialRelated
-        eyebrow="Further reading"
-        title="Related articles"
+        eyebrow={t('further_reading', lang)}
+        title={t('related_articles', lang)}
         items={related}
       />
     </EditorialDetail>

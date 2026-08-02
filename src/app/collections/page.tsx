@@ -1,7 +1,18 @@
 import { EditorialIndex } from '@/components/public/EditorialExperience';
 import { collectionsRepository } from '@/lib/repositories/collections';
 import { mediaRepository } from '@/lib/repositories/media';
+import { getServerLanguage } from '@/lib/i18n/server-language';
+import type { Language } from '@/lib/i18n/language';
 import type { Metadata } from 'next';
+
+const T = {
+  eyebrow: { ar: 'سرديات منسقة', en: 'Curated narratives' },
+  title: { ar: 'المجموعات', en: 'Collections' },
+  introduction: { ar: 'أعمال جمعت معًا عبر المادة والذاكرة والمكان والحوار الفني.', en: 'Works brought together through material, memory, place, and artistic dialogue.' },
+  kicker: { ar: 'مجموعة', en: 'Collection' },
+};
+
+function t(key: keyof typeof T, lang: Language): string { return lang === 'ar' ? T[key].ar : T[key].en; }
 
 export const metadata: Metadata = {
   title: 'Collections | Gallery 015',
@@ -11,10 +22,18 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function CollectionsPage() {
+  const lang = await getServerLanguage();
+  const ar = lang === 'ar';
   const collections = await collectionsRepository.getPublicAll();
   const items = await Promise.all(collections.map(async (collection) => {
     const media = collection.cover_media_id ? await mediaRepository.getPublicById(collection.cover_media_id) : null;
-    return { href: `/collections/${collection.slug}`, title: collection.title_en, kicker: 'Collection', description: collection.description_en, image: media ? { src: media.url, alt: media.alt_en || collection.title_en } : null };
+    return {
+      href: `/collections/${collection.slug}`,
+      title: ar && collection.title_ar ? collection.title_ar : collection.title_en,
+      kicker: t('kicker', lang),
+      description: ar && collection.description_ar ? collection.description_ar : collection.description_en,
+      image: media ? { src: media.url, alt: media.alt_ar && ar ? media.alt_ar : media.alt_en || collection.title_en } : null,
+    };
   }));
-  return <EditorialIndex eyebrow="Curated narratives" title="Collections" introduction="Works brought together through material, memory, place, and artistic dialogue." items={items} variant="collections" />;
+  return <EditorialIndex eyebrow={t('eyebrow', lang)} title={t('title', lang)} introduction={t('introduction', lang)} items={items} variant="collections" />;
 }

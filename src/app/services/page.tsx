@@ -10,6 +10,8 @@ import PageContainer, {
 } from "@/components/public/PageContainer";
 import { mediaRepository } from "@/lib/repositories/media";
 import { servicesRepository } from "@/lib/repositories/services";
+import { getServerLanguage } from "@/lib/i18n/server-language";
+import type { Language } from "@/lib/i18n/language";
 import type { Service } from "@/types";
 
 type ServiceWithMetadata = Service & {
@@ -23,6 +25,24 @@ type ServiceWithMetadata = Service & {
   related_service_ids?: string[];
 };
 
+const T = {
+  home: { ar: "الرئيسية", en: "Home" },
+  services: { ar: "الخدمات", en: "Services" },
+  eyebrow: { ar: "غاليري ٠١٥", en: "Gallery 015" },
+  title: { ar: "الخدمات", en: "Services" },
+  subtitle: { ar: "خدمات استشارية وتكليف وجمع تقدم من خلال الغاليري.", en: "Advisory, commissioning, and collection services offered through the gallery." },
+  category: { ar: "الفئة", en: "Category" },
+  ordering: { ar: "الترتيب", en: "Ordering" },
+  cta: { ar: "الدعوة للإجراء", en: "CTA" },
+  seo_title_label: { ar: "عنوان SEO", en: "SEO title" },
+  seo_desc_label: { ar: "وصف SEO", en: "SEO description" },
+  cta_description: { ar: "تواصل مع فريق الغاليري لترتيب استشارة خدمية.", en: "Contact the gallery team to arrange a service consultation." },
+  pricing_on_request: { ar: "التسعير عند الطلب", en: "Pricing on request" },
+  related_services: { ar: "خدمات ذات صلة", en: "Related services" },
+};
+
+function t(key: keyof typeof T, lang: Language): string { return lang === "ar" ? T[key].ar : T[key].en; }
+
 export const metadata: Metadata = {
   title: "Services | Gallery 015",
   description: "Advisory, commissioning, and collection services offered through Gallery 015.",
@@ -35,9 +55,9 @@ function formatLabel(value: string): string {
     .join(" ");
 }
 
-function formatPriceInfo(value: Record<string, unknown> | undefined): string {
+function formatPriceInfo(value: Record<string, unknown> | undefined, lang: Language): string {
   if (!value) {
-    return "Pricing on request";
+    return t("pricing_on_request", lang);
   }
 
   const type = typeof value.type === "string" ? value.type : "upon_request";
@@ -87,6 +107,8 @@ function getRelatedServices(service: ServiceWithMetadata, allServices: ServiceWi
 }
 
 export default async function ServicesPage() {
+  const lang = await getServerLanguage();
+  const ar = lang === "ar";
   const services = await getServices();
   const featuredService = services[0];
   const relatedServices = featuredService ? getRelatedServices(featuredService, services) : [];
@@ -101,30 +123,30 @@ export default async function ServicesPage() {
     <PageContainer>
       <PublicBreadcrumbs
         items={[
-          { label: "Home", href: "/" },
-          { label: "Services" },
+          { label: t("home", lang), href: "/" },
+          { label: t("services", lang) },
         ]}
       />
       <PublicHero
-        eyebrow="Gallery 015"
-        title="Services"
-        subtitle="Advisory, commissioning, and collection services offered through the gallery."
+        eyebrow={t("eyebrow", lang)}
+        title={t("title", lang)}
+        subtitle={t("subtitle", lang)}
         image={featuredService ? await getServiceImage(featuredService) : null}
       />
       {featuredService ? (
         <>
           <PublicMetadataSection
             items={[
-              { label: "Category", value: formatLabel(getServiceCategory(featuredService)) },
-              { label: "Ordering", value: featuredService.display_order ?? "Default" },
-              { label: "CTA", value: featuredService.cta_label_en ?? "Contact the gallery" },
-              { label: "SEO title", value: featuredService.seo_title_en ?? featuredService.title_en },
-              { label: "SEO description", value: featuredService.seo_description_en ?? featuredService.description_en },
+              { label: t("category", lang), value: formatLabel(getServiceCategory(featuredService)) },
+              { label: t("ordering", lang), value: featuredService.display_order ?? "Default" },
+              { label: t("cta", lang), value: featuredService.cta_label_en ?? "Contact the gallery" },
+              { label: t("seo_title_label", lang), value: featuredService.seo_title_en ?? featuredService.title_en },
+              { label: t("seo_desc_label", lang), value: featuredService.seo_description_en ?? featuredService.description_en },
             ]}
           />
           <PublicCTASection
             title={featuredService.cta_label_en ?? "Discuss this service"}
-            description="Contact the gallery team to arrange a service consultation."
+            description={t("cta_description", lang)}
             href={featuredService.cta_href ?? "/contact"}
             label={featuredService.cta_label_en ?? "Contact Gallery 015"}
           />
@@ -134,11 +156,16 @@ export default async function ServicesPage() {
         {serviceCards.map(({ service, image }) => (
           <PublicCard
             key={service.id}
-            title={service.title_en}
+            title={ar && service.title_ar ? service.title_ar : service.title_en}
             subtitle={
               <>
-                {service.description_en}
-                {service.features_en.length > 0 ? (
+                {ar && service.description_ar ? service.description_ar : service.description_en}
+                {ar && service.features_ar && service.features_ar.length > 0 ? (
+                  <>
+                    <br />
+                    {service.features_ar.slice(0, 3).join(" · ")}
+                  </>
+                ) : service.features_en.length > 0 ? (
                   <>
                     <br />
                     {service.features_en.slice(0, 3).join(" · ")}
@@ -146,7 +173,7 @@ export default async function ServicesPage() {
                 ) : null}
               </>
             }
-            meta={`${formatLabel(getServiceCategory(service))} · ${formatPriceInfo(service.price_info)}`}
+            meta={`${formatLabel(getServiceCategory(service))} · ${formatPriceInfo(service.price_info, lang)}`}
             href={`/services#${service.slug}`}
             image={image}
             variant="service"
@@ -154,9 +181,9 @@ export default async function ServicesPage() {
         ))}
       </PublicGrid>
       <PublicRelatedSection
-        title="Related services"
+        title={t("related_services", lang)}
         items={relatedServices.map((service) => ({
-          title: service.title_en,
+          title: ar && service.title_ar ? service.title_ar : service.title_en,
           href: `/services#${service.slug}`,
           meta: formatLabel(getServiceCategory(service)),
         }))}
