@@ -6,20 +6,20 @@ import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/layout/LanguageProvider';
 
 const mainLinks = [
-  { href: '/museum', label: 'Museum' },
-  { href: '/artists', label: 'Artists' },
-  { href: '/exhibitions', label: 'Exhibitions' },
-  { href: '/artworks', label: 'Artworks' },
-  { href: '/collections', label: 'Collections' },
-  { href: '/projects', label: 'Projects' },
-  { href: '/news', label: 'Journal' },
-  { href: '/services', label: 'Services' },
+  { href: '/museum', label: 'Museum', labelAr: 'المتحف' },
+  { href: '/artists', label: 'Artists', labelAr: 'الفنانون' },
+  { href: '/exhibitions', label: 'Exhibitions', labelAr: 'المعارض' },
+  { href: '/artworks', label: 'Artworks', labelAr: 'الأعمال' },
+  { href: '/collections', label: 'Collections', labelAr: 'المجموعات' },
+  { href: '/projects', label: 'Projects', labelAr: 'المشاريع' },
+  { href: '/news', label: 'Journal', labelAr: 'المجلة' },
+  { href: '/services', label: 'Services', labelAr: 'الخدمات' },
 ];
 
 const secondaryLinks = [
-  { href: '/publications', label: 'Publications' },
-  { href: '/contact', label: 'Contact' },
-  { href: '/verify', label: 'Certificates' },
+  { href: '/publications', label: 'Publications', labelAr: 'الإصدارات' },
+  { href: '/contact', label: 'Contact', labelAr: 'تواصل' },
+  { href: '/verify', label: 'Certificates', labelAr: 'الشهادات' },
 ];
 
 export default function Header() {
@@ -79,7 +79,7 @@ export default function Header() {
                   className={isActive(link.href) ? 'is-active' : undefined}
                   aria-current={isActive(link.href) ? 'page' : undefined}
                 >
-                  {link.label}
+                  {lang === 'ar' ? link.labelAr : link.label}
                 </Link>
               </li>
             ))}
@@ -95,7 +95,7 @@ export default function Header() {
           >
             {lang === 'en' ? 'AR' : 'EN'}
           </button>
-          <Link href="/contact" className="g-header__cta">Contact</Link>
+          <Link href="/contact" className="g-header__cta">{lang === 'ar' ? 'تواصل' : 'Contact'}</Link>
           <button
             type="button"
             className={`g-header__toggle${menuOpen ? ' is-open' : ''}`}
@@ -128,7 +128,7 @@ export default function Header() {
                   <span className="g-nav-overlay__num">
                     {String(i + 1).padStart(2, '0')}
                   </span>
-                  {link.label}
+                  {lang === 'ar' ? link.labelAr : link.label}
                 </Link>
               </li>
             ))}
