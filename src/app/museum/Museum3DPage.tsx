@@ -9,7 +9,7 @@ interface ArtworkData {
   sceneRole: 'hero' | 'secondary';
 }
 
-const MuseumCanvas3D = dynamic(() => import('@/components/gallery-os/MuseumCanvas3D'), {
+const MuseumCanvas3D = dynamic(() => import('@/components/museum/canvas/MuseumCanvas3D'), {
   ssr: false,
   loading: () => <div style={{ minHeight: '100vh', background: '#0a0a0a', color: 'rgba(255,255,255,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.8rem', letterSpacing: '.12em', textTransform: 'uppercase' }}>Preparing the museum...</div>,
 });
