@@ -167,20 +167,6 @@ export default function GalleryHall({ artworks }: { artworks: ArtworkData[] }) {
       <AccentLight position={[BACK_WALL_PLACEMENTS[1].position[0], EYE + 0.7, -hd + WT / 2 + 0.6]} rotation={[0, 0, 0]} width={2.65} height={1.5} intensity={2.0} />
       {left.length > 0 && <AccentLight position={[-hw - WT / 2 + 0.6, EYE + 0.7, 0.5]} rotation={[0, -Math.PI / 2, 0]} width={2.25} height={1.5} intensity={1.8} />}
       {right.length > 0 && <AccentLight position={[hw + WT / 2 - 0.6, EYE + 0.7, -2.2]} rotation={[0, Math.PI / 2, 0]} width={2.25} height={1.5} intensity={1.8} />}
-
-      {/* Doorway continuation — all geometry behind back wall (z < -hd - WT/2 = -5.61) */}
-      {/* Floor through doorway */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, SG, -5.8]}>
-        <planeGeometry args={[2.2, 2.5]} />
-        <meshStandardMaterial roughness={FLOOR_ROUGH} metalness={0.02} color={FLOOR_COLOR} />
-      </mesh>
-      {/* Distant wall */}
-      <mesh position={[0, wy - 0.4, -8.0]}>
-        <planeGeometry args={[3.0, H - 1.0]} />
-        <meshStandardMaterial color="#d8d3c8" roughness={0.82} />
-      </mesh>
-      {/* Soft light in beyond space */}
-      <pointLight position={[0, H - 0.5, -7.0]} intensity={6} distance={5} decay={1.5} color="#fff8ec" />
     </group>
   );
 }
