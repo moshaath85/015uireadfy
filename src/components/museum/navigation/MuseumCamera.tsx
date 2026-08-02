@@ -73,8 +73,8 @@ export default function MuseumCamera({ targetNodeId, onArrive, onDragState }: {
     if (targetNodeId && progress.current < 1) {
       const node = ROUTE_GRAPH.nodes[targetNodeId];
       if (!node) return;
-      progress.current = Math.min(1, progress.current + d * 2.5);
-      const t = 1 - Math.pow(1 - progress.current, 3);
+      progress.current = Math.min(1, progress.current + d * 1.6);
+      const t = 1 - Math.pow(1 - progress.current, 2);
       const targetPos = new Vector3(...node.position);
       targetPos.y = EYE;
       camera.position.lerpVectors(startPos.current, targetPos, t);
