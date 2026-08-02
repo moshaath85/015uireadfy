@@ -1,12 +1,12 @@
 'use client';
 
 import { Canvas } from '@react-three/fiber';
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Color, Vector3 } from 'three';
 import GalleryHall from '../architecture/GalleryHall';
 import MuseumCamera from '../navigation/MuseumCamera';
-import FloorClick from '../navigation/FloorClick';
-import { DESTINATIONS, DEFAULT_CAMERA, CAMERA_CONFIG, SCENE_BACKGROUND } from '../config/museum-navigation.config';
+import { ROUTE_GRAPH, getConnectedNodes, getAdjacentArtwork } from '../config/museum-routes.config';
+import { DEFAULT_CAMERA, CAMERA_CONFIG, SCENE_BACKGROUND } from '../config/museum-navigation.config';
 
 interface ArtworkData {
   id: string; slug: string; title: string; artist: string;
@@ -14,53 +14,62 @@ interface ArtworkData {
   sceneRole: 'hero' | 'secondary';
 }
 
+const EXHIBITION_ORDER = ['aw-004', 'aw-128', 'aw-175', 'aw-029'];
+
 export default function MuseumCanvas3D({ artworks }: { artworks: ArtworkData[] }) {
   const [mobile, setMobile] = useState(false);
-  const [target, setTarget] = useState<Vector3 | null>(null);
-  const [focused, setFocused] = useState<ArtworkData | null>(null);
-  const [focusedIdx, setFocusedIdx] = useState(-1);
-  const [hint, setHint] = useState(true);
+  const [currentNode, setCurrentNode] = useState('entrance');
+  const [targetNode, setTargetNode] = useState<string | null>(null);
+  const [focusedArtwork, setFocusedArtwork] = useState<ArtworkData | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [hint, setHint] = useState(true);
 
   useEffect(() => { setMobile(window.innerWidth < 860 || 'ontouchstart' in window); }, []);
 
-  // First-time guidance
+  // URL hash sync
   useEffect(() => {
-    if (typeof sessionStorage === 'undefined') return;
-    const seen = sessionStorage.getItem('museum-nav-hint');
-    if (seen) setHint(false);
+    const hash = window.location.hash?.replace('#', '');
+    if (hash && ROUTE_GRAPH.nodes[hash]) {
+      setCurrentNode(hash);
+      setTargetNode(hash);
+    }
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('museum-nav-hint')) setHint(false);
   }, []);
 
-  const navigate = useCallback((pos: Vector3) => {
-    setTarget(pos);
+  const moveTo = useCallback((nodeId: string) => {
+    if (nodeId === 'exit') { window.location.href = '/'; return; }
+    const node = ROUTE_GRAPH.nodes[nodeId];
+    if (!node) return;
+    setTargetNode(nodeId);
+    if (typeof window !== 'undefined') window.location.hash = nodeId;
     if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('museum-nav-hint', '1');
+    setHint(false);
+    setFocusedArtwork(null);
   }, []);
 
-  const goTo = useCallback((destId: string) => {
-    const d = DESTINATIONS.find((x) => x.id === destId);
-    if (d) navigate(new Vector3(...d.position));
-    if (destId === 'exit') window.location.href = '/';
-  }, [navigate]);
+  const handleArrive = useCallback(() => {
+    setTargetNode(null);
+    setCurrentNode(targetNode ?? currentNode);
+    setHint(false);
+  }, [targetNode, currentNode]);
 
-  const focusArtwork = useCallback((artwork: ArtworkData, idx: number) => {
-    setFocused(artwork);
-    setFocusedIdx(idx);
-    // Move camera toward the artwork
-    const heroDest = DESTINATIONS.find(d => d.id === (idx < 2 ? `hero-${idx === 0 ? 'left' : 'right'}` : idx === 2 ? 'left-wall' : 'right-wall'));
-    if (heroDest) navigate(new Vector3(...heroDest.position));
-  }, [navigate]);
+  const connectedMarkers = useMemo(() => getConnectedNodes(currentNode), [currentNode]);
+
+  const focusArtwork = useCallback((artwork: ArtworkData) => {
+    setFocusedArtwork(artwork);
+    const nodeWithArtwork = Object.values(ROUTE_GRAPH.nodes).find(n => n.artworkId === artwork.id);
+    if (nodeWithArtwork) moveTo(nodeWithArtwork.id);
+  }, [moveTo]);
 
   const navArtwork = useCallback((dir: 1 | -1) => {
-    const nextIdx = focusedIdx + dir;
-    const next = artworks[nextIdx];
-    if (next) focusArtwork(next, nextIdx);
-  }, [focusedIdx, artworks, focusArtwork]);
+    if (!focusedArtwork) return;
+    const idx = EXHIBITION_ORDER.indexOf(focusedArtwork.id);
+    const nextId = EXHIBITION_ORDER[idx + dir];
+    const next = artworks.find(a => a.id === nextId);
+    if (next) focusArtwork(next);
+  }, [focusedArtwork, artworks, focusArtwork]);
 
-  const handleComplete = useCallback(() => {
-    setTarget(null);
-    setHint(false);
-    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('museum-nav-hint', '1');
-  }, []);
+  const focusedIdx = focusedArtwork ? EXHIBITION_ORDER.indexOf(focusedArtwork.id) : -1;
 
   return (
     <div className="museum-3d-surface" style={{ position: 'fixed', inset: 0, background: SCENE_BACKGROUND, zIndex: 10, cursor: dragging ? 'grabbing' : 'grab', touchAction: mobile ? 'none' : 'auto' }}>
@@ -73,29 +82,28 @@ export default function MuseumCanvas3D({ artworks }: { artworks: ArtworkData[] }
       >
         <Suspense fallback={null}>
           <GalleryHall artworks={artworks} />
-          <FloorClick onNavigate={navigate} />
-          <MuseumCamera target={target} onArrive={handleComplete} onDragState={setDragging} />
+          <MuseumCamera targetNodeId={targetNode} onArrive={handleArrive} onDragState={setDragging} />
         </Suspense>
       </Canvas>
 
-      {/* Destination markers — HTML overlay */}
+      {/* Connected route markers */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none' }}>
-        {DESTINATIONS.map((d) => (
+        {connectedMarkers.map((node) => (
           <button
-            key={d.id}
-            onClick={() => goTo(d.id)}
+            key={node.id}
+            onClick={() => moveTo(node.id)}
             className="museum-dest-marker"
-            aria-label={d.label}
+            aria-label={node.label}
             style={{ pointerEvents: 'auto' }}
           >
             <span aria-hidden="true" />
-            <small>{d.label}</small>
+            <small>{node.label}</small>
           </button>
         ))}
       </div>
 
-      {/* Artwork focus info */}
-      {focused && (
+      {/* Artwork focus info + navigation */}
+      {focusedArtwork && (
         <div style={{
           position: 'absolute', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', zIndex: 20,
           display: 'flex', gap: '1rem', alignItems: 'flex-end',
@@ -104,15 +112,15 @@ export default function MuseumCanvas3D({ artworks }: { artworks: ArtworkData[] }
             background: 'rgba(0,0,0,.75)', color: '#fff', padding: '.6rem 1rem',
             fontSize: '.7rem', letterSpacing: '.04em', maxWidth: '400px',
           }}>
-            <strong>{focused.title}</strong> — {focused.artist}, {focused.year}<br />
-            <span style={{ opacity: .6 }}>{focused.medium} · {focused.dimensions}</span>
+            <strong>{focusedArtwork.title}</strong> — {focusedArtwork.artist}, {focusedArtwork.year}<br />
+            <span style={{ opacity: .6 }}>{focusedArtwork.medium} · {focusedArtwork.dimensions}</span>
           </div>
           <div style={{ display: 'flex', gap: '.4rem' }}>
             <button onClick={() => navArtwork(-1)} disabled={focusedIdx <= 0}
               style={{ border: '1px solid rgba(255,255,255,.25)', background: 'rgba(0,0,0,.5)', color: '#fff', padding: '.5rem .8rem', fontSize: '.6rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.06em', opacity: focusedIdx <= 0 ? .3 : 1, minHeight: 44, minWidth: 44 }}>← Prev</button>
-            <button onClick={() => navArtwork(1)} disabled={focusedIdx >= artworks.length - 1}
-              style={{ border: '1px solid rgba(255,255,255,.25)', background: 'rgba(0,0,0,.5)', color: '#fff', padding: '.5rem .8rem', fontSize: '.6rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.06em', opacity: focusedIdx >= artworks.length - 1 ? .3 : 1, minHeight: 44, minWidth: 44 }}>Next →</button>
-            <button onClick={() => { setFocused(null); setFocusedIdx(-1); }}
+            <button onClick={() => navArtwork(1)} disabled={focusedIdx >= EXHIBITION_ORDER.length - 1}
+              style={{ border: '1px solid rgba(255,255,255,.25)', background: 'rgba(0,0,0,.5)', color: '#fff', padding: '.5rem .8rem', fontSize: '.6rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.06em', opacity: focusedIdx >= EXHIBITION_ORDER.length - 1 ? .3 : 1, minHeight: 44, minWidth: 44 }}>Next →</button>
+            <button onClick={() => { setFocusedArtwork(null); moveTo(currentNode); }}
               style={{ border: '1px solid rgba(255,255,255,.3)', background: 'rgba(0,0,0,.5)', color: '#fff', padding: '.5rem .8rem', fontSize: '.6rem', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '.06em', minHeight: 44, minWidth: 44 }}>Back</button>
           </div>
         </div>
@@ -124,17 +132,16 @@ export default function MuseumCanvas3D({ artworks }: { artworks: ArtworkData[] }
           position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 20,
           display: 'flex', gap: '.5rem', flexWrap: 'wrap', justifyContent: 'center',
         }}>
-          {DESTINATIONS.slice(0, 5).map((d) => (
-            <button key={d.id} onClick={() => goTo(d.id)} style={{
+          {connectedMarkers.map((node) => (
+            <button key={node.id} onClick={() => moveTo(node.id)} style={{
               padding: '.4rem .7rem', border: '1px solid rgba(255,255,255,.15)', background: 'rgba(0,0,0,.3)',
               color: 'rgba(255,255,255,.5)', fontSize: '.6rem', cursor: 'pointer',
               textTransform: 'uppercase', letterSpacing: '.06em', borderRadius: 0, minHeight: 44, minWidth: 44,
-            }}>{d.label}</button>
+            }}>{node.label}</button>
           ))}
         </div>
       )}
 
-      {/* Hint */}
       {hint && !mobile && (
         <div style={{
           position: 'absolute', bottom: '3rem', left: '50%', transform: 'translateX(-50%)', zIndex: 20,
