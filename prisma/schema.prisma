@@ -566,3 +566,30 @@ model Service {
   @@index([organizationId, coverMediaId])
   @@index([archivedAt])
 }
+
+model ContactInquiry {
+  id          String   @id @default(cuid())
+  reference   String   @unique
+  name        String
+  email       String
+  phone       String?
+  company     String?
+  subject     String
+  message     String
+  language    String
+  sourcePage  String?  @map("source_page")
+  status      String   @default("new")
+  consent     Boolean
+  ipHash      String   @map("ip_hash")
+  userAgent   String?  @map("user_agent")
+  emailSent   Boolean  @default(false) @map("email_sent")
+  emailError  String?  @map("email_error")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([reference])
+  @@index([status])
+  @@index([email])
+  @@index([ipHash, createdAt])
+  @@index([createdAt])
+}
