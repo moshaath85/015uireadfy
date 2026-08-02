@@ -157,6 +157,25 @@ export default function GalleryHall({ artworks }: { artworks: ArtworkData[] }) {
       <hemisphereLight args={["#fff9ef", "#555045", 0.85]} />
       <ambientLight intensity={0.42} color="#faf6ed" />
 
+      {/* Beyond the doorway — architectural suggestion of next gallery */}
+      {/* Extended floor through doorway */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, SG, -hd - 1.2]} receiveShadow>
+        <planeGeometry args={[2.4, 3.5]} />
+        <meshStandardMaterial roughness={FLOOR_ROUGH} metalness={0.02} color={FLOOR_COLOR} />
+      </mesh>
+      {/* Distant back wall — warm, softly lit */}
+      <mesh position={[0, wy - 0.3, -hd - 3.0]}>
+        <planeGeometry args={[3.0, H - 0.6]} />
+        <meshStandardMaterial color="#d8d3c8" roughness={0.8} />
+      </mesh>
+      {/* Distant ceiling */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H - 0.15, -hd - 1.2]}>
+        <planeGeometry args={[2.4, 3.5]} />
+        <meshStandardMaterial color={CEILING_COLOR} roughness={0.92} />
+      </mesh>
+      {/* Soft light in the beyond space */}
+      <pointLight position={[0, H - 0.4, -hd - 2.0]} intensity={8} distance={6} decay={1.5} color="#fff8ec" />
+
       {/* Cove — hidden in ceiling recess, washing walls */}
       <AccentLight position={[0, H - 0.08, -hd + 0.1]} rotation={[-0.3, 0, 0]} width={W - 2} height={COVE_WIDTH * 0.7} intensity={1.6} />
       <AccentLight position={[-hw + 0.1, H - 0.08, 0]} rotation={[-0.3, -Math.PI / 2, 0]} width={D - 2} height={COVE_WIDTH * 0.7} intensity={1.3} />
