@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export default async function ArtworksPage() {
   const [artworks, artists] = await Promise.all([artworksRepository.getPublicAll(), artistsRepository.getPublicAll()]);
   const items = await Promise.all(artworks.map(async (artwork) => {
-    const media = await mediaRepository.getArtworkPrimaryMedia(artwork);
+    const media = await mediaRepository.getPublicArtworkPrimaryMedia(artwork);
     const artist = artists.find((item) => item.id === artwork.artist_id);
     return {
       href: `/artworks/${artwork.slug}`,

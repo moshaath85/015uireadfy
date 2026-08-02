@@ -7,8 +7,15 @@ import { SearchBar } from "@/components/admin/SearchBar";
 import { StatusBadge, type StatusBadgeValue } from "@/components/admin/StatusBadge";
 import { requireAdminServerAction } from "@/lib/auth/admin-action-security";
 import { getAdminAuthConfig } from "@/lib/auth/admin-auth-runtime";
+import { getCmsModuleCapability } from "@/lib/cms/capabilities/capability-registry";
 import { archiveArtworkRecord, listArtworkRecords } from "@/lib/cms/production-prisma";
 import type { Artwork } from "@/types";
+
+interface AdminArtworksPageProps {
+  readonly searchParams?: Promise<{
+    readonly q?: string;
+  }>;
+}
 
 function formatBooleanStatus(value: boolean): string {
   return value ? "Yes" : "No";
@@ -39,6 +46,33 @@ function isStatusBadgeValue(value: string): value is StatusBadgeValue {
     "reserved",
     "sold"
   ].includes(value);
+}
+
+function normalize(value?: string | number | null): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value).trim().toLowerCase();
+}
+
+function includesSearch(artwork: Artwork, query: string): boolean {
+  if (!query) {
+    return true;
+  }
+
+  return [
+    artwork.id,
+    artwork.title_en,
+    artwork.title_ar,
+    artwork.slug,
+    artwork.year,
+    artwork.medium_en,
+    artwork.medium_ar,
+    artwork.availability_status,
+    artwork.price_status,
+    artwork.visibility_status,
+  ].some((value) => normalize(value).includes(query));
 }
 
 const artworkColumns: readonly DataTableColumn<Artwork>[] = [
@@ -118,27 +152,32 @@ async function archiveArtworkAction(formData: FormData): Promise<void> {
   revalidatePath("/admin/artworks");
 }
 
-export default async function AdminArtworksPage() {
+export default async function AdminArtworksPage({ searchParams }: AdminArtworksPageProps) {
+  const resolvedSearchParams = await searchParams;
   const organizationId = getAdminAuthConfig()?.organizationId;
+  const capability = getCmsModuleCapability("artworks");
+  const query = normalize(resolvedSearchParams?.q);
   const artworks = organizationId ? await listArtworkRecords(organizationId) : [];
+  const filteredArtworks = artworks.filter((artwork) => includesSearch(artwork, query));
 
   return (
     <AdminShell
       title="Artworks"
-      description="Read-only artwork records prepared for future create, edit, and delete workflows."
+      description={capability.messaging.listDescription}
     >
       <PageToolbar
         title="Artworks"
-        description="Read-only artwork records prepared for future create, edit, and delete workflows."
-        search={<SearchBar label="Search artworks" placeholder="Search artwork records" />}
+        capability={capability}
+        description="Create and manage artwork records."
+        search={<SearchBar label="Search artworks" placeholder="Search artwork records" defaultValue={resolvedSearchParams?.q ?? ""} queryParam="q" />}
       />
       <DataTable
         caption="Artworks"
         columns={artworkColumns}
-        rows={artworks}
+        rows={filteredArtworks}
         getRowKey={(artwork) => artwork.id}
         emptyTitle="No artwork records are currently available."
-        emptyDescription="Artwork records will appear here when they are ready."
+        emptyDescription={query ? "No artwork records match the current search query." : "Artwork records will appear here after they are saved."}
       />
     </AdminShell>
   );

@@ -6,14 +6,15 @@ import { getAdminAuthConfig } from "@/lib/auth/admin-auth-runtime";
 import type { ArtistsFormEntity } from "@/lib/cms/artists";
 import { initialArtistUpdateFormState, submitUpdateArtistFormAction } from "@/lib/cms/artists/artists-actions";
 import { findArtistPrismaRecord } from "@/lib/cms/artists/artists-prisma-adapter";
+import { listMediaRecords } from "@/lib/cms/production-prisma";
 
 export interface EditArtistPageProps {
-  readonly params: {
+  readonly params: Promise<{
     readonly id: string;
-  };
-  readonly searchParams?: {
+  }>;
+  readonly searchParams?: Promise<{
     readonly created?: string;
-  };
+  }>;
 }
 
 export const dynamic = "force-dynamic";
@@ -23,8 +24,15 @@ export function generateStaticParams() {
 }
 
 export default async function EditArtistPage({ params, searchParams }: EditArtistPageProps) {
+  const { id } = await params;
+  const resolvedSearchParams = await searchParams;
   const organizationId = getAdminAuthConfig()?.organizationId;
-  const artist = organizationId ? await findArtistPrismaRecord(params.id, organizationId) : null;
+  const [artist, mediaOptions] = organizationId
+    ? await Promise.all([
+        findArtistPrismaRecord(id, organizationId),
+        listMediaRecords(organizationId),
+      ])
+    : [null, []];
 
   if (!artist) {
     notFound();
@@ -32,7 +40,7 @@ export default async function EditArtistPage({ params, searchParams }: EditArtis
 
   const updateArtistAction = submitUpdateArtistFormAction.bind(null, artist.id);
   const initialState =
-    searchParams?.created === "1"
+    resolvedSearchParams?.created === "1"
       ? {
           ...initialArtistUpdateFormState,
           status: "success" as const,
@@ -53,6 +61,7 @@ export default async function EditArtistPage({ params, searchParams }: EditArtis
       <ArtistForm
         action={updateArtistAction}
         initialState={initialState}
+        mediaOptions={mediaOptions}
         mode="edit"
         values={artist as ArtistsFormEntity}
       />

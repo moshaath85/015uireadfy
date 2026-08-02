@@ -1,22 +1,77 @@
-import { EditorialIndex } from '@/components/public/EditorialExperience';
+import { ArtistRoster, type ArtistRosterItem } from '@/components/experience';
 import { artistsRepository } from '@/lib/repositories/artists';
+import { artworksRepository } from '@/lib/repositories/artworks';
 import { mediaRepository } from '@/lib/repositories/media';
+import type { Artwork } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
+function representationLabel(status: string): string {
+  switch (status.trim().toLowerCase()) {
+    case 'represented':
+    case 'exclusive':
+      return 'Exclusive Artist';
+    case 'collaborating':
+    case 'non_exclusive':
+      return 'Collaborating Artist';
+    default:
+      return 'Gallery Artist';
+  }
+}
+
+function compareWorks(left: Artwork, right: Artwork): number {
+  if (left.featured !== right.featured) return left.featured ? -1 : 1;
+  return left.display_order - right.display_order;
+}
+
 export default async function ArtistsPage() {
-  const artists = await artistsRepository.getPublicAll();
-  const items = await Promise.all(artists.map(async (artist) => {
-    const media = await mediaRepository.getArtistProfileMedia(artist);
+  const [artists, artworks] = await Promise.all([
+    artistsRepository.getPublicAll(),
+    artworksRepository.getPublicAll(),
+  ]);
+
+  const items: ArtistRosterItem[] = await Promise.all(artists.map(async (artist) => {
+    const artistWorks = artworks
+      .filter((work) => work.artist_id === artist.id)
+      .sort(compareWorks)
+      .slice(0, 4);
+    const [profileMedia, workItems] = await Promise.all([
+      mediaRepository.getPublicArtistProfileMedia(artist),
+      Promise.all(artistWorks.map(async (work) => {
+        const media = await mediaRepository.getPublicArtworkPrimaryMedia(work);
+        return {
+          id: work.slug,
+          title: work.title_en,
+          image: media ? { src: media.url, alt: media.alt_en || work.title_en } : null,
+        };
+      })),
+    ]);
+
     return {
-      href: `/artists/${artist.slug}`,
-      title: artist.name_en,
-      kicker: artist.representation_status?.replaceAll('_', ' '),
-      meta: [artist.nationality_en, artist.birth_year ? `b. ${artist.birth_year}` : null].filter(Boolean).join(' · '),
-      description: artist.bio_en,
-      image: media ? { src: media.url, alt: media.alt_en || artist.name_en } : null,
+      id: artist.id,
+      slug: artist.slug,
+      name: artist.name_en,
+      biography: artist.bio_en,
+      birthYear: artist.birth_year > 1900 ? artist.birth_year : null,
+      nationality: artist.nationality_en,
+      representationLabel: representationLabel(artist.representation_status),
+      profileImage: profileMedia ? { src: profileMedia.url, alt: profileMedia.alt_en || artist.name_en } : null,
+      works: workItems,
     };
   }));
 
-  return <EditorialIndex eyebrow="Gallery 015 artists" title="Artists" introduction="Distinct practices, considered voices, and enduring artistic relationships." items={items} />;
+  return (
+    <main className="artist-roster-page">
+      <header className="artist-roster-hero">
+        <h1>The roster</h1>
+        <p>A curated collective of artists represented by 015.<br />Each voice is distinct. Together, they shape our vision.</p>
+        <div className="artist-roster-hero__taxonomy" aria-label="Artist relationships">
+          <span>All</span><span>Exclusive</span><span>Collaborating</span>
+        </div>
+      </header>
+      <section className="artist-roster-section" aria-label="Artists roster">
+        <ArtistRoster artists={items} />
+      </section>
+    </main>
+  );
 }

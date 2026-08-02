@@ -1,20 +1,27 @@
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin";
 import { DataTable, type DataTableColumn } from "@/components/admin/DataTable";
 import { MediaGrid } from "@/components/admin/MediaGrid";
 import { PageToolbar } from "@/components/admin/PageToolbar";
 import { SearchBar } from "@/components/admin/SearchBar";
+import { requireAdminServerAction } from "@/lib/auth/admin-action-security";
+import { getCmsModuleCapability } from "@/lib/cms/capabilities/capability-registry";
+import { uploadMediaFile } from "@/lib/cms/media/media-upload-service";
 import { mediaRepository } from "@/lib/repositories/media";
 import type { Media } from "@/types";
 
 interface AdminMediaPageProps {
-  readonly searchParams?: {
+  readonly searchParams?: Promise<{
     readonly q?: string;
     readonly type?: string;
     readonly provider?: string;
     readonly sort?: string;
     readonly view?: string;
     readonly duplicates?: string;
-  };
+    readonly upload?: string;
+    readonly message?: string;
+  }>;
 }
 
 function formatValue(value?: string | number | null): string {
@@ -128,6 +135,50 @@ function sortMedia(media: readonly Media[], sort: string): Media[] {
   return sorted.sort((a, b) => b.updated_at.localeCompare(a.updated_at));
 }
 
+
+async function uploadMediaAction(formData: FormData): Promise<void> {
+  "use server";
+
+  const adminContext = await requireAdminServerAction("media.create");
+  const file = formData.get("file");
+  const altText = String(formData.get("altText") ?? "").trim();
+  const visibilityValue = String(formData.get("visibility") ?? "PRIVATE");
+
+  if (!(file instanceof File) || file.size === 0) {
+    redirect("/admin/media?upload=error&message=Please%20select%20a%20file.");
+  }
+
+  if (!altText) {
+    redirect("/admin/media?upload=error&message=Alt%20text%20is%20required.");
+  }
+
+  const visibility =
+    visibilityValue === "PUBLIC" ||
+    visibilityValue === "VIP" ||
+    visibilityValue === "HIDDEN"
+      ? visibilityValue
+      : "PRIVATE";
+
+  try {
+    await uploadMediaFile(file, {
+      organizationId: adminContext.organizationId,
+      altText,
+      visibility,
+      keyPrefix: "gallery-015/media",
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Media upload failed.";
+
+    redirect(
+      `/admin/media?upload=error&message=${encodeURIComponent(message)}`,
+    );
+  }
+
+  revalidatePath("/admin/media");
+  redirect("/admin/media?upload=success");
+}
+
 const mediaColumns: readonly DataTableColumn<Media>[] = [
   {
     key: "media",
@@ -178,13 +229,15 @@ const mediaColumns: readonly DataTableColumn<Media>[] = [
 ];
 
 export default async function AdminMediaPage({ searchParams }: AdminMediaPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const capability = getCmsModuleCapability("media");
   const allMedia = await mediaRepository.getAll();
-  const query = normalize(searchParams?.q);
-  const selectedType = normalize(searchParams?.type);
-  const selectedProvider = normalize(searchParams?.provider);
-  const sort = searchParams?.sort ?? "updated";
+  const query = normalize(resolvedSearchParams?.q);
+  const selectedType = normalize(resolvedSearchParams?.type);
+  const selectedProvider = normalize(resolvedSearchParams?.provider);
+  const sort = resolvedSearchParams?.sort ?? "updated";
   const duplicateReasons = buildDuplicateReasons(allMedia);
-  const duplicateOnly = searchParams?.duplicates === "true";
+  const duplicateOnly = resolvedSearchParams?.duplicates === "true";
 
   const media = sortMedia(
     allMedia.filter((item) => {
@@ -205,13 +258,94 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
   return (
     <AdminShell
       title="Media Library"
-      description="Media management for upload, replacement, archival review, restore preparation, reuse, and duplicate detection."
+      description={capability.messaging.listDescription}
     >
       <PageToolbar
         title="Media Library"
-        description="Search, filter, sort, preview, reuse, and detect duplicate media records while production writes remain disabled."
-        search={<SearchBar label="Search media" placeholder="Search by alt text, checksum, URL, or storage path" />}
+        capability={capability}
+        description={capability.messaging.listDescription}
+        search={<SearchBar label="Search media" placeholder="Search by alt text, checksum, URL, or storage path" defaultValue={resolvedSearchParams?.q ?? ""} queryParam="q" />}
       />
+
+      {resolvedSearchParams?.upload === "success" ? (
+        <p
+          role="status"
+          style={{
+            background: "#eef7ef",
+            border: "1px solid #9fc5a3",
+            marginBottom: "20px",
+            padding: "14px 16px",
+          }}
+        >
+          Media uploaded successfully.
+        </p>
+      ) : null}
+
+      {resolvedSearchParams?.upload === "error" ? (
+        <p
+          role="alert"
+          style={{
+            background: "#fff3f2",
+            border: "1px solid #d9aaa5",
+            marginBottom: "20px",
+            padding: "14px 16px",
+          }}
+        >
+          {resolvedSearchParams?.message ?? "Media upload failed."}
+        </p>
+      ) : null}
+
+      <form
+        action={uploadMediaAction}
+        style={{
+          alignItems: "end",
+          background: "#ffffff",
+          border: "1px solid #d8d8d8",
+          display: "grid",
+          gap: "16px",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          marginBottom: "20px",
+          padding: "20px",
+        }}
+      >
+        <label>
+          File
+          <input
+            accept="image/*,video/*,audio/*,application/pdf"
+            name="file"
+            required
+            style={{ display: "block", marginTop: "6px", width: "100%" }}
+            type="file"
+          />
+        </label>
+
+        <label>
+          Alt text
+          <input
+            name="altText"
+            placeholder="Describe the image or file"
+            required
+            style={{ display: "block", marginTop: "6px", width: "100%" }}
+            type="text"
+          />
+        </label>
+
+        <label>
+          Visibility
+          <select
+            defaultValue="PRIVATE"
+            name="visibility"
+            style={{ display: "block", marginTop: "6px", width: "100%" }}
+          >
+            <option value="PRIVATE">Private</option>
+            <option value="PUBLIC">Public</option>
+            <option value="VIP">VIP</option>
+            <option value="HIDDEN">Hidden</option>
+          </select>
+        </label>
+
+        <button type="submit">Upload media</button>
+      </form>
 
       <section
         aria-label="Media management summary"
@@ -228,7 +362,7 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
         <div><strong>{allMedia.length}</strong><br />records</div>
         <div><strong>{formatFileSize(totalSize)}</strong><br />managed size</div>
         <div><strong>{duplicateReasons.size}</strong><br />duplicate candidates</div>
-        <div><strong>Disabled</strong><br />production writes</div>
+        <div><strong>Enabled</strong><br />R2 production uploads</div>
       </section>
 
       <form
@@ -281,7 +415,7 @@ export default async function AdminMediaPage({ searchParams }: AdminMediaPagePro
         <button type="submit">Apply media filters</button>
       </form>
 
-      {searchParams?.view === "table" ? (
+      {resolvedSearchParams?.view === "table" ? (
         <DataTable
           caption="Media library"
           columns={mediaColumns}

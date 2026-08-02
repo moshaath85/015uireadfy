@@ -23,16 +23,21 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1086.0",
     "@prisma/client": "^5.22.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.7.0",
+    "googleapis": "^173.0.0",
     "next": "16.2.10",
     "postcss": "8.5.10",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.12",
     "@types/node": "^20.0.0",
     "@types/react": "18.3.31",
     "@types/react-dom": "18.3.7",
+    "playwright": "^1.62.1",
     "prisma": "^5.22.0",
     "typescript": "^5.3.0"
   },

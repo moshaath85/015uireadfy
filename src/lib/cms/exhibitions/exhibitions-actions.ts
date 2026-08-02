@@ -44,6 +44,82 @@ export interface ExhibitionActionFailure {
 
 export type ExhibitionActionResult = ExhibitionActionSuccess | ExhibitionActionFailure;
 
+interface ExhibitionRelationshipActionInput {
+  readonly artistIds?: readonly string[];
+  readonly artworkIds?: readonly string[];
+}
+
+function normalizeRelationshipId(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const id = value.trim();
+  return id.length > 0 ? id : null;
+}
+
+function uniqueIds(ids: readonly string[]): readonly string[] {
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+
+  ids.forEach((id) => {
+    if (!seen.has(id)) {
+      seen.add(id);
+      ordered.push(id);
+    }
+  });
+
+  return ordered;
+}
+
+function readRelationshipIds(source: ExhibitionValidationSource, key: string): readonly string[] {
+  if (typeof FormData !== "undefined" && source instanceof FormData) {
+    return uniqueIds(
+      source
+        .getAll(key)
+        .map((value) => normalizeRelationshipId(value))
+        .filter((value): value is string => Boolean(value)),
+    );
+  }
+
+  const recordValue = (source as Record<string, unknown>)[key];
+
+  if (Array.isArray(recordValue)) {
+    return uniqueIds(
+      recordValue
+        .map((value) => normalizeRelationshipId(value))
+        .filter((value): value is string => Boolean(value)),
+    );
+  }
+
+  const normalized = normalizeRelationshipId(recordValue);
+  return normalized ? [normalized] : [];
+}
+
+function readRelationshipInput(source: ExhibitionValidationSource): ExhibitionRelationshipActionInput {
+  if (typeof FormData !== "undefined" && source instanceof FormData) {
+    return {
+      ...(source.has("exhibition_artist_ids")
+        ? { artistIds: readRelationshipIds(source, "exhibition_artist_ids") }
+        : {}),
+      ...(source.has("exhibition_artwork_ids")
+        ? { artworkIds: readRelationshipIds(source, "exhibition_artwork_ids") }
+        : {}),
+    };
+  }
+
+  const record = source as Record<string, unknown>;
+
+  return {
+    ...("exhibition_artist_ids" in record
+      ? { artistIds: readRelationshipIds(source, "exhibition_artist_ids") }
+      : {}),
+    ...("exhibition_artwork_ids" in record
+      ? { artworkIds: readRelationshipIds(source, "exhibition_artwork_ids") }
+      : {}),
+  };
+}
+
 function preparedResult(mode: ExhibitionActionMode, data: ExhibitionValidatedInput, exhibitionId?: Exhibition["id"]): ExhibitionActionSuccess {
   return {
     ok: true,
@@ -121,6 +197,7 @@ export async function prepareCreateExhibitionAction(
   source: ExhibitionValidationSource,
   context: ExhibitionActionContext = {},
 ): Promise<ExhibitionActionResult> {
+  const relationships = readRelationshipInput(source);
   const validation = validateExhibitionFormInput(source);
 
   if (!validation.valid) {
@@ -136,6 +213,7 @@ export async function prepareCreateExhibitionAction(
 
   const writeResult = await saveExhibitionRecord(validation.data, {
     organizationId: context.organizationId as string,
+    relationships,
   });
 
   if (!writeResult.ok) {
@@ -150,6 +228,7 @@ export async function prepareUpdateExhibitionAction(
   source: ExhibitionValidationSource,
   context: ExhibitionActionContext = {},
 ): Promise<ExhibitionActionResult> {
+  const relationships = readRelationshipInput(source);
   const resolvedExhibitionId = context.existingExhibitionId ?? exhibitionId;
 
   if (!resolvedExhibitionId) {
@@ -172,6 +251,7 @@ export async function prepareUpdateExhibitionAction(
   const writeResult = await saveExhibitionRecord(validation.data, {
     id: resolvedExhibitionId,
     organizationId: context.organizationId as string,
+    relationships,
   });
 
   if (!writeResult.ok) {

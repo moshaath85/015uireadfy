@@ -22,15 +22,16 @@ async function createProjectAction(formData: FormData) {
   redirect(`/admin/projects/${result.projectId}/edit?created=1`);
 }
 
-export default function NewProjectPage({ searchParams }: { readonly searchParams?: { readonly status?: string; readonly message?: string } }) {
-  const status = searchParams?.status === "success" || searchParams?.status === "error" ? searchParams.status : undefined;
+export default async function NewProjectPage({ searchParams }: { readonly searchParams?: Promise<{ readonly status?: string; readonly message?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const status = resolvedSearchParams?.status === "success" || resolvedSearchParams?.status === "error" ? resolvedSearchParams.status : undefined;
 
   return (
     <AdminShell title="Create Project" description="Create a PostgreSQL-backed project record.">
       <PageToolbar title="Create Project" description="Save a new project record to PostgreSQL." />
       <ProjectForm
         action={createProjectAction}
-        message={searchParams?.message}
+        message={resolvedSearchParams?.message}
         status={status}
       />
     </AdminShell>

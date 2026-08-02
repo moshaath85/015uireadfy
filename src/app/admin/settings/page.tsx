@@ -2,7 +2,14 @@ import { AdminShell } from "@/components/admin";
 import { DataTable, type DataTableColumn } from "@/components/admin/DataTable";
 import { PageToolbar } from "@/components/admin/PageToolbar";
 import { SearchBar } from "@/components/admin/SearchBar";
+import { getCmsModuleCapability } from "@/lib/cms/capabilities/capability-registry";
 import { settingsRepository } from "@/lib/repositories/settings";
+
+interface AdminSettingsPageProps {
+  readonly searchParams?: Promise<{
+    readonly q?: string;
+  }>;
+}
 
 interface SettingsRow {
   readonly id: string;
@@ -13,6 +20,22 @@ interface SettingsRow {
 
 function formatValue(value?: string | number | null): string {
   return value === undefined || value === null || value === "" ? "Not configured" : String(value);
+}
+
+function normalize(value?: string | number | null): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value).trim().toLowerCase();
+}
+
+function includesSearch(row: SettingsRow, query: string): boolean {
+  if (!query) {
+    return true;
+  }
+
+  return [row.id, row.section, row.label, row.value].some((value) => normalize(value).includes(query));
 }
 
 const settingsColumns: readonly DataTableColumn<SettingsRow>[] = [
@@ -33,7 +56,10 @@ const settingsColumns: readonly DataTableColumn<SettingsRow>[] = [
   }
 ];
 
-export default async function AdminSettingsPage() {
+export default async function AdminSettingsPage({ searchParams }: AdminSettingsPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const capability = getCmsModuleCapability("settings");
+  const query = normalize(resolvedSearchParams?.q);
   const settings = await settingsRepository.getSiteSettings();
   const settingsRows: readonly SettingsRow[] = [
     {
@@ -103,24 +129,26 @@ export default async function AdminSettingsPage() {
       value: settings.social_media.facebook
     }
   ];
+  const filteredSettingsRows = settingsRows.filter((row) => includesSearch(row, query));
 
   return (
     <AdminShell
       title="Settings"
-      description="Read-only gallery configuration for future CMS settings management."
+      description={capability.messaging.listDescription}
     >
       <PageToolbar
         title="Settings"
-        description="Read-only gallery configuration for future CMS settings management."
-        search={<SearchBar label="Search settings" placeholder="Search settings records" />}
+        capability={capability}
+        description={capability.messaging.listDescription}
+        search={<SearchBar label="Search settings" placeholder="Search settings records" defaultValue={resolvedSearchParams?.q ?? ""} queryParam="q" />}
       />
       <DataTable
         caption="Settings"
         columns={settingsColumns}
-        rows={settingsRows}
+        rows={filteredSettingsRows}
         getRowKey={(row) => row.id}
         emptyTitle="No settings records are currently available."
-        emptyDescription="Settings records will appear here when they are ready."
+        emptyDescription={query ? "No settings records match the current search query." : "Settings records are shown when available."}
       />
     </AdminShell>
   );

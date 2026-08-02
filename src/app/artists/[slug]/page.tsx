@@ -1,28 +1,149 @@
 import { notFound } from 'next/navigation';
-import { EditorialDetail, EditorialRelated } from '@/components/public/EditorialExperience';
+import Link from 'next/link';
 import { artistsRepository } from '@/lib/repositories/artists';
 import { artworksRepository } from '@/lib/repositories/artworks';
 import { mediaRepository } from '@/lib/repositories/media';
 
-interface Props { params: { slug: string } }
+interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
 
 export default async function ArtistDetailPage({ params }: Props) {
-  const artist = await artistsRepository.getPublicBySlug(params.slug);
+  const { slug } = await params;
+  const artist = await artistsRepository.getPublicBySlug(slug);
   if (!artist) notFound();
 
-  const profile = await mediaRepository.getArtistProfileMedia(artist);
-  const works = (await artworksRepository.getPublicAll()).filter((work) => work.artist_id === artist.id).slice(0, 6);
-  const related = await Promise.all(works.map(async (work) => {
-    const media = await mediaRepository.getArtworkPrimaryMedia(work);
-    return { href: `/artworks/${work.slug}`, title: work.title_en, meta: `${work.year} · ${work.medium_en}`, image: media ? { src: media.url, alt: media.alt_en || work.title_en } : null };
-  }));
+  const allArtworks = await artworksRepository.getPublicAll();
+
+  const profileMedia = artist.profile_image_id
+    ? await mediaRepository.getPublicById(artist.profile_image_id)
+    : null;
+
+  const artistWorks = allArtworks
+    .filter((work) => work.artist_id === artist.id)
+    .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || a.display_order - b.display_order);
+
+  const workItems = await Promise.all(
+    artistWorks.slice(0, 8).map(async (work) => {
+      const image = await mediaRepository.getPublicArtworkPrimaryMedia(work);
+      return {
+        href: `/artworks/${work.slug}`,
+        title: work.title_en,
+        meta: [String(work.year), work.medium_en].filter(Boolean).join(' · '),
+        image: image ? { src: image.url, alt: image.alt_en || work.title_en } : null,
+      };
+    }),
+  );
+
+  const representationLabel = artist.representation_status
+    ? artist.representation_status
+        .replaceAll('_', ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    : 'Gallery Artist';
+
+  const facts = [
+    { label: 'Nationality', value: artist.nationality_en },
+    { label: 'Born', value: artist.birth_year > 1900 ? String(artist.birth_year) : undefined },
+    { label: 'Representation', value: representationLabel },
+    { label: 'Works in collection', value: artistWorks.length ? String(artistWorks.length) : undefined },
+    artist.website ? { label: 'Website', value: artist.website } : undefined,
+    artist.instagram ? { label: 'Instagram', value: `@${artist.instagram.replace('@', '')}` } : undefined,
+  ].filter((f): f is { label: string; value: string } => Boolean(f?.value));
 
   return (
-    <EditorialDetail eyebrow="Artist" title={artist.name_en} subtitle={artist.name_ar} image={profile ? { src: profile.url, alt: profile.alt_en || artist.name_en } : null}
-      facts={[{ label: 'Nationality', value: artist.nationality_en }, { label: 'Born', value: artist.birth_year }, { label: 'Representation', value: artist.representation_status?.replaceAll('_', ' ') }, { label: 'Instagram', value: artist.instagram }]}
-      body={artist.bio_en} backHref="/artists" backLabel="All artists" ctaTitle={`Enquire about ${artist.name_en}`}>
-      <EditorialRelated eyebrow="Selected works" title={`Works by ${artist.name_en}`} items={related} />
-    </EditorialDetail>
+    <main className="experience-detail experience-detail--artist">
+      <Link className="experience-detail__back" href="/artists">
+        ← All artists
+      </Link>
+
+      <section className="experience-detail__hero">
+        <div className="experience-detail__heading">
+          <p className="experience-kicker">Artist</p>
+          <h1>{artist.name_en}</h1>
+          {artist.name_ar ? (
+            <p className="experience-detail__subtitle" dir="rtl" lang="ar">
+              {artist.name_ar}
+            </p>
+          ) : null}
+        </div>
+        <figure className="experience-detail__media">
+          {profileMedia ? (
+            <img src={profileMedia.url} alt={profileMedia.alt_en || artist.name_en} />
+          ) : (
+            <span
+              aria-label={`${artist.name_en} image unavailable`}
+              className="experience-detail__media-fallback"
+              role="img"
+            >
+              <span aria-hidden="true">015</span>
+              <small>Image forthcoming</small>
+            </span>
+          )}
+        </figure>
+      </section>
+
+      <section className="experience-detail__information">
+        <dl className="experience-facts">
+          {facts.map((fact) => (
+            <div key={fact.label}>
+              <dt>{fact.label}</dt>
+              <dd>{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+        {artist.bio_en ? (
+          <div className="experience-body">
+            {artist.bio_en
+              .split(/\n{2,}/)
+              .map((p) => p.trim())
+              .filter(Boolean)
+              .map((paragraph, index) => (
+                <p key={`bio-${index}`}>{paragraph}</p>
+              ))}
+          </div>
+        ) : null}
+      </section>
+
+      {workItems.length ? (
+        <section className="experience-related" aria-labelledby="artist-works-title">
+          <header>
+            <p className="experience-kicker">Collection</p>
+            <h2 id="artist-works-title">Works by {artist.name_en}</h2>
+          </header>
+          <div className="experience-related__list">
+            {workItems.map((work) => (
+              <Link href={work.href} key={work.href} className="experience-related__item">
+                <figure>
+                  {work.image ? (
+                    <img src={work.image.src} alt={work.image.alt} loading="lazy" />
+                  ) : (
+                    <span className="experience-detail__media-fallback" role="img" aria-label="Image unavailable">
+                      <span aria-hidden="true">015</span>
+                    </span>
+                  )}
+                </figure>
+                <h3>{work.title}</h3>
+                {work.meta ? <p>{work.meta}</p> : null}
+              </Link>
+            ))}
+          </div>
+          {artistWorks.length > workItems.length ? (
+            <Link
+              href="/artworks"
+              className="experience-detail__back"
+              style={{ marginTop: '2rem', display: 'inline-flex' }}
+            >
+              View all {artistWorks.length} works ↗
+            </Link>
+          ) : null}
+        </section>
+      ) : null}
+
+      <section className="experience-inquiry">
+        <p className="experience-kicker">Private viewings and advisory</p>
+        <h2>Enquire about {artist.name_en}</h2>
+        <p>Contact the gallery for available works and private viewing appointments.</p>
+        <Link href="/contact">Contact the gallery</Link>
+      </section>
+    </main>
   );
 }

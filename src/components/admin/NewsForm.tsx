@@ -29,11 +29,11 @@ export function NewsForm({ action, message, mode = "create", status, values = {}
   const statusMessage =
     message ??
     (action
-      ? "News save uses guarded development-only JSON persistence."
-      : "News mutation is prepared for a future guarded save action.");
+      ? "News save is active and persists changes to PostgreSQL."
+      : "News save action is currently unavailable for this form.");
   const helperText = action
-    ? "JSON persistence is development-only and remains guarded for production."
-    : "No news data will be saved until a future save action is connected.";
+    ? "Changes are saved when submission succeeds."
+    : "Saving is currently unavailable in this form.";
 
   return (
     <form action={action} className="admin-form" aria-label={title}>

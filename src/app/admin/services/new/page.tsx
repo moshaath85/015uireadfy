@@ -22,15 +22,16 @@ async function createServiceAction(formData: FormData) {
   redirect(`/admin/services/${result.serviceId}/edit?created=1`);
 }
 
-export default function NewServicePage({ searchParams }: { readonly searchParams?: { readonly status?: string; readonly message?: string } }) {
-  const status = searchParams?.status === "success" || searchParams?.status === "error" ? searchParams.status : undefined;
+export default async function NewServicePage({ searchParams }: { readonly searchParams?: Promise<{ readonly status?: string; readonly message?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const status = resolvedSearchParams?.status === "success" || resolvedSearchParams?.status === "error" ? resolvedSearchParams.status : undefined;
 
   return (
     <AdminShell title="Create Service" description="Create a PostgreSQL-backed service record.">
       <PageToolbar title="Create Service" description="Save a new service record to PostgreSQL." />
       <ServiceForm
         action={createServiceAction}
-        message={searchParams?.message}
+        message={resolvedSearchParams?.message}
         status={status}
       />
     </AdminShell>

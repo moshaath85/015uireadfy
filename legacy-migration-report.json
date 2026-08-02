@@ -1,7 +1,7 @@
 {
   "mode": "execute",
   "organizationId": "gallery-015",
-  "startedAt": "2026-07-14T21:05:05.269Z",
+  "startedAt": "2026-08-01T16:20:40.772Z",
   "sources": {
     "settings": "settings.json",
     "media": "media.json",
@@ -22,20 +22,20 @@
   "entities": {
     "settings": {
       "found": 1,
-      "inserted": 1,
-      "updated": 0,
+      "inserted": 0,
+      "updated": 1,
       "skipped": 0
     },
     "media": {
-      "found": 16,
-      "inserted": 10,
-      "updated": 6,
+      "found": 277,
+      "inserted": 0,
+      "updated": 277,
       "skipped": 0
     },
     "artists": {
-      "found": 2,
+      "found": 68,
       "inserted": 0,
-      "updated": 2,
+      "updated": 68,
       "skipped": 0
     },
     "collections": {
@@ -45,15 +45,15 @@
       "skipped": 0
     },
     "artworks": {
-      "found": 4,
+      "found": 237,
       "inserted": 0,
-      "updated": 4,
+      "updated": 237,
       "skipped": 0
     },
     "exhibitions": {
-      "found": 2,
+      "found": 13,
       "inserted": 0,
-      "updated": 2,
+      "updated": 13,
       "skipped": 0
     },
     "exhibitionArtists": {
@@ -69,9 +69,9 @@
       "skipped": 0
     },
     "projects": {
-      "found": 1,
+      "found": 8,
       "inserted": 0,
-      "updated": 1,
+      "updated": 8,
       "skipped": 0
     },
     "projectArtists": {
@@ -93,9 +93,9 @@
       "skipped": 0
     },
     "news": {
-      "found": 1,
+      "found": 9,
       "inserted": 0,
-      "updated": 1,
+      "updated": 9,
       "skipped": 0
     },
     "publications": {
@@ -105,13 +105,13 @@
       "skipped": 0
     },
     "certificates": {
-      "found": 0,
+      "found": 20,
       "inserted": 0,
-      "updated": 0,
+      "updated": 20,
       "skipped": 0
     }
   },
   "warnings": [],
   "errors": [],
-  "completedAt": "2026-07-14T21:05:16.989Z"
+  "completedAt": "2026-08-01T16:22:49.316Z"
 }

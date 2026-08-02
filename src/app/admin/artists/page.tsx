@@ -7,8 +7,15 @@ import { SearchBar } from "@/components/admin/SearchBar";
 import { StatusBadge, type StatusBadgeValue } from "@/components/admin/StatusBadge";
 import { requireAdminServerAction } from "@/lib/auth/admin-action-security";
 import { getAdminAuthConfig } from "@/lib/auth/admin-auth-runtime";
+import { getCmsModuleCapability } from "@/lib/cms/capabilities/capability-registry";
 import { archiveArtistPrismaRecord, listArtistPrismaRecords } from "@/lib/cms/artists/artists-prisma-adapter";
 import type { Artist } from "@/types";
+
+interface AdminArtistsPageProps {
+  readonly searchParams?: Promise<{
+    readonly q?: string;
+  }>;
+}
 
 function formatBooleanStatus(value: boolean): string {
   return value ? "Yes" : "No";
@@ -31,6 +38,26 @@ function isStatusBadgeValue(value: string): value is StatusBadgeValue {
     "reserved",
     "sold"
   ].includes(value);
+}
+
+function normalize(value?: string): string {
+  return value?.trim().toLowerCase() ?? "";
+}
+
+function includesSearch(artist: Artist, query: string): boolean {
+  if (!query) {
+    return true;
+  }
+
+  return [
+    artist.id,
+    artist.name_en,
+    artist.name_ar,
+    artist.slug,
+    artist.nationality_en,
+    artist.nationality_ar,
+    artist.visibility_status,
+  ].some((value) => normalize(value).includes(query));
 }
 
 async function archiveArtistAction(formData: FormData): Promise<void> {
@@ -106,27 +133,32 @@ const artistColumns: readonly DataTableColumn<Artist>[] = [
   }
 ];
 
-export default async function AdminArtistsPage() {
+export default async function AdminArtistsPage({ searchParams }: AdminArtistsPageProps) {
+  const resolvedSearchParams = await searchParams;
   const organizationId = getAdminAuthConfig()?.organizationId;
+  const capability = getCmsModuleCapability("artists");
+  const query = normalize(resolvedSearchParams?.q);
   const artists = organizationId ? await listArtistPrismaRecords(organizationId) : [];
+  const filteredArtists = artists.filter((artist) => includesSearch(artist, query));
 
   return (
     <AdminShell
       title="Artists"
-      description="Artist records available in the CMS."
+      description={capability.messaging.listDescription}
     >
       <PageToolbar
         title="Artists"
+        capability={capability}
         description="Create and manage artist records."
-        search={<SearchBar label="Search artists" placeholder="Search artist records" />}
+        search={<SearchBar label="Search artists" placeholder="Search artist records" defaultValue={resolvedSearchParams?.q ?? ""} queryParam="q" />}
       />
       <DataTable
         caption="Artists"
         columns={artistColumns}
-        rows={artists}
+        rows={filteredArtists}
         getRowKey={(artist) => artist.id}
         emptyTitle="No artist records are currently available."
-        emptyDescription="Artist records will appear here after they are saved."
+        emptyDescription={query ? "No artist records match the current search query." : "Artist records will appear here after they are saved."}
       />
     </AdminShell>
   );

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Script from 'next/script';
 import type { CSSProperties, ReactNode } from 'react';
 import { mediaRepository } from '@/lib/repositories/media';
 
@@ -321,7 +322,7 @@ function PublicHeroSlider({ title, image, images = [], fallbackImages = [] }: Pu
           </div>
         </div>
       ) : null}
-      {script ? <script dangerouslySetInnerHTML={{ __html: script }} /> : null}
+      {script ? <Script id={`${heroId}-slider`} strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: script }} /> : null}
     </section>
   );
 }

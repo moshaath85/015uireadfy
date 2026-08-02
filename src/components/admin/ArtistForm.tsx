@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { artistsFormConfig, type ArtistsFormEntity } from "@/lib/cms/artists/artists-form-config";
 import type { ArtistValidationIssue } from "@/lib/cms/artists/artists-validation";
 import type { FormMode, FormSectionDefinition, FormValues } from "@/lib/forms";
+import type { Media } from "@/types";
 import { FormActions } from "./FormActions";
 import { FormField } from "./FormField";
 
@@ -21,6 +22,7 @@ export type ArtistFormAction = (state: ArtistFormState, formData: FormData) => P
 export interface ArtistFormProps {
   readonly action?: ArtistFormAction;
   readonly initialState?: ArtistFormState;
+  readonly mediaOptions?: readonly Media[];
   readonly mode?: Extract<FormMode, "create" | "edit">;
   readonly values?: FormValues<ArtistsFormEntity>;
 }
@@ -84,6 +86,7 @@ function getStringValue(values: FormValues<ArtistsFormEntity>, key: keyof Artist
 function renderSection(
   section: FormSectionDefinition<ArtistsFormEntity>,
   values: FormValues<ArtistsFormEntity>,
+  mediaOptions: readonly Media[],
 ) {
   return (
     <section className="admin-form-section" key={section.key} aria-labelledby={`section-${section.key}`}>
@@ -97,7 +100,7 @@ function renderSection(
       </div>
       <div className="admin-form-section__fields">
         {section.fields.map((field) => (
-          <FormField<ArtistsFormEntity> field={field} key={field.key} values={values} />
+          <FormField<ArtistsFormEntity> field={field} key={field.key} mediaOptions={mediaOptions} values={values} />
         ))}
       </div>
     </section>
@@ -107,6 +110,7 @@ function renderSection(
 export function ArtistForm({
   action = disabledArtistFormAction,
   initialState = disabledArtistFormState,
+  mediaOptions = [],
   mode = "create",
   values,
 }: ArtistFormProps) {
@@ -227,7 +231,7 @@ export function ArtistForm({
               </h3>
               <p className="admin-form-section__description">{panel.description}</p>
             </div>
-            {section ? renderSection(section, valuesWithSlug) : null}
+            {section ? renderSection(section, valuesWithSlug, mediaOptions) : null}
           </section>
         );
       })}
@@ -251,7 +255,7 @@ export function ArtistForm({
               value={manualSlug}
             />
           </label>
-          {renderSection(advancedSection, valuesWithSlug)}
+          {renderSection(advancedSection, valuesWithSlug, mediaOptions)}
         </details>
       ) : null}
 

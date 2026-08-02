@@ -10,7 +10,7 @@ import { mediaRepository } from "@/lib/repositories/media";
 import { publicationsRepository } from "@/lib/repositories/publications";
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,8 @@ function formatLabel(value: string): string {
 }
 
 export default async function PublicationDetailPage({ params }: Props) {
-  const publication = (await publicationsRepository.getPublicAll()).find((item) => item.slug === params.slug);
+  const { slug } = await params;
+  const publication = (await publicationsRepository.getPublicAll()).find((item) => item.slug === slug);
 
   if (!publication) {
     notFound();

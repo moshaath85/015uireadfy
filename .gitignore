@@ -30,6 +30,11 @@ Thumbs.db
 *.db
 *.db-journal
 
+# Google Drive sync credentials/tokens
+scripts/gdrive-credentials.json
+scripts/gdrive-token.json
+imports/
+
 # Coverage and caches
 coverage/
 .cache/

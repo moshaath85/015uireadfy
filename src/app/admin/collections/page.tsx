@@ -7,8 +7,15 @@ import { SearchBar } from "@/components/admin/SearchBar";
 import { StatusBadge, type StatusBadgeValue } from "@/components/admin/StatusBadge";
 import { requireAdminServerAction } from "@/lib/auth/admin-action-security";
 import { getAdminAuthConfig } from "@/lib/auth/admin-auth-runtime";
+import { getCmsModuleCapability } from "@/lib/cms/capabilities/capability-registry";
 import { archiveCollectionRecord, listCollectionRecords } from "@/lib/cms/production-prisma";
 import type { Collection } from "@/types";
+
+interface AdminCollectionsPageProps {
+  readonly searchParams?: Promise<{
+    readonly q?: string;
+  }>;
+}
 
 function formatValue(value?: string | number | null): string {
   return value === undefined || value === null || value === "" ? "Not configured" : String(value);
@@ -27,6 +34,28 @@ function isStatusBadgeValue(value: string): value is StatusBadgeValue {
     "reserved",
     "sold"
   ].includes(value);
+}
+
+function normalize(value?: string | number | null): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value).trim().toLowerCase();
+}
+
+function includesSearch(collection: Collection, query: string): boolean {
+  if (!query) {
+    return true;
+  }
+
+  return [
+    collection.id,
+    collection.title_en,
+    collection.title_ar,
+    collection.slug,
+    collection.visibility_status,
+  ].some((value) => normalize(value).includes(query));
 }
 
 const collectionColumns: readonly DataTableColumn<Collection>[] = [
@@ -75,27 +104,32 @@ async function archiveCollectionAction(formData: FormData): Promise<void> {
   revalidatePath("/admin/collections");
 }
 
-export default async function AdminCollectionsPage() {
+export default async function AdminCollectionsPage({ searchParams }: AdminCollectionsPageProps) {
+  const resolvedSearchParams = await searchParams;
   const organizationId = getAdminAuthConfig()?.organizationId;
+  const capability = getCmsModuleCapability("collections");
+  const query = normalize(resolvedSearchParams?.q);
   const collections = organizationId ? await listCollectionRecords(organizationId) : [];
+  const filteredCollections = collections.filter((collection) => includesSearch(collection, query));
 
   return (
     <AdminShell
       title="Collections"
-      description="Read-only collection records prepared for future create, edit, and delete workflows."
+      description={capability.messaging.listDescription}
     >
       <PageToolbar
         title="Collections"
-        description="Read-only collection records prepared for future create, edit, and delete workflows."
-        search={<SearchBar label="Search collections" placeholder="Search collection records" />}
+        capability={capability}
+        description="Create and manage collection records."
+        search={<SearchBar label="Search collections" placeholder="Search collection records" defaultValue={resolvedSearchParams?.q ?? ""} queryParam="q" />}
       />
       <DataTable
         caption="Collections"
         columns={collectionColumns}
-        rows={collections}
+        rows={filteredCollections}
         getRowKey={(collection) => collection.id}
         emptyTitle="No collection records are currently available."
-        emptyDescription="Collection records will appear here when they are ready."
+        emptyDescription={query ? "No collection records match the current search query." : "Collection records will appear here after they are saved."}
       />
     </AdminShell>
   );

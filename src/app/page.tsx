@@ -1,231 +1,305 @@
 import Link from 'next/link';
-import HomeHero, { type HomeHeroSlide } from '@/components/public/HomeHero';
-import { PublicResponsiveMedia } from '@/components/public/PageContainer';
+import '@/styles/home-2026.css';
+import HeroRotator, { type HeroSlide } from '@/components/public/home/HeroRotator';
 import { artistsRepository } from '@/lib/repositories/artists';
 import { artworksRepository } from '@/lib/repositories/artworks';
 import { exhibitionsRepository } from '@/lib/repositories/exhibitions';
 import { mediaRepository } from '@/lib/repositories/media';
 import { newsRepository } from '@/lib/repositories/news';
 import { projectsRepository } from '@/lib/repositories/projects';
+import type { Media } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-const formatDate = (value: string) => {
+const longDate = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+  return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 };
 
-const heroSlides: HomeHeroSlide[] = [
-  {
-    src: '/images/hero/gallery-015-hero-05.png',
-    alt: 'Gallery 015 private collection project in Riyadh',
-    eyebrow: 'Private collections',
-    title: 'Art selected for the life around it.',
-    description: 'Curatorial direction, acquisition, and placement for residences and private collections.',
-    meta: 'Riyadh · Saudi Arabia',
-    href: '/projects',
-    cta: 'Explore projects',
-  },
-  {
-    src: '/images/hero/gallery-015-hero-01.png',
-    alt: 'Gallery 015 institutional exhibition project',
-    eyebrow: 'Institutional projects',
-    title: 'Transforming space through considered art.',
-    description: 'Art programmes for museums, galleries, workplaces, hospitality, and healthcare environments.',
-    meta: 'Curatorial planning · Installation · Advisory',
-    href: '/projects',
-    cta: 'View our work',
-  },
-  {
-    src: '/images/hero/gallery-015-hero-09.png',
-    alt: 'Gallery 015 contemporary artwork presentation',
-    eyebrow: 'Selected works',
-    title: 'A quiet encounter with contemporary art.',
-    description: 'Discover artists and works chosen for clarity, presence, and lasting cultural value.',
-    meta: 'Gallery 015 collection',
-    href: '/artworks',
-    cta: 'Discover artworks',
-  },
-  {
-    src: '/images/hero/gallery-015-hero-10.png',
-    alt: 'Gallery 015 art advisory and placement project',
-    eyebrow: 'Art advisory',
-    title: 'From acquisition to final placement.',
-    description: 'A discreet advisory service for collectors, institutions, and culturally ambitious spaces.',
-    meta: 'Private viewings by appointment',
-    href: '/contact',
-    cta: 'Start a conversation',
-  },
-];
+const monthYear = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(date);
+};
+
+/** Works whose title is real editorial content, not an archive placeholder. */
+const hasRealTitle = (title: string) => !title.trim().toLowerCase().startsWith('untitled');
 
 export default async function HomePage() {
-  const [artists, artworks, exhibitions, news, projects] = await Promise.all([
-    artistsRepository.getPublicFeatured(),
-    artworksRepository.getAll(),
+  const [artworks, artists, exhibitions, projects, news, allMedia] = await Promise.all([
+    artworksRepository.getPublicAll(),
+    artistsRepository.getPublicAll(),
     exhibitionsRepository.getPublicAll(),
-    newsRepository.getAll(),
-    projectsRepository.getAll(),
+    projectsRepository.getPublicAll(),
+    newsRepository.getPublicAll(),
+    mediaRepository.getPublicAll(),
   ]);
 
-  const allArtists = artists.length > 0 ? artists : await artistsRepository.getPublicAll();
-  const artistsById = new Map(allArtists.map((artist) => [artist.id, artist.name_en]));
+  const mediaById = new Map(allMedia.map((item) => [item.id, item]));
+  const media = (id: string | null | undefined): Media | null => (id ? mediaById.get(id) ?? null : null);
+  const artistName = new Map(artists.map((artist) => [artist.id, artist.name_en]));
 
-  const featuredArtists = await Promise.all(
-    allArtists
-      .slice()
-      .sort((a, b) => a.display_order - b.display_order)
-      .slice(0, 3)
-      .map(async (artist) => ({ artist, media: await mediaRepository.getArtistProfileMedia(artist) })),
-  );
+  // ---- Hero + selected works: titled works that actually have an image ----
+  const titledWorks = artworks
+    .filter((work) => hasRealTitle(work.title_en) && media(work.primary_image_id))
+    .sort((a, b) =>
+      Number(b.is_featured_homepage || b.featured) - Number(a.is_featured_homepage || a.featured)
+      || a.display_order - b.display_order);
 
-  const selectedArtworks = await Promise.all(
-    artworks
-      .slice()
-      .sort((a, b) => Number(b.is_featured_homepage || b.featured) - Number(a.is_featured_homepage || a.featured) || a.display_order - b.display_order)
-      .slice(0, 4)
-      .map(async (artwork) => ({
-        artwork,
-        media: await mediaRepository.getArtworkPrimaryMedia(artwork),
-        artistName: artistsById.get(artwork.artist_id) ?? 'Gallery 015',
-      })),
-  );
+  /* Hero rotates through the strongest titled works — one at a time.
+     Only high-resolution scans qualify: the hero renders very large, and a
+     small source would fall apart at that size. */
+  const HERO_MIN_EDGE = 900;
+  const heroSlides: HeroSlide[] = titledWorks
+    .filter((work) => {
+      const cover = media(work.primary_image_id);
+      return cover && Math.min(cover.width ?? 0, cover.height ?? 0) >= HERO_MIN_EDGE;
+    })
+    .slice(0, 5)
+    .map((work) => {
+    const cover = media(work.primary_image_id)!;
+    return {
+      id: work.id,
+      slug: work.slug,
+      title: work.title_en,
+      artist: artistName.get(work.artist_id) ?? 'Gallery 015',
+      spec: [work.medium_en, work.dimensions, work.year].filter(Boolean).join(' · '),
+      src: cover.url,
+      alt: cover.alt_en || work.title_en,
+    };
+  });
 
-  const featuredExhibition = await (async () => {
-    for (const exhibition of exhibitions.slice().sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())) {
-      const media = exhibition.cover_media_id ? await mediaRepository.getById(exhibition.cover_media_id) : null;
-      if (media) return { exhibition, media };
-    }
-    return null;
-  })();
+  const selectedWorks = titledWorks.slice(5, 11);
 
-  const featuredProjects = await Promise.all(
-    projects.slice(0, 3).map(async (project) => ({
-      project,
-      media: project.cover_media_id ? await mediaRepository.getById(project.cover_media_id) : null,
-    })),
-  );
+  // ---- Programme: newest exhibition that has a cover image ----
+  const programme = exhibitions
+    .slice()
+    .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())
+    .map((exhibition) => ({ exhibition, cover: media(exhibition.cover_media_id) }))
+    .find((entry) => entry.cover) ?? null;
 
-  const editorialNews = news
+  const now = Date.now();
+  const programmeIsCurrent = programme
+    ? new Date(programme.exhibition.start_date).getTime() <= now
+      && new Date(programme.exhibition.end_date).getTime() >= now
+    : false;
+
+  // ---- Roster: artists with a real portrait ----
+  const portraitArtists = artists
+    .map((artist) => ({ artist, portrait: media(artist.profile_image_id) }))
+    .filter((entry) => entry.portrait)
+    .sort((a, b) => a.artist.display_order - b.artist.display_order)
+    .slice(0, 7);
+
+  const featuredProjects = projects
+    .map((project) => ({ project, cover: media(project.cover_media_id) }))
+    .filter((entry) => entry.cover)
+    .slice(0, 3);
+
+  const journal = news
     .slice()
     .sort((a, b) => new Date(b.publish_date).getTime() - new Date(a.publish_date).getTime())
     .slice(0, 3);
 
   return (
-    <div className="home-page">
-      <HomeHero slides={heroSlides} />
+    <div className="hp">
 
-      <div className="home-page__body">
-        <section className="home-intro" aria-labelledby="home-intro-title">
-          <p className="home-kicker">Gallery 015</p>
-          <h2 id="home-intro-title">A contemporary art platform shaped by artists, collectors, and place.</h2>
-          <p>
-            We bring together representation, exhibitions, private advisory, and cultural projects through a calm,
-            rigorous curatorial approach.
+      <HeroRotator slides={heroSlides} />
+
+      {/* STATEMENT */}
+      <section className="hp-statement">
+        <div className="hp-wrap hp-statement__grid">
+          <p className="hp-big">A contemporary art platform shaped by artists, collectors, and place.</p>
+          <p className="hp-side">
+            015 Gallery brings together representation, exhibitions, private advisory, and cultural
+            projects across the Kingdom — from the founding generation of Saudi modernism to the
+            voices defining it now.
           </p>
-        </section>
+        </div>
+      </section>
 
-        {featuredArtists.length > 0 ? (
-          <section className="home-section" aria-labelledby="home-artists-title">
-            <div className="home-section__header">
-              <div><p className="home-kicker">Artists</p><h2 id="home-artists-title">Featured artists</h2></div>
-              <Link href="/artists">View all artists <span aria-hidden="true">↗</span></Link>
+      {/* PROGRAMME */}
+      {programme ? (
+        <section className="hp-programme">
+          <div className="hp-wrap">
+            <div className="hp-sec-head">
+              <h2>{programmeIsCurrent ? 'Now on view' : 'From the programme'}</h2>
+              <p className="hp-note">Exhibitions presented by the gallery, at our Riyadh space and beyond.</p>
             </div>
-            <div className="home-artists-grid">
-              {featuredArtists.map(({ artist, media }, index) => (
-                <Link className={`home-artist-card home-artist-card--${index + 1}`} href={`/artists/${artist.slug}`} key={artist.id}>
-                  {media ? (
-                    <PublicResponsiveMedia
-                      image={{ src: media.url, alt: media.alt_en, width: media.width, height: media.height }}
-                      className="home-artist-card__media"
-                    />
-                  ) : <div className="home-media-placeholder" />}
-                  <div className="home-card-meta"><h3>{artist.name_en}</h3><p>{[artist.nationality_en, artist.birth_year ? `b. ${artist.birth_year}` : ''].filter(Boolean).join(' · ')}</p></div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {selectedArtworks.length > 0 ? (
-          <section className="home-section home-section--works" aria-labelledby="home-works-title">
-            <div className="home-section__header">
-              <div><p className="home-kicker">Collection</p><h2 id="home-works-title">Selected artworks</h2></div>
-              <Link href="/artworks">Explore the collection <span aria-hidden="true">↗</span></Link>
-            </div>
-            <div className="home-works-grid">
-              {selectedArtworks.map(({ artwork, media, artistName }, index) => (
-                <Link className={`home-work-card home-work-card--${index + 1}`} href={`/artworks/${artwork.slug}`} key={artwork.id}>
-                  {media ? (
-                    <PublicResponsiveMedia
-                      image={{ src: media.url, alt: media.alt_en, width: media.width, height: media.height }}
-                      className="home-work-card__media"
-                    />
-                  ) : <div className="home-media-placeholder" />}
-                  <div className="home-card-meta"><h3>{artwork.title_en}</h3><p>{[artistName, artwork.year, artwork.medium_en].filter(Boolean).join(' · ')}</p></div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {featuredExhibition ? (
-          <section className="home-feature" aria-labelledby="home-exhibition-title">
-            <Link className="home-feature__image" href={`/exhibitions/${featuredExhibition.exhibition.slug}`}>
-              <PublicResponsiveMedia image={{ src: featuredExhibition.media.url, alt: featuredExhibition.media.alt_en, width: featuredExhibition.media.width, height: featuredExhibition.media.height }} />
+            <Link className="hp-programme__grid" href={`/exhibitions/${programme.exhibition.slug}`}>
+              <figure className="hp-programme__media">
+                <img
+                  src={programme.cover!.url}
+                  alt={programme.cover!.alt_en || programme.exhibition.title_en}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </figure>
+              <div className="hp-record">
+                <p className="hp-label">Exhibition</p>
+                <h3>{programme.exhibition.title_en}</h3>
+                <dl>
+                  <div>
+                    <dt>Dates</dt>
+                    <dd>{longDate(programme.exhibition.start_date)} — {longDate(programme.exhibition.end_date)}</dd>
+                  </div>
+                  {programme.exhibition.venue_en ? (
+                    <div><dt>Venue</dt><dd>{programme.exhibition.venue_en}</dd></div>
+                  ) : null}
+                </dl>
+                <span className="hp-link">View exhibition <span aria-hidden="true">↗</span></span>
+              </div>
             </Link>
-            <div className="home-feature__copy">
-              <p className="home-kicker">Exhibition</p>
-              <h2 id="home-exhibition-title">{featuredExhibition.exhibition.title_en}</h2>
-              <p>{formatDate(featuredExhibition.exhibition.start_date)} — {formatDate(featuredExhibition.exhibition.end_date)}</p>
-              <p>{featuredExhibition.exhibition.venue_en}</p>
-              <Link href={`/exhibitions/${featuredExhibition.exhibition.slug}`}>View exhibition <span aria-hidden="true">↗</span></Link>
-            </div>
-          </section>
-        ) : null}
+          </div>
+        </section>
+      ) : null}
 
-        {featuredProjects.length > 0 ? (
-          <section className="home-section" aria-labelledby="home-projects-title">
-            <div className="home-section__header">
-              <div><p className="home-kicker">Projects</p><h2 id="home-projects-title">Art in context</h2></div>
-              <Link href="/projects">Explore projects <span aria-hidden="true">↗</span></Link>
+      {/* SELECTED WORKS */}
+      {selectedWorks.length ? (
+        <section className="hp-works">
+          <div className="hp-wrap">
+            <div className="hp-sec-head">
+              <h2>Selected works</h2>
+              <p className="hp-note">
+                A rotating selection from the collection. Every work is documented, certified,
+                and available for private viewing.
+              </p>
             </div>
-            <div className="home-projects-grid">
-              {featuredProjects.map(({ project, media }, index) => (
-                <Link href={`/projects/${project.slug}`} className={`home-project-card home-project-card--${index + 1}`} key={project.id}>
-                  {media ? <PublicResponsiveMedia image={{ src: media.url, alt: media.alt_en, width: media.width, height: media.height }} className="home-project-card__media" /> : <img src={`/images/hero/gallery-015-hero-0${index + 5}.png`} alt="Gallery 015 project" loading="lazy" />}
-                  <div><p>{project.type?.replaceAll('_', ' ') ?? 'Art project'}</p><h3>{project.title_en}</h3></div>
+            <div className="hp-works__grid">
+              {selectedWorks.map((work, index) => {
+                const cover = media(work.primary_image_id)!;
+                return (
+                  <Link href={`/artworks/${work.slug}`} key={work.id}>
+                    <figure className="hp-plate">
+                      <img src={cover.url} alt={cover.alt_en || work.title_en} loading="lazy" decoding="async" />
+                    </figure>
+                    <div className="hp-cap">
+                      <span className="hp-idx">{String(index + 1).padStart(2, '0')}</span>
+                      <h3>{work.title_en}</h3>
+                      <p className="hp-spec">
+                        {[artistName.get(work.artist_id), work.medium_en, work.dimensions]
+                          .filter(Boolean).join(' · ')}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+            <div className="hp-more">
+              <Link className="hp-link" href="/artworks">All artworks <span aria-hidden="true">↗</span></Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* ROSTER */}
+      {portraitArtists.length ? (
+        <section className="hp-artists">
+          <div className="hp-wrap">
+            <div className="hp-sec-head">
+              <h2>The roster</h2>
+              <p className="hp-note">
+                {artists.length} artists — the founding generation of Saudi modernism alongside
+                contemporary and international voices.
+              </p>
+            </div>
+            <div className="hp-artists__grid">
+              {portraitArtists.map(({ artist, portrait }) => (
+                <Link href={`/artists/${artist.slug}`} key={artist.id}>
+                  <figure className="hp-artist__media">
+                    <img src={portrait!.url} alt={portrait!.alt_en || artist.name_en} loading="lazy" decoding="async" />
+                  </figure>
+                  <div className="hp-artist__cap">
+                    <h3>{artist.name_en}</h3>
+                    <p>{[artist.nationality_en, artist.birth_year > 1900 ? `b. ${artist.birth_year}` : '']
+                      .filter(Boolean).join(' · ')}</p>
+                  </div>
+                </Link>
+              ))}
+              <Link href="/artists">
+                <figure className="hp-artist__media">
+                  <span className="hp-label" style={{ textAlign: 'center' }}>
+                    {Math.max(artists.length - portraitArtists.length, 0)} more<br />artists
+                  </span>
+                </figure>
+                <div className="hp-artist__cap"><h3>View all</h3><p>Full roster</p></div>
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {/* PROJECTS */}
+      {featuredProjects.length ? (
+        <section className="hp-projects">
+          <div className="hp-wrap">
+            <div className="hp-sec-head">
+              <h2>Art in context</h2>
+              <p className="hp-note">
+                Commissioned art programmes for institutions, hospitals, and cultural landmarks
+                across the Kingdom.
+              </p>
+            </div>
+            <div className="hp-projects__grid">
+              {featuredProjects.map(({ project, cover }) => (
+                <Link href={`/projects/${project.slug}`} key={project.id}>
+                  <figure className="hp-proj__media">
+                    <img src={cover!.url} alt={cover!.alt_en || project.title_en} loading="lazy" decoding="async" />
+                  </figure>
+                  <div className="hp-proj__cap">
+                    <span className="hp-label">Commission</span>
+                    <h3>{project.title_en}</h3>
+                  </div>
                 </Link>
               ))}
             </div>
-          </section>
-        ) : null}
-
-        {editorialNews.length > 0 ? (
-          <section className="home-section home-editorial" aria-labelledby="home-editorial-title">
-            <div className="home-section__header">
-              <div><p className="home-kicker">Journal</p><h2 id="home-editorial-title">Editorial notes</h2></div>
-              <Link href="/news">All news <span aria-hidden="true">↗</span></Link>
+            <div className="hp-more">
+              <Link className="hp-link" href="/projects">All projects <span aria-hidden="true">↗</span></Link>
             </div>
-            <div className="home-editorial__list">
-              {editorialNews.map((item) => (
-                <Link href={`/news/${item.slug}`} key={item.id}>
-                  <time dateTime={item.publish_date}>{formatDate(item.publish_date)}</time>
+          </div>
+        </section>
+      ) : null}
+
+      {/* JOURNAL */}
+      {journal.length ? (
+        <section className="hp-journal">
+          <div className="hp-wrap">
+            <div className="hp-sec-head">
+              <h2>015 Journal</h2>
+              <p className="hp-note">Essays and criticism on the Saudi art scene, written by the gallery.</p>
+            </div>
+            <div className="hp-journal__list">
+              {journal.map((item) => (
+                <Link className="hp-entry" href={`/news/${item.slug}`} key={item.id}>
+                  <time>{monthYear(item.publish_date)}</time>
                   <h3>{item.title_en}</h3>
                   <p>{item.excerpt_en}</p>
-                  <span aria-hidden="true">↗</span>
+                  <span className="hp-arw" aria-hidden="true">↗</span>
                 </Link>
               ))}
             </div>
-          </section>
-        ) : null}
-
-        <section className="home-contact" aria-label="Private advisory inquiries">
-          <p className="home-kicker">Private viewings & advisory</p>
-          <h2>For acquisition, placement, and institutional art programmes.</h2>
-          <div><Link href="/contact">Get in touch</Link><Link href="/services">Our services</Link></div>
+            <div className="hp-more">
+              <Link className="hp-link" href="/news">Enter the journal <span aria-hidden="true">↗</span></Link>
+            </div>
+          </div>
         </section>
-      </div>
+      ) : null}
+
+      {/* VISIT */}
+      <section className="hp-visit">
+        <div className="hp-wrap hp-visit__grid">
+          <div>
+            <p className="hp-label">Visit</p>
+            <h2>For acquisition, placement, and institutional art programmes.</h2>
+          </div>
+          <div className="hp-visit__links">
+            <Link className="hp-link" href="/contact">Private viewing <span aria-hidden="true">↗</span></Link>
+            <Link className="hp-link" href="/services">Our services <span aria-hidden="true">↗</span></Link>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }

@@ -8,10 +8,10 @@ import { artworksRepository } from "@/lib/repositories/artworks";
 import { CertificateStatus } from "@/types";
 
 interface NewCertificatePageProps {
-  readonly searchParams?: {
+  readonly searchParams?: Promise<{
     readonly status?: string;
     readonly message?: string;
-  };
+  }>;
 }
 
 const certificateStatusOptions = Object.values(CertificateStatus).map((value) => ({
@@ -137,11 +137,12 @@ async function CertificateFields() {
   );
 }
 
-export default function NewCertificatePage({ searchParams }: NewCertificatePageProps) {
-  const status = searchParams?.status === "success" || searchParams?.status === "error"
-    ? searchParams.status
+export default async function NewCertificatePage({ searchParams }: NewCertificatePageProps) {
+  const resolvedSearchParams = await searchParams;
+  const status = resolvedSearchParams?.status === "success" || resolvedSearchParams?.status === "error"
+    ? resolvedSearchParams.status
     : undefined;
-  const message = searchParams?.message;
+  const message = resolvedSearchParams?.message;
 
   return (
     <AdminShell

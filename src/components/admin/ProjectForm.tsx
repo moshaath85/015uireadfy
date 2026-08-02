@@ -41,11 +41,11 @@ export function ProjectForm({ action, message, mode = "create", status, values =
   const statusMessage =
     message ??
     (action
-      ? "Project save uses guarded development-only JSON persistence."
-      : "Project mutation is not connected yet. This form is prepared for a future guarded save action.");
+      ? "Project save is active and persists changes to PostgreSQL."
+      : "Project save action is currently unavailable for this form.");
   const helperText = action
-    ? "JSON persistence is development-only and remains guarded for production."
-    : "No project data will be saved until a future save action is approved and connected.";
+    ? "Changes are saved when submission succeeds."
+    : "Saving is currently unavailable in this form.";
 
   const clientValue = stringValue(values.client, stringValue(values.client_en));
   const completionDateValue = stringValue(values.completion_date, yearToCompletionDate(values.year));

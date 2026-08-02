@@ -3,15 +3,16 @@ import { artworksRepository } from "@/lib/repositories/artworks";
 import { certificatesRepository } from "@/lib/repositories/certificates";
 
 interface VerifyTokenPageProps {
-  readonly params: {
+  readonly params: Promise<{
     readonly token: string;
-  };
+  }>;
 }
 
 export const dynamic = "force-dynamic";
 
 export default async function VerifyTokenPage({ params }: VerifyTokenPageProps) {
-  const certificate = await certificatesRepository.findByVerificationValue(params.token);
+  const { token } = await params;
+  const certificate = await certificatesRepository.findByVerificationValue(token);
   const artwork = certificate
     ? (await artworksRepository.getAll()).find((item) => item.id === certificate.artwork_id)
     : undefined;
@@ -20,7 +21,7 @@ export default async function VerifyTokenPage({ params }: VerifyTokenPageProps) 
     <CertificateVerificationPanel
       certificate={certificate ?? undefined}
       artwork={artwork}
-      lookupValue={params.token}
+      lookupValue={token}
     />
   );
 }

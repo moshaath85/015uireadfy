@@ -9,13 +9,13 @@ import { certificatesRepository } from "@/lib/repositories/certificates";
 import { CertificateStatus } from "@/types";
 
 export interface EditCertificatePageProps {
-  readonly params: {
+  readonly params: Promise<{
     readonly id: string;
-  };
-  readonly searchParams?: {
+  }>;
+  readonly searchParams?: Promise<{
     readonly status?: string;
     readonly message?: string;
-  };
+  }>;
 }
 
 const certificateStatusOptions = Object.values(CertificateStatus).map((value) => ({
@@ -57,18 +57,20 @@ async function updateCertificateAction(certificateId: string, formData: FormData
 }
 
 export default async function EditCertificatePage({ params, searchParams }: EditCertificatePageProps) {
+  const { id } = await params;
+  const resolvedSearchParams = await searchParams;
   const certificates = await certificatesRepository.getAll();
-  const certificate = certificates.find((item) => item.id === params.id);
+  const certificate = certificates.find((item) => item.id === id);
 
   if (!certificate) {
     notFound();
   }
 
   const artworks = await artworksRepository.getAll();
-  const status = searchParams?.status === "success" || searchParams?.status === "error"
-    ? searchParams.status
+  const status = resolvedSearchParams?.status === "success" || resolvedSearchParams?.status === "error"
+    ? resolvedSearchParams.status
     : undefined;
-  const message = searchParams?.message;
+  const message = resolvedSearchParams?.message;
   const updateCurrentCertificateAction = updateCertificateAction.bind(null, certificate.id);
 
   return (

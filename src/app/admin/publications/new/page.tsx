@@ -22,15 +22,16 @@ async function createPublicationAction(formData: FormData) {
   redirect(`/admin/publications/${result.publicationId}/edit?created=1`);
 }
 
-export default function NewPublicationPage({ searchParams }: { readonly searchParams?: { readonly status?: string; readonly message?: string } }) {
-  const status = searchParams?.status === "success" || searchParams?.status === "error" ? searchParams.status : undefined;
+export default async function NewPublicationPage({ searchParams }: { readonly searchParams?: Promise<{ readonly status?: string; readonly message?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const status = resolvedSearchParams?.status === "success" || resolvedSearchParams?.status === "error" ? resolvedSearchParams.status : undefined;
 
   return (
     <AdminShell title="Create Publication" description="Create a PostgreSQL-backed publication record.">
       <PageToolbar title="Create Publication" description="Save a new publication record to PostgreSQL." />
       <PublicationForm
         action={createPublicationAction}
-        message={searchParams?.message}
+        message={resolvedSearchParams?.message}
         status={status}
       />
     </AdminShell>

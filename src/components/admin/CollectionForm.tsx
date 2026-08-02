@@ -23,11 +23,11 @@ export function CollectionForm({ action, message, mode = "create", status, value
   const statusMessage =
     message ??
     (action
-      ? "Collection save uses guarded development-only JSON persistence."
-      : "Collection mutation is not connected yet. This form is prepared for a future guarded save action.");
+      ? "Collection save is active and persists changes to PostgreSQL."
+      : "Collection save action is currently unavailable for this form.");
   const helperText = action
-    ? "JSON persistence is development-only and remains guarded for production."
-    : "No collection data will be saved until a future save action is approved and connected.";
+    ? "Changes are saved when submission succeeds."
+    : "Saving is currently unavailable in this form.";
 
   return (
     <form action={action} className="admin-form" aria-label={form.title}>

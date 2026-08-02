@@ -22,15 +22,16 @@ async function createNewsAction(formData: FormData) {
   redirect(`/admin/news/${result.newsId}/edit?created=1`);
 }
 
-export default function NewNewsPage({ searchParams }: { readonly searchParams?: { readonly status?: string; readonly message?: string } }) {
-  const status = searchParams?.status === "success" || searchParams?.status === "error" ? searchParams.status : undefined;
+export default async function NewNewsPage({ searchParams }: { readonly searchParams?: Promise<{ readonly status?: string; readonly message?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const status = resolvedSearchParams?.status === "success" || resolvedSearchParams?.status === "error" ? resolvedSearchParams.status : undefined;
 
   return (
     <AdminShell title="Create News" description="Create a PostgreSQL-backed news record.">
       <PageToolbar title="Create News" description="Save a new news record to PostgreSQL." />
       <NewsForm
         action={createNewsAction}
-        message={searchParams?.message}
+        message={resolvedSearchParams?.message}
         status={status}
       />
     </AdminShell>

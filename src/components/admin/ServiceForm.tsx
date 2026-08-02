@@ -33,11 +33,11 @@ export function ServiceForm({ action, message, mode = "create", status, values =
   const statusMessage =
     message ??
     (action
-      ? "Service save uses guarded development-only JSON persistence."
-      : "Service mutation is prepared for a future guarded save action.");
+      ? "Service save is active and persists changes to PostgreSQL."
+      : "Service save action is currently unavailable for this form.");
   const helperText = action
-    ? "JSON persistence is development-only and remains guarded for production."
-    : "No service data will be saved until a future save action is connected.";
+    ? "Changes are saved when submission succeeds."
+    : "Saving is currently unavailable in this form.";
 
   return (
     <form action={action} className="admin-form" aria-label={title}>

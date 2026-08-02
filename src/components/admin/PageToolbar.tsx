@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { BulkImportExportPanel } from "@/components/admin/BulkImportExportPanel";
+import { getCmsOperationalStateLabel } from "@/lib/cms/capabilities/capability-registry";
+import type { CmsModuleCapabilityDefinition } from "@/lib/cms/capabilities/capability-types";
 import type { BulkImportModule } from "@/lib/cms/bulk-import-export";
 
 export interface PageToolbarProps {
@@ -7,6 +9,7 @@ export interface PageToolbarProps {
   readonly description?: string;
   readonly search?: ReactNode;
   readonly action?: ReactNode;
+  readonly capability?: CmsModuleCapabilityDefinition;
 }
 
 const bulkModuleByTitle: Record<string, { readonly module: BulkImportModule; readonly label: string }> = {
@@ -21,8 +24,38 @@ const bulkModuleByTitle: Record<string, { readonly module: BulkImportModule; rea
   Publications: { module: "publications", label: "Publications" },
 };
 
-export function PageToolbar({ title, description, search, action }: PageToolbarProps) {
+function describeAvailability(capability: CmsModuleCapabilityDefinition): string {
+  const entries: string[] = [];
+
+  entries.push(capability.capabilities.create ? "Create available" : "Create unavailable");
+  entries.push(capability.capabilities.update ? "Update available" : "Update unavailable");
+  entries.push(capability.capabilities.archive ? "Archive available" : "Archive unavailable");
+  entries.push(capability.capabilities.bulk ? "Bulk available" : "Bulk unavailable");
+
+  return entries.join("; ");
+}
+
+function buildOperationalTruth(capability: CmsModuleCapabilityDefinition): string {
+  const stateLabel = getCmsOperationalStateLabel(capability.state);
+
+  if (capability.state === "operational") {
+    return `${stateLabel}: ${describeAvailability(capability)}.`;
+  }
+
+  if (capability.state === "partial") {
+    return `${stateLabel}: some actions are unavailable. ${describeAvailability(capability)}.`;
+  }
+
+  if (capability.state === "prepared_only") {
+    return `${stateLabel}: validation and preparation flow only. ${describeAvailability(capability)}.`;
+  }
+
+  return `${stateLabel}: viewing enabled with limited editing actions. ${describeAvailability(capability)}.`;
+}
+
+export function PageToolbar({ title, description, search, action, capability }: PageToolbarProps) {
   const bulkModule = bulkModuleByTitle[title];
+  const operationalTruth = capability ? buildOperationalTruth(capability) : undefined;
 
   return (
     <header className="admin-page-toolbar">
@@ -31,6 +64,9 @@ export function PageToolbar({ title, description, search, action }: PageToolbarP
           <h1 className="admin-page-toolbar__title">{title}</h1>
           {description ? (
             <p className="admin-page-toolbar__description">{description}</p>
+          ) : null}
+          {operationalTruth ? (
+            <p className="admin-page-toolbar__description">{operationalTruth}</p>
           ) : null}
         </div>
 

@@ -510,6 +510,25 @@ export async function listMediaRecords(organizationId?: string): Promise<readonl
   }
 }
 
+export async function listPublicMediaRecords(organizationId?: string): Promise<readonly Media[]> {
+  const resolvedOrganizationId = organizationId ?? (await getProductionOrganizationId());
+  if (!resolvedOrganizationId) return [];
+
+  try {
+    const records = await prisma().media.findMany({
+      where: {
+        organizationId: resolvedOrganizationId,
+        archivedAt: null,
+        visibility: MediaVisibility.PUBLIC,
+      },
+      orderBy: [{ updatedAt: "desc" }],
+    });
+    return records.map(toMedia);
+  } catch {
+    return [];
+  }
+}
+
 export async function findMediaRecord(mediaId: string | null | undefined, organizationId?: string): Promise<Media | null> {
   if (!mediaId) return null;
   const resolvedOrganizationId = organizationId ?? (await getProductionOrganizationId());
@@ -518,6 +537,29 @@ export async function findMediaRecord(mediaId: string | null | undefined, organi
   try {
     const record = await prisma().media.findFirst({
       where: { organizationId: resolvedOrganizationId, id: mediaId, archivedAt: null },
+    });
+    return record ? toMedia(record) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function findPublicMediaRecord(
+  mediaId: string | null | undefined,
+  organizationId?: string,
+): Promise<Media | null> {
+  if (!mediaId) return null;
+  const resolvedOrganizationId = organizationId ?? (await getProductionOrganizationId());
+  if (!resolvedOrganizationId) return null;
+
+  try {
+    const record = await prisma().media.findFirst({
+      where: {
+        organizationId: resolvedOrganizationId,
+        id: mediaId,
+        archivedAt: null,
+        visibility: MediaVisibility.PUBLIC,
+      },
     });
     return record ? toMedia(record) : null;
   } catch {
@@ -545,6 +587,196 @@ export async function listPublicCollectionRecords(): Promise<readonly Collection
         orderBy: [{ displayOrder: "asc" }, { updatedAt: "desc" }],
       })).map(toCollection)
     : [];
+}
+
+export interface PublicCollectionExperienceQueryRecord {
+  readonly collection: {
+    readonly id: string;
+    readonly slug: string;
+    readonly titleEn: string;
+    readonly titleAr: string;
+    readonly descriptionEn: string;
+    readonly descriptionAr: string;
+    readonly coverMediaId: string | null;
+  };
+  readonly artworks: readonly {
+    readonly id: string;
+    readonly slug: string;
+    readonly titleEn: string;
+    readonly titleAr: string;
+    readonly yearCreated: number;
+    readonly medium: string;
+    readonly featured: boolean;
+    readonly displayOrder: number;
+    readonly updatedAt: string;
+    readonly primaryMediaId: string;
+    readonly artist: {
+      readonly id: string;
+      readonly slug: string;
+      readonly nameEn: string;
+      readonly nameAr: string;
+      readonly featured: boolean;
+      readonly displayOrder: number;
+      readonly profileImageId: string | null;
+    };
+  }[];
+  readonly exhibitions: readonly {
+    readonly id: string;
+    readonly slug: string;
+    readonly titleEn: string;
+    readonly titleAr: string;
+    readonly venueEn: string;
+    readonly startDate: string;
+    readonly endDate: string;
+    readonly displayOrder: number;
+    readonly coverMediaId: string | null;
+  }[];
+  readonly media: readonly {
+    readonly id: string;
+    readonly storagePath: string;
+    readonly altText: string | null;
+    readonly width: number | null;
+    readonly height: number | null;
+  }[];
+}
+
+export async function findPublicCollectionExperienceQueryRecord(
+  slug: string,
+): Promise<PublicCollectionExperienceQueryRecord | null> {
+  const organizationId = await getProductionOrganizationId();
+  if (!organizationId) return null;
+
+  const collection = await prisma().collection.findFirst({
+    where: { ...publicWhere(organizationId), slug },
+    select: {
+      id: true,
+      slug: true,
+      titleEn: true,
+      titleAr: true,
+      descriptionEn: true,
+      descriptionAr: true,
+      coverMediaId: true,
+    },
+  });
+
+  if (!collection) return null;
+
+  const [artworks, exhibitionRelations] = await Promise.all([
+    prisma().artwork.findMany({
+      where: {
+        ...publicWhere(organizationId),
+        collectionId: collection.id,
+        artist: {
+          organizationId,
+          archivedAt: null,
+          visibilityStatus: publicVisibility,
+        },
+      },
+      select: {
+        id: true,
+        slug: true,
+        titleEn: true,
+        titleAr: true,
+        yearCreated: true,
+        medium: true,
+        featured: true,
+        displayOrder: true,
+        updatedAt: true,
+        primaryMediaId: true,
+        artist: {
+          select: {
+            id: true,
+            slug: true,
+            nameEn: true,
+            nameAr: true,
+            featured: true,
+            displayOrder: true,
+            profileImageId: true,
+          },
+        },
+      },
+    }),
+    prisma().exhibitionArtwork.findMany({
+      where: {
+        organizationId,
+        archivedAt: null,
+        artwork: {
+          organizationId,
+          collectionId: collection.id,
+          archivedAt: null,
+          visibilityStatus: publicVisibility,
+          artist: {
+            organizationId,
+            archivedAt: null,
+            visibilityStatus: publicVisibility,
+          },
+        },
+        exhibition: {
+          organizationId,
+          archivedAt: null,
+          visibilityStatus: publicVisibility,
+        },
+      },
+      select: {
+        exhibition: {
+          select: {
+            id: true,
+            slug: true,
+            titleEn: true,
+            titleAr: true,
+            venueEn: true,
+            startDate: true,
+            endDate: true,
+            displayOrder: true,
+            coverMediaId: true,
+          },
+        },
+      },
+    }),
+  ]);
+
+  const exhibitionRecords = exhibitionRelations.map(({ exhibition }) => exhibition);
+  const mediaIds = new Set<string>();
+  if (collection.coverMediaId) mediaIds.add(collection.coverMediaId);
+  artworks.forEach((artwork) => {
+    mediaIds.add(artwork.primaryMediaId);
+    if (artwork.artist.profileImageId) mediaIds.add(artwork.artist.profileImageId);
+  });
+  exhibitionRecords.forEach((exhibition) => {
+    if (exhibition.coverMediaId) mediaIds.add(exhibition.coverMediaId);
+  });
+
+  const media = mediaIds.size
+    ? await prisma().media.findMany({
+        where: {
+          organizationId,
+          id: { in: Array.from(mediaIds) },
+          archivedAt: null,
+          visibility: MediaVisibility.PUBLIC,
+        },
+        select: {
+          id: true,
+          storagePath: true,
+          altText: true,
+          width: true,
+          height: true,
+        },
+      })
+    : [];
+
+  return {
+    collection,
+    artworks: artworks.map((artwork) => ({
+      ...artwork,
+      updatedAt: iso(artwork.updatedAt),
+    })),
+    exhibitions: exhibitionRecords.map((exhibition) => ({
+      ...exhibition,
+      startDate: dateOnly(exhibition.startDate),
+      endDate: dateOnly(exhibition.endDate),
+    })),
+    media,
+  };
 }
 
 export async function findCollectionRecord(id: string, organizationId: string): Promise<Collection | null> {
@@ -620,12 +852,474 @@ export async function listPublicExhibitionRecords(): Promise<readonly Exhibition
     : [];
 }
 
+export interface PublicExhibitionExperienceQueryRecord {
+  readonly exhibition: {
+    readonly id: string;
+    readonly slug: string;
+    readonly titleEn: string;
+    readonly titleAr: string;
+    readonly descriptionEn: string;
+    readonly descriptionAr: string;
+    readonly startDate: string;
+    readonly endDate: string;
+    readonly venueEn: string;
+    readonly venueAr: string;
+    readonly status: string;
+    readonly coverMediaId: string | null;
+  };
+  readonly artists: readonly {
+    readonly displayOrder: number;
+    readonly role: string;
+    readonly artist: {
+      readonly id: string;
+      readonly slug: string;
+      readonly nameEn: string;
+      readonly nameAr: string;
+      readonly displayOrder: number;
+      readonly profileImageId: string | null;
+    };
+  }[];
+  readonly artworks: readonly {
+    readonly displayOrder: number;
+    readonly artwork: {
+      readonly id: string;
+      readonly slug: string;
+      readonly titleEn: string;
+      readonly titleAr: string;
+      readonly yearCreated: number;
+      readonly medium: string;
+      readonly displayOrder: number;
+      readonly updatedAt: string;
+      readonly primaryMediaId: string;
+      readonly collectionId: string | null;
+      readonly artist: {
+        readonly id: string;
+        readonly slug: string;
+        readonly nameEn: string;
+        readonly nameAr: string;
+      };
+    };
+  }[];
+  readonly collections: readonly {
+    readonly id: string;
+    readonly slug: string;
+    readonly titleEn: string;
+    readonly titleAr: string;
+    readonly coverMediaId: string | null;
+  }[];
+  readonly media: readonly {
+    readonly id: string;
+    readonly storagePath: string;
+    readonly altText: string | null;
+    readonly width: number | null;
+    readonly height: number | null;
+  }[];
+}
+
+export async function findPublicExhibitionExperienceQueryRecord(
+  slug: string,
+): Promise<PublicExhibitionExperienceQueryRecord | null> {
+  const organizationId = await getProductionOrganizationId();
+  if (!organizationId) return null;
+
+  const exhibition = await prisma().exhibition.findFirst({
+    where: { ...publicWhere(organizationId), slug },
+    select: {
+      id: true,
+      slug: true,
+      titleEn: true,
+      titleAr: true,
+      descriptionEn: true,
+      descriptionAr: true,
+      startDate: true,
+      endDate: true,
+      venueEn: true,
+      venueAr: true,
+      status: true,
+      coverMediaId: true,
+    },
+  });
+
+  if (!exhibition) return null;
+
+  const [artistRelations, artworkRelations] = await Promise.all([
+    prisma().exhibitionArtist.findMany({
+      where: {
+        organizationId,
+        exhibitionId: exhibition.id,
+        archivedAt: null,
+        artist: {
+          organizationId,
+          archivedAt: null,
+          visibilityStatus: publicVisibility,
+        },
+      },
+      select: {
+        displayOrder: true,
+        role: true,
+        artist: {
+          select: {
+            id: true,
+            slug: true,
+            nameEn: true,
+            nameAr: true,
+            displayOrder: true,
+            profileImageId: true,
+          },
+        },
+      },
+    }),
+    prisma().exhibitionArtwork.findMany({
+      where: {
+        organizationId,
+        exhibitionId: exhibition.id,
+        archivedAt: null,
+        artwork: {
+          organizationId,
+          archivedAt: null,
+          visibilityStatus: publicVisibility,
+          artist: {
+            organizationId,
+            archivedAt: null,
+            visibilityStatus: publicVisibility,
+          },
+        },
+      },
+      select: {
+        displayOrder: true,
+        artwork: {
+          select: {
+            id: true,
+            slug: true,
+            titleEn: true,
+            titleAr: true,
+            yearCreated: true,
+            medium: true,
+            displayOrder: true,
+            updatedAt: true,
+            primaryMediaId: true,
+            collectionId: true,
+            artist: {
+              select: {
+                id: true,
+                slug: true,
+                nameEn: true,
+                nameAr: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+  ]);
+
+  const collectionIds = new Set<string>();
+  artworkRelations.forEach(({ artwork }) => {
+    if (artwork.collectionId) collectionIds.add(artwork.collectionId);
+  });
+
+  const collections = collectionIds.size
+    ? await prisma().collection.findMany({
+        where: {
+          ...publicWhere(organizationId),
+          id: { in: Array.from(collectionIds) },
+        },
+        select: {
+          id: true,
+          slug: true,
+          titleEn: true,
+          titleAr: true,
+          coverMediaId: true,
+        },
+      })
+    : [];
+
+  const mediaIds = new Set<string>();
+  if (exhibition.coverMediaId) mediaIds.add(exhibition.coverMediaId);
+  artistRelations.forEach(({ artist }) => {
+    if (artist.profileImageId) mediaIds.add(artist.profileImageId);
+  });
+  artworkRelations.forEach(({ artwork }) => mediaIds.add(artwork.primaryMediaId));
+  collections.forEach((collection) => {
+    if (collection.coverMediaId) mediaIds.add(collection.coverMediaId);
+  });
+
+  const media = mediaIds.size
+    ? await prisma().media.findMany({
+        where: {
+          organizationId,
+          id: { in: Array.from(mediaIds) },
+          archivedAt: null,
+          visibility: MediaVisibility.PUBLIC,
+        },
+        select: {
+          id: true,
+          storagePath: true,
+          altText: true,
+          width: true,
+          height: true,
+        },
+      })
+    : [];
+
+  return {
+    exhibition: {
+      ...exhibition,
+      startDate: dateOnly(exhibition.startDate),
+      endDate: dateOnly(exhibition.endDate),
+    },
+    artists: artistRelations,
+    artworks: artworkRelations.map((relation) => ({
+      displayOrder: relation.displayOrder,
+      artwork: {
+        ...relation.artwork,
+        updatedAt: iso(relation.artwork.updatedAt),
+      },
+    })),
+    collections,
+    media,
+  };
+}
+
 export async function findExhibitionRecord(id: string, organizationId: string): Promise<Exhibition | null> {
   const record = await prisma().exhibition.findFirst({ where: { organizationId, id, archivedAt: null } });
   return record ? toExhibition(record) : null;
 }
 
-export async function saveExhibitionRecord(input: ExhibitionValidatedInput, options: ProductionWriteOptions & { id?: string }): Promise<ProductionWriteResult<Exhibition>> {
+export interface ExhibitionRelationshipSelection {
+  readonly artistIds: readonly string[];
+  readonly artworkIds: readonly string[];
+}
+
+export async function getExhibitionRelationshipSelection(
+  exhibitionId: string,
+  organizationId: string,
+): Promise<ExhibitionRelationshipSelection> {
+  try {
+    const [artistRelations, artworkRelations] = await Promise.all([
+      prisma().exhibitionArtist.findMany({
+        where: {
+          organizationId,
+          exhibitionId,
+          archivedAt: null,
+          artist: {
+            organizationId,
+            archivedAt: null,
+            visibilityStatus: VisibilityStatus.Public,
+          },
+        },
+        orderBy: [{ displayOrder: "asc" }, { addedAt: "asc" }],
+        select: { artistId: true },
+      }),
+      prisma().exhibitionArtwork.findMany({
+        where: {
+          organizationId,
+          exhibitionId,
+          archivedAt: null,
+          artwork: {
+            organizationId,
+            archivedAt: null,
+            visibilityStatus: VisibilityStatus.Public,
+            artist: {
+              organizationId,
+              archivedAt: null,
+              visibilityStatus: VisibilityStatus.Public,
+            },
+          },
+        },
+        orderBy: [{ displayOrder: "asc" }, { addedAt: "asc" }],
+        select: { artworkId: true },
+      }),
+    ]);
+
+    return {
+      artistIds: artistRelations.map((relation) => relation.artistId),
+      artworkIds: artworkRelations.map((relation) => relation.artworkId),
+    };
+  } catch {
+    return {
+      artistIds: [],
+      artworkIds: [],
+    };
+  }
+}
+
+export interface ExhibitionRelationshipSaveInput {
+  readonly artistIds?: readonly string[];
+  readonly artworkIds?: readonly string[];
+}
+
+function uniqueIds(ids: readonly string[]): readonly string[] {
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+
+  ids.forEach((id) => {
+    if (!seen.has(id)) {
+      seen.add(id);
+      ordered.push(id);
+    }
+  });
+
+  return ordered;
+}
+
+async function syncExhibitionArtistRelations(
+  exhibitionId: string,
+  organizationId: string,
+  artistIds: readonly string[],
+): Promise<ProductionWriteFailure | null> {
+  const nextArtistIds = uniqueIds(artistIds);
+
+  if (nextArtistIds.length > 0) {
+    const validArtists = await prisma().artist.findMany({
+      where: {
+        organizationId,
+        id: { in: [...nextArtistIds] },
+        archivedAt: null,
+        visibilityStatus: VisibilityStatus.Public,
+      },
+      select: { id: true },
+    });
+
+    const validArtistIdSet = new Set(validArtists.map((artist) => artist.id));
+    const invalidArtistIds = nextArtistIds.filter((artistId) => !validArtistIdSet.has(artistId));
+
+    if (invalidArtistIds.length > 0) {
+      return {
+        ok: false,
+        message: "Exhibition relationship save failed. One or more selected artists are invalid, archived, private, or belong to another organization.",
+        details: invalidArtistIds,
+      };
+    }
+  }
+
+  const now = new Date();
+
+  await Promise.all(
+    nextArtistIds.map((artistId, index) =>
+      prisma().exhibitionArtist.upsert({
+        where: {
+          organizationId_exhibitionId_artistId: {
+            organizationId,
+            exhibitionId,
+            artistId,
+          },
+        },
+        update: {
+          archivedAt: null,
+          displayOrder: index,
+          role: "artist",
+          updatedAt: now,
+        },
+        create: {
+          organizationId,
+          exhibitionId,
+          artistId,
+          role: "artist",
+          displayOrder: index,
+        },
+      }),
+    ),
+  );
+
+  await prisma().exhibitionArtist.updateMany({
+    where: {
+      organizationId,
+      exhibitionId,
+      archivedAt: null,
+      ...(nextArtistIds.length > 0 ? { artistId: { notIn: [...nextArtistIds] } } : {}),
+    },
+    data: {
+      archivedAt: now,
+      updatedAt: now,
+    },
+  });
+
+  return null;
+}
+
+async function syncExhibitionArtworkRelations(
+  exhibitionId: string,
+  organizationId: string,
+  artworkIds: readonly string[],
+): Promise<ProductionWriteFailure | null> {
+  const nextArtworkIds = uniqueIds(artworkIds);
+
+  if (nextArtworkIds.length > 0) {
+    const validArtworks = await prisma().artwork.findMany({
+      where: {
+        organizationId,
+        id: { in: [...nextArtworkIds] },
+        archivedAt: null,
+        visibilityStatus: VisibilityStatus.Public,
+        artist: {
+          organizationId,
+          archivedAt: null,
+          visibilityStatus: VisibilityStatus.Public,
+        },
+      },
+      select: { id: true },
+    });
+
+    const validArtworkIdSet = new Set(validArtworks.map((artwork) => artwork.id));
+    const invalidArtworkIds = nextArtworkIds.filter((artworkId) => !validArtworkIdSet.has(artworkId));
+
+    if (invalidArtworkIds.length > 0) {
+      return {
+        ok: false,
+        message: "Exhibition relationship save failed. One or more selected artworks are invalid, archived, private, or belong to another organization.",
+        details: invalidArtworkIds,
+      };
+    }
+  }
+
+  const now = new Date();
+
+  await Promise.all(
+    nextArtworkIds.map((artworkId, index) =>
+      prisma().exhibitionArtwork.upsert({
+        where: {
+          organizationId_exhibitionId_artworkId: {
+            organizationId,
+            exhibitionId,
+            artworkId,
+          },
+        },
+        update: {
+          archivedAt: null,
+          displayOrder: index,
+          updatedAt: now,
+        },
+        create: {
+          organizationId,
+          exhibitionId,
+          artworkId,
+          displayOrder: index,
+        },
+      }),
+    ),
+  );
+
+  await prisma().exhibitionArtwork.updateMany({
+    where: {
+      organizationId,
+      exhibitionId,
+      archivedAt: null,
+      ...(nextArtworkIds.length > 0 ? { artworkId: { notIn: [...nextArtworkIds] } } : {}),
+    },
+    data: {
+      archivedAt: now,
+      updatedAt: now,
+    },
+  });
+
+  return null;
+}
+
+export async function saveExhibitionRecord(
+  input: ExhibitionValidatedInput,
+  options: ProductionWriteOptions & { id?: string; relationships?: ExhibitionRelationshipSaveInput },
+): Promise<ProductionWriteResult<Exhibition>> {
   try {
     await ensureProductionOrganization(options.organizationId);
     const now = options.now ? new Date(options.now) : new Date();
@@ -657,6 +1351,31 @@ export async function saveExhibitionRecord(input: ExhibitionValidatedInput, opti
             createdAt: now,
           },
         });
+
+    if (options.relationships?.artistIds) {
+      const artistSyncFailure = await syncExhibitionArtistRelations(
+        record.id,
+        options.organizationId,
+        options.relationships.artistIds,
+      );
+
+      if (artistSyncFailure) {
+        return artistSyncFailure;
+      }
+    }
+
+    if (options.relationships?.artworkIds) {
+      const artworkSyncFailure = await syncExhibitionArtworkRelations(
+        record.id,
+        options.organizationId,
+        options.relationships.artworkIds,
+      );
+
+      if (artworkSyncFailure) {
+        return artworkSyncFailure;
+      }
+    }
+
     return { ok: true, record: toExhibition(record), message: options.id ? "Exhibition was updated in PostgreSQL." : "Exhibition was saved to PostgreSQL." };
   } catch (error) {
     return failure(error, "Exhibition PostgreSQL save did not complete.");
@@ -696,6 +1415,231 @@ export async function listPublicProjectRecords(): Promise<readonly Project[]> {
         orderBy: [{ displayOrder: "asc" }, { year: "desc" }],
       })).map(toProject)
     : [];
+}
+
+export interface PublicProjectExperienceQueryRecord {
+  readonly project: {
+    readonly id: string;
+    readonly slug: string;
+    readonly titleEn: string;
+    readonly titleAr: string;
+    readonly descriptionEn: string;
+    readonly descriptionAr: string;
+    readonly clientEn: string | null;
+    readonly clientAr: string | null;
+    readonly type: string;
+    readonly year: number;
+    readonly status: string;
+    readonly coverMediaId: string | null;
+  };
+  readonly media: readonly {
+    readonly displayOrder: number;
+    readonly createdAt: string;
+    readonly role: string;
+    readonly media: {
+      readonly id: string;
+      readonly storagePath: string;
+      readonly altText: string | null;
+      readonly width: number | null;
+      readonly height: number | null;
+    };
+  }[];
+  readonly artists: readonly {
+    readonly displayOrder: number;
+    readonly role: string;
+    readonly artist: {
+      readonly id: string;
+      readonly slug: string;
+      readonly nameEn: string;
+      readonly nameAr: string;
+      readonly displayOrder: number;
+      readonly profileImageId: string | null;
+    };
+  }[];
+  readonly artworks: readonly {
+    readonly displayOrder: number;
+    readonly inclusionNote: string | null;
+    readonly artwork: {
+      readonly id: string;
+      readonly slug: string;
+      readonly titleEn: string;
+      readonly titleAr: string;
+      readonly yearCreated: number;
+      readonly medium: string;
+      readonly displayOrder: number;
+      readonly updatedAt: string;
+      readonly primaryMediaId: string;
+      readonly collectionId: string | null;
+      readonly artist: {
+        readonly id: string;
+        readonly slug: string;
+        readonly nameEn: string;
+        readonly nameAr: string;
+      };
+    };
+  }[];
+  readonly collections: readonly {
+    readonly id: string;
+    readonly slug: string;
+    readonly titleEn: string;
+    readonly titleAr: string;
+    readonly coverMediaId: string | null;
+  }[];
+  readonly assets: readonly {
+    readonly id: string;
+    readonly storagePath: string;
+    readonly altText: string | null;
+    readonly width: number | null;
+    readonly height: number | null;
+  }[];
+}
+
+export async function findPublicProjectExperienceQueryRecord(
+  slug: string,
+): Promise<PublicProjectExperienceQueryRecord | null> {
+  const organizationId = await getProductionOrganizationId();
+  if (!organizationId) return null;
+
+  const project = await prisma().project.findFirst({
+    where: { ...publicWhere(organizationId), slug },
+    select: {
+      id: true,
+      slug: true,
+      titleEn: true,
+      titleAr: true,
+      descriptionEn: true,
+      descriptionAr: true,
+      clientEn: true,
+      clientAr: true,
+      type: true,
+      year: true,
+      status: true,
+      coverMediaId: true,
+    },
+  });
+
+  if (!project) return null;
+
+  const [projectMedia, artistRelations, artworkRelations] = await Promise.all([
+    prisma().projectMedia.findMany({
+      where: {
+        organizationId,
+        projectId: project.id,
+        archivedAt: null,
+        media: { organizationId, archivedAt: null, visibility: MediaVisibility.PUBLIC },
+      },
+      select: {
+        displayOrder: true,
+        createdAt: true,
+        role: true,
+        media: { select: { id: true, storagePath: true, altText: true, width: true, height: true } },
+      },
+    }),
+    prisma().projectArtist.findMany({
+      where: {
+        organizationId,
+        projectId: project.id,
+        archivedAt: null,
+        artist: { organizationId, archivedAt: null, visibilityStatus: publicVisibility },
+      },
+      select: {
+        displayOrder: true,
+        role: true,
+        artist: {
+          select: {
+            id: true,
+            slug: true,
+            nameEn: true,
+            nameAr: true,
+            displayOrder: true,
+            profileImageId: true,
+          },
+        },
+      },
+    }),
+    prisma().projectArtwork.findMany({
+      where: {
+        organizationId,
+        projectId: project.id,
+        archivedAt: null,
+        artwork: {
+          organizationId,
+          archivedAt: null,
+          visibilityStatus: publicVisibility,
+          artist: { organizationId, archivedAt: null, visibilityStatus: publicVisibility },
+        },
+      },
+      select: {
+        displayOrder: true,
+        inclusionNote: true,
+        artwork: {
+          select: {
+            id: true,
+            slug: true,
+            titleEn: true,
+            titleAr: true,
+            yearCreated: true,
+            medium: true,
+            displayOrder: true,
+            updatedAt: true,
+            primaryMediaId: true,
+            collectionId: true,
+            artist: { select: { id: true, slug: true, nameEn: true, nameAr: true } },
+          },
+        },
+      },
+    }),
+  ]);
+
+  const collectionIds = new Set<string>();
+  artworkRelations.forEach(({ artwork }) => {
+    if (artwork.collectionId) collectionIds.add(artwork.collectionId);
+  });
+
+  const collections = collectionIds.size
+    ? await prisma().collection.findMany({
+        where: { ...publicWhere(organizationId), id: { in: Array.from(collectionIds) } },
+        select: { id: true, slug: true, titleEn: true, titleAr: true, coverMediaId: true },
+      })
+    : [];
+
+  const mediaIds = new Set<string>();
+  if (project.coverMediaId) mediaIds.add(project.coverMediaId);
+  artistRelations.forEach(({ artist }) => {
+    if (artist.profileImageId) mediaIds.add(artist.profileImageId);
+  });
+  artworkRelations.forEach(({ artwork }) => mediaIds.add(artwork.primaryMediaId));
+  collections.forEach((collection) => {
+    if (collection.coverMediaId) mediaIds.add(collection.coverMediaId);
+  });
+
+  const assets = mediaIds.size
+    ? await prisma().media.findMany({
+        where: {
+          organizationId,
+          id: { in: Array.from(mediaIds) },
+          archivedAt: null,
+          visibility: MediaVisibility.PUBLIC,
+        },
+        select: { id: true, storagePath: true, altText: true, width: true, height: true },
+      })
+    : [];
+
+  return {
+    project,
+    media: projectMedia.map((relation) => ({
+      ...relation,
+      createdAt: iso(relation.createdAt),
+    })),
+    artists: artistRelations,
+    artworks: artworkRelations.map((relation) => ({
+      displayOrder: relation.displayOrder,
+      inclusionNote: relation.inclusionNote,
+      artwork: { ...relation.artwork, updatedAt: iso(relation.artwork.updatedAt) },
+    })),
+    collections,
+    assets,
+  };
 }
 
 export async function findProjectRecord(id: string, organizationId: string): Promise<Project | null> {
@@ -1018,6 +1962,296 @@ export async function findPublicArtworkRecordBySlug(slug: string): Promise<Artwo
   if (!organizationId) return null;
   const record = await prisma().artwork.findFirst({ where: { ...publicWhere(organizationId), slug } });
   return record ? toArtwork(record) : null;
+}
+
+export interface PublicArtworkExperienceQueryRecord {
+  readonly artwork: {
+    readonly id: string;
+    readonly slug: string;
+    readonly titleEn: string;
+    readonly titleAr: string;
+    readonly descriptionEn: string;
+    readonly descriptionAr: string;
+    readonly yearCreated: number;
+    readonly medium: string;
+    readonly dimensions: string;
+    readonly availabilityStatus: string;
+    readonly priceVisibility: string;
+    readonly featured: boolean;
+    readonly artistId: string;
+    readonly collectionId: string | null;
+  };
+  readonly artist: {
+    readonly id: string;
+    readonly slug: string;
+    readonly nameEn: string;
+    readonly nameAr: string;
+  };
+  readonly collection: {
+    readonly id: string;
+    readonly slug: string;
+    readonly titleEn: string;
+    readonly titleAr: string;
+  } | null;
+  readonly exhibitions: readonly {
+    readonly displayOrder: number;
+    readonly exhibition: {
+      readonly id: string;
+      readonly slug: string;
+      readonly titleEn: string;
+      readonly titleAr: string;
+      readonly venueEn: string;
+      readonly startDate: string;
+      readonly endDate: string;
+    };
+  }[];
+  readonly projects: readonly {
+    readonly displayOrder: number;
+    readonly project: {
+      readonly id: string;
+      readonly slug: string;
+      readonly titleEn: string;
+      readonly titleAr: string;
+      readonly type: string;
+      readonly year: number;
+    };
+  }[];
+  readonly relatedWorks: readonly {
+    readonly id: string;
+    readonly slug: string;
+    readonly titleEn: string;
+    readonly titleAr: string;
+    readonly yearCreated: number;
+    readonly medium: string;
+    readonly artistId: string;
+    readonly collectionId: string | null;
+    readonly featured: boolean;
+    readonly displayOrder: number;
+    readonly updatedAt: string;
+    readonly artist: {
+      readonly id: string;
+      readonly slug: string;
+      readonly nameEn: string;
+    };
+    readonly primaryMedia: {
+      readonly id: string;
+      readonly storagePath: string;
+      readonly altText: string | null;
+      readonly width: number | null;
+      readonly height: number | null;
+    };
+  }[];
+  readonly primaryMedia: {
+    readonly id: string;
+    readonly storagePath: string;
+    readonly altText: string | null;
+    readonly width: number | null;
+    readonly height: number | null;
+  } | null;
+}
+
+export async function findPublicArtworkExperienceQueryRecord(
+  slug: string,
+): Promise<PublicArtworkExperienceQueryRecord | null> {
+  const organizationId = await getProductionOrganizationId();
+  if (!organizationId) return null;
+
+  const artwork = await prisma().artwork.findFirst({
+    where: {
+      ...publicWhere(organizationId),
+      slug,
+      artist: {
+        organizationId,
+        archivedAt: null,
+        visibilityStatus: publicVisibility,
+      },
+    },
+    select: {
+      id: true,
+      slug: true,
+      titleEn: true,
+      titleAr: true,
+      descriptionEn: true,
+      descriptionAr: true,
+      yearCreated: true,
+      medium: true,
+      dimensions: true,
+      availabilityStatus: true,
+      priceVisibility: true,
+      featured: true,
+      collectionId: true,
+      primaryMediaId: true,
+      artistId: true,
+      artist: {
+        select: {
+          id: true,
+          slug: true,
+          nameEn: true,
+          nameAr: true,
+        },
+      },
+    },
+  });
+
+  if (!artwork) return null;
+
+  const relatedScopes: Prisma.ArtworkWhereInput[] = [
+    { artistId: artwork.artistId },
+    { featured: true },
+  ];
+  if (artwork.collectionId) relatedScopes.unshift({ collectionId: artwork.collectionId });
+
+  const [collection, exhibitionRelations, projectRelations, relatedWorks, primaryMedia] = await Promise.all([
+    artwork.collectionId
+      ? prisma().collection.findFirst({
+          where: { ...publicWhere(organizationId), id: artwork.collectionId },
+          select: { id: true, slug: true, titleEn: true, titleAr: true },
+        })
+      : Promise.resolve(null),
+    prisma().exhibitionArtwork.findMany({
+      where: {
+        organizationId,
+        artworkId: artwork.id,
+        archivedAt: null,
+        exhibition: {
+          organizationId,
+          archivedAt: null,
+          visibilityStatus: publicVisibility,
+        },
+      },
+      orderBy: [{ displayOrder: "asc" }, { exhibition: { startDate: "desc" } }],
+      select: {
+        displayOrder: true,
+        exhibition: {
+          select: {
+            id: true,
+            slug: true,
+            titleEn: true,
+            titleAr: true,
+            venueEn: true,
+            startDate: true,
+            endDate: true,
+          },
+        },
+      },
+    }),
+    prisma().projectArtwork.findMany({
+      where: {
+        organizationId,
+        artworkId: artwork.id,
+        archivedAt: null,
+        project: {
+          organizationId,
+          archivedAt: null,
+          visibilityStatus: publicVisibility,
+        },
+      },
+      orderBy: [{ displayOrder: "asc" }, { project: { year: "desc" } }],
+      select: {
+        displayOrder: true,
+        project: {
+          select: {
+            id: true,
+            slug: true,
+            titleEn: true,
+            titleAr: true,
+            type: true,
+            year: true,
+          },
+        },
+      },
+    }),
+    prisma().artwork.findMany({
+      where: {
+        ...publicWhere(organizationId),
+        id: { not: artwork.id },
+        OR: relatedScopes,
+        artist: {
+          organizationId,
+          archivedAt: null,
+          visibilityStatus: publicVisibility,
+        },
+        primaryMedia: {
+          organizationId,
+          archivedAt: null,
+          visibility: MediaVisibility.PUBLIC,
+        },
+      },
+      select: {
+        id: true,
+        slug: true,
+        titleEn: true,
+        titleAr: true,
+        yearCreated: true,
+        medium: true,
+        artistId: true,
+        collectionId: true,
+        featured: true,
+        displayOrder: true,
+        updatedAt: true,
+        artist: { select: { id: true, slug: true, nameEn: true } },
+        primaryMedia: {
+          select: {
+            id: true,
+            storagePath: true,
+            altText: true,
+            width: true,
+            height: true,
+          },
+        },
+      },
+    }),
+    prisma().media.findFirst({
+      where: {
+        organizationId,
+        id: artwork.primaryMediaId,
+        archivedAt: null,
+        visibility: MediaVisibility.PUBLIC,
+      },
+      select: {
+        id: true,
+        storagePath: true,
+        altText: true,
+        width: true,
+        height: true,
+      },
+    }),
+  ]);
+
+  return {
+    artwork: {
+      id: artwork.id,
+      slug: artwork.slug,
+      titleEn: artwork.titleEn,
+      titleAr: artwork.titleAr,
+      descriptionEn: artwork.descriptionEn,
+      descriptionAr: artwork.descriptionAr,
+      yearCreated: artwork.yearCreated,
+      medium: artwork.medium,
+      dimensions: artwork.dimensions,
+      availabilityStatus: artwork.availabilityStatus,
+      priceVisibility: artwork.priceVisibility,
+      featured: artwork.featured,
+      artistId: artwork.artistId,
+      collectionId: artwork.collectionId,
+    },
+    artist: artwork.artist,
+    collection,
+    exhibitions: exhibitionRelations.map((relation) => ({
+      displayOrder: relation.displayOrder,
+      exhibition: {
+        ...relation.exhibition,
+        startDate: dateOnly(relation.exhibition.startDate),
+        endDate: dateOnly(relation.exhibition.endDate),
+      },
+    })),
+    projects: projectRelations,
+    relatedWorks: relatedWorks.map((related) => ({
+      ...related,
+      updatedAt: iso(related.updatedAt),
+    })),
+    primaryMedia,
+  };
 }
 
 export async function saveArtworkRecord(input: ArtworkValidatedInput, options: ProductionWriteOptions & { id?: string }): Promise<ProductionWriteResult<Artwork>> {

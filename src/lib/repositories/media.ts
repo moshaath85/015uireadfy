@@ -1,4 +1,9 @@
-import { findMediaRecord, listMediaRecords } from "@/lib/cms/production-prisma";
+import {
+  findMediaRecord,
+  findPublicMediaRecord,
+  listMediaRecords,
+  listPublicMediaRecords,
+} from "@/lib/cms/production-prisma";
 import type { Artist, Artwork, Media } from "@/types";
 
 const heroMediaIdPrefix = "gallery-015-hero-";
@@ -40,10 +45,18 @@ async function findDatabaseMediaRecord(mediaId: string | null | undefined): Prom
   return findMediaRecord(mediaId);
 }
 
+async function findPublicDatabaseMediaRecord(mediaId: string | null | undefined): Promise<Media | null> {
+  return findPublicMediaRecord(mediaId);
+}
+
 export const mediaRepository = {
   getAll: () => listDatabaseMediaRecords(),
+  getPublicAll: () => listPublicMediaRecords(),
   getById: (mediaId: string) => findDatabaseMediaRecord(mediaId),
   getArtistProfileMedia: (artist: Artist) => findDatabaseMediaRecord(artist.profile_image_id),
   getArtworkPrimaryMedia: (artwork: Artwork) => findDatabaseMediaRecord(artwork.primary_image_id),
-  getPublicHeroMedia: async () => uniqueMedia((await listDatabaseMediaRecords()).filter(isHeroMedia)),
+  getPublicById: (mediaId: string) => findPublicDatabaseMediaRecord(mediaId),
+  getPublicArtistProfileMedia: (artist: Artist) => findPublicDatabaseMediaRecord(artist.profile_image_id),
+  getPublicArtworkPrimaryMedia: (artwork: Artwork) => findPublicDatabaseMediaRecord(artwork.primary_image_id),
+  getPublicHeroMedia: async () => uniqueMedia((await listPublicMediaRecords()).filter(isImageMedia).filter(isHeroMedia)),
 };

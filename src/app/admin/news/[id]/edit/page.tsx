@@ -8,8 +8,8 @@ import { prepareUpdateNewsAction } from "@/lib/cms/news/news-actions";
 import { findNewsRecord } from "@/lib/cms/production-prisma";
 
 export interface EditNewsPageProps {
-  readonly params: { readonly id: string };
-  readonly searchParams?: { readonly status?: string; readonly message?: string; readonly created?: string };
+  readonly params: Promise<{ readonly id: string }>;
+  readonly searchParams?: Promise<{ readonly status?: string; readonly message?: string; readonly created?: string }>;
 }
 
 export const dynamic = "force-dynamic";
@@ -37,15 +37,17 @@ async function updateNewsAction(newsId: string, formData: FormData) {
 }
 
 export default async function EditNewsPage({ params, searchParams }: EditNewsPageProps) {
+  const { id } = await params;
+  const resolvedSearchParams = await searchParams;
   const organizationId = getAdminAuthConfig()?.organizationId;
-  const record = organizationId ? await findNewsRecord(params.id, organizationId) : null;
+  const record = organizationId ? await findNewsRecord(id, organizationId) : null;
 
   if (!record) {
     notFound();
   }
 
-  const status = searchParams?.status === "success" || searchParams?.status === "error" ? searchParams.status : undefined;
-  const message = searchParams?.message ?? (searchParams?.created === "1" ? "News was created successfully. You can continue editing it here." : undefined);
+  const status = resolvedSearchParams?.status === "success" || resolvedSearchParams?.status === "error" ? resolvedSearchParams.status : undefined;
+  const message = resolvedSearchParams?.message ?? (resolvedSearchParams?.created === "1" ? "News was created successfully. You can continue editing it here." : undefined);
   const action = updateNewsAction.bind(null, record.id);
 
   return (

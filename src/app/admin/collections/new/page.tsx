@@ -22,15 +22,16 @@ async function createCollectionAction(formData: FormData) {
   redirect(`/admin/collections/${result.collectionId}/edit?created=1`);
 }
 
-export default function NewCollectionPage({ searchParams }: { readonly searchParams?: { readonly status?: string; readonly message?: string } }) {
-  const status = searchParams?.status === "success" || searchParams?.status === "error" ? searchParams.status : undefined;
+export default async function NewCollectionPage({ searchParams }: { readonly searchParams?: Promise<{ readonly status?: string; readonly message?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const status = resolvedSearchParams?.status === "success" || resolvedSearchParams?.status === "error" ? resolvedSearchParams.status : undefined;
 
   return (
     <AdminShell title="Create Collection" description="Create a PostgreSQL-backed collection record.">
       <PageToolbar title="Create Collection" description="Save a new collection record to PostgreSQL." />
       <CollectionForm
         action={createCollectionAction}
-        message={searchParams?.message}
+        message={resolvedSearchParams?.message}
         status={status}
       />
     </AdminShell>

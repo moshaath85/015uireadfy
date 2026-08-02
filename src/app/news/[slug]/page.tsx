@@ -1,65 +1,73 @@
-import { notFound } from "next/navigation";
-import PageContainer, {
-  PublicBreadcrumbs,
-  PublicCTASection,
-  PublicHero,
-  PublicMetadataSection,
-  PublicRichContentSection,
-} from "@/components/public/PageContainer";
-import { mediaRepository } from "@/lib/repositories/media";
-import { newsRepository } from "@/lib/repositories/news";
+import { notFound } from 'next/navigation';
+import { EditorialDetail, EditorialRelated, type EditorialIndexItem } from '@/components/public/EditorialExperience';
+import { mediaRepository } from '@/lib/repositories/media';
+import { newsRepository } from '@/lib/repositories/news';
 
-interface Props {
-  params: { slug: string };
-}
+interface Props { params: Promise<{ slug: string }> }
+export const dynamic = 'force-dynamic';
 
-export const dynamic = "force-dynamic";
+const fullDate = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('en', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+};
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en", { day: "numeric", month: "long", year: "numeric" }).format(
-    new Date(`${value}T00:00:00.000Z`),
-  );
-}
-
-function formatLabel(value: string): string {
+function formatCategory(value: string): string {
   return value
-    .split("_")
-    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
-    .join(" ");
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function readingTime(body: string): string {
+  const words = body.trim().split(/\s+/).length;
+  const minutes = Math.max(1, Math.ceil(words / 200));
+  return `${minutes} min read`;
 }
 
 export default async function NewsDetailPage({ params }: Props) {
-  const item = (await newsRepository.getPublicAll()).find((candidate) => candidate.slug === params.slug);
+  const { slug } = await params;
+  const item = (await newsRepository.getPublicAll()).find((candidate) => candidate.slug === slug);
+  if (!item) notFound();
 
-  if (!item) {
-    notFound();
-  }
-
-  const image = item.image_id ? await mediaRepository.getById(item.image_id) : null;
+  const image = item.image_id ? await mediaRepository.getPublicById(item.image_id) : null;
+  const allNews = await newsRepository.getPublicAll();
+  const related: EditorialIndexItem[] = await Promise.all(
+    allNews
+      .filter((candidate) => candidate.id !== item.id)
+      .slice(0, 3)
+      .map(async (candidate) => {
+        const relatedImage = candidate.image_id ? await mediaRepository.getPublicById(candidate.image_id) : null;
+        return {
+          href: `/news/${candidate.slug}`,
+          title: candidate.title_en,
+          meta: fullDate(candidate.publish_date),
+          image: relatedImage ? { src: relatedImage.url, alt: relatedImage.alt_en || candidate.title_en } : null,
+        };
+      }),
+  );
 
   return (
-    <PageContainer>
-      <PublicBreadcrumbs
-        items={[
-          { label: "Home", href: "/" },
-          { label: "News", href: "/news" },
-          { label: item.title_en },
-        ]}
+    <EditorialDetail
+      eyebrow={formatCategory(item.category)}
+      title={item.title_en}
+      subtitle={item.title_ar}
+      image={image ? { src: image.url, alt: image.alt_en || item.title_en } : null}
+      facts={[
+        { label: 'Published', value: fullDate(item.publish_date) },
+        { label: 'Category', value: formatCategory(item.category) },
+        { label: 'Reading time', value: readingTime(item.content_en || item.excerpt_en) },
+      ]}
+      body={item.content_en || item.excerpt_en}
+      backHref="/news"
+      backLabel="All journal"
+      ctaTitle="Contact the gallery"
+    >
+      <EditorialRelated
+        eyebrow="Further reading"
+        title="Related articles"
+        items={related}
       />
-      <PublicHero
-        eyebrow={formatLabel(item.category)}
-        title={item.title_en}
-        subtitle={item.title_ar}
-        image={image ? { src: image.url, alt: image.alt_en || item.title_en } : null}
-      />
-      <PublicMetadataSection
-        items={[
-          { label: "Published", value: formatDate(item.publish_date) },
-          { label: "Category", value: formatLabel(item.category) },
-        ]}
-      />
-      <PublicRichContentSection title="Story" body={item.content_en || item.excerpt_en} />
-      <PublicCTASection title="Return to news" href="/news" label="View all news" />
-    </PageContainer>
+    </EditorialDetail>
   );
 }

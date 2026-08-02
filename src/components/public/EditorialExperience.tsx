@@ -26,7 +26,7 @@ export function EditorialIndex({
   title: string;
   introduction: string;
   items: EditorialIndexItem[];
-  variant?: 'grid' | 'projects';
+  variant?: 'grid' | 'projects' | 'collections' | 'exhibitions';
 }) {
   return (
     <main className={`experience-index experience-index--${variant}`}>
@@ -40,7 +40,18 @@ export function EditorialIndex({
           {items.map((item, index) => (
             <Link className="experience-card" href={item.href} key={item.href}>
               <figure className="experience-card__media">
-                {item.image ? <img src={item.image.src} alt={item.image.alt} loading={index < 2 ? 'eager' : 'lazy'} /> : null}
+                {item.image ? (
+                  <img src={item.image.src} alt={item.image.alt} loading={index < 2 ? 'eager' : 'lazy'} />
+                ) : (
+                  <span
+                    aria-label={`${item.title} image unavailable`}
+                    className="experience-card__fallback"
+                    role="img"
+                  >
+                    <span aria-hidden="true">015</span>
+                    <small>Image forthcoming</small>
+                  </span>
+                )}
               </figure>
               <div className="experience-card__copy">
                 {item.kicker ? <p className="experience-kicker">{item.kicker}</p> : null}
@@ -87,9 +98,14 @@ export function EditorialDetail({
   ctaLabel?: string;
 }) {
   const visibleFacts = (facts ?? []).filter((fact) => fact.value !== undefined && fact.value !== null && fact.value !== '');
+  const bodyParagraphs = (body ?? '')
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+  const isArtistDetail = eyebrow.trim().toLowerCase() === 'artist';
 
   return (
-    <main className="experience-detail">
+    <main className={`experience-detail${isArtistDetail ? ' experience-detail--artist' : ''}`}>
       <Link className="experience-detail__back" href={backHref}>← {backLabel}</Link>
       <section className="experience-detail__hero">
         <div className="experience-detail__heading">
@@ -98,7 +114,16 @@ export function EditorialDetail({
           {subtitle ? <p className="experience-detail__subtitle">{subtitle}</p> : null}
         </div>
         <figure className="experience-detail__media">
-          {image ? <img src={image.src} alt={image.alt} /> : null}
+          {image ? <img src={image.src} alt={image.alt} /> : (
+            <span
+              aria-label={`${title} image unavailable`}
+              className="experience-detail__media-fallback"
+              role="img"
+            >
+              <span aria-hidden="true">015</span>
+              <small>Image forthcoming</small>
+            </span>
+          )}
         </figure>
       </section>
       <section className="experience-detail__information">
@@ -112,9 +137,11 @@ export function EditorialDetail({
             ))}
           </dl>
         ) : null}
-        {body ? (
+        {bodyParagraphs.length ? (
           <div className="experience-body">
-            <p>{body}</p>
+            {bodyParagraphs.map((paragraph, index) => (
+              <p key={`${index}-${paragraph.slice(0, 32)}`}>{paragraph}</p>
+            ))}
           </div>
         ) : null}
       </section>
@@ -146,13 +173,17 @@ export function EditorialRelated({
         <h2>{title}</h2>
       </header>
       <div>
-        {items.map((item) => (
-          <Link href={item.href} key={item.href}>
-            <figure>{item.image ? <img src={item.image.src} alt={item.image.alt} loading="lazy" /> : null}</figure>
-            <h3>{item.title}</h3>
-            {item.meta ? <p>{item.meta}</p> : null}
-          </Link>
-        ))}
+        <ul className="experience-related__list">
+          {items.map((item) => (
+            <li className="experience-related__item" key={item.href}>
+              <Link href={item.href}>
+                <figure>{item.image ? <img src={item.image.src} alt={item.image.alt} loading="lazy" /> : null}</figure>
+                <h3>{item.title}</h3>
+                {item.meta ? <p>{item.meta}</p> : null}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
