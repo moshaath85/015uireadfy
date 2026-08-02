@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import '@/styles/home-2026.css';
 import HeroRotator, { type HeroSlide } from '@/components/public/home/HeroRotator';
 import { artistsRepository } from '@/lib/repositories/artists';
@@ -8,6 +9,16 @@ import { mediaRepository } from '@/lib/repositories/media';
 import { newsRepository } from '@/lib/repositories/news';
 import { projectsRepository } from '@/lib/repositories/projects';
 import type { Media } from '@/types';
+
+export const metadata: Metadata = {
+  title: 'Gallery 015 — Contemporary Art Gallery, Riyadh',
+  description: 'Gallery 015 brings together representation, exhibitions, private advisory, and cultural projects — from the founding generation of Saudi modernism to the voices defining it now.',
+  openGraph: {
+    title: 'Gallery 015 — Contemporary Art Gallery, Riyadh',
+    description: 'A contemporary art platform shaped by artists, collectors, and place.',
+    images: [{ url: '/brand/015-logo-black.svg', width: 1200, height: 630 }],
+  },
+};
 
 export const dynamic = 'force-dynamic';
 

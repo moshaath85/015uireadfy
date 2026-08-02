@@ -1,10 +1,20 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { EditorialDetail, EditorialRelated, type EditorialIndexItem } from '@/components/public/EditorialExperience';
 import { mediaRepository } from '@/lib/repositories/media';
 import { newsRepository } from '@/lib/repositories/news';
+import { SITE } from '@/lib/metadata';
 
 interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const item = (await newsRepository.getPublicAll()).find(c => c.slug === slug);
+  if (!item) return { title: 'Article Not Found' };
+  const desc = (item.excerpt_en ?? '').slice(0, 155).replace(/\n/g, ' ') || '015 Journal article.';
+  return { title: `${item.title_en} | ${SITE.name}`, description: desc };
+}
 
 const fullDate = (value: string) => {
   const date = new Date(value);

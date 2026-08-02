@@ -1,6 +1,12 @@
 import { EditorialIndex, type EditorialIndexItem } from '@/components/public/EditorialExperience';
 import { mediaRepository } from '@/lib/repositories/media';
 import { newsRepository } from '@/lib/repositories/news';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Journal | Gallery 015',
+  description: 'Essays, criticism, interviews, and gallery notes on the Saudi and regional art scene — the 015 Journal.',
+};
 
 export const dynamic = 'force-dynamic';
 

@@ -1,6 +1,12 @@
 import { EditorialIndex } from '@/components/public/EditorialExperience';
 import { collectionsRepository } from '@/lib/repositories/collections';
 import { mediaRepository } from '@/lib/repositories/media';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Collections | Gallery 015',
+  description: 'Curated collections at Gallery 015 — works brought together through material, memory, place, and artistic dialogue.',
+};
 
 export const dynamic = 'force-dynamic';
 

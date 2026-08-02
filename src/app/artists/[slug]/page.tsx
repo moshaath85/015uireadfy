@@ -1,11 +1,26 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { artistsRepository } from '@/lib/repositories/artists';
 import { artworksRepository } from '@/lib/repositories/artworks';
 import { mediaRepository } from '@/lib/repositories/media';
+import { SITE } from '@/lib/metadata';
 
 interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const artist = await artistsRepository.getPublicBySlug(slug);
+  if (!artist) return { title: 'Artist Not Found' };
+  const name = artist.name_en;
+  const description = artist.bio_en?.slice(0, 155)?.replace(/\n/g, ' ') ?? `Explore works by ${name} at ${SITE.name}.`;
+  return {
+    title: `${name} | ${SITE.name}`,
+    description,
+    openGraph: { title: name, description },
+  };
+}
 
 export default async function ArtistDetailPage({ params }: Props) {
   const { slug } = await params;

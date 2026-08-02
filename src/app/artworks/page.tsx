@@ -2,6 +2,12 @@ import { EditorialIndex } from '@/components/public/EditorialExperience';
 import { artistsRepository } from '@/lib/repositories/artists';
 import { artworksRepository } from '@/lib/repositories/artworks';
 import { mediaRepository } from '@/lib/repositories/media';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Artworks | Gallery 015',
+  description: 'A focused selection of contemporary works available through Gallery 015 in Riyadh.',
+};
 
 export const dynamic = 'force-dynamic';
 

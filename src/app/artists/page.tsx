@@ -3,6 +3,12 @@ import { artistsRepository } from '@/lib/repositories/artists';
 import { artworksRepository } from '@/lib/repositories/artworks';
 import { mediaRepository } from '@/lib/repositories/media';
 import type { Artwork } from '@/types';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Artists | Gallery 015',
+  description: 'Browse the roster of artists represented by Gallery 015 — from the founding generation of Saudi modernism to contemporary and international voices.',
+};
 
 export const dynamic = 'force-dynamic';
 

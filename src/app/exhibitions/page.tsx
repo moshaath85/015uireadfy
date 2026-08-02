@@ -1,6 +1,12 @@
 import { EditorialIndex } from '@/components/public/EditorialExperience';
 import { exhibitionsRepository } from '@/lib/repositories/exhibitions';
 import { mediaRepository } from '@/lib/repositories/media';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Exhibitions | Gallery 015',
+  description: 'Current, forthcoming, and archival exhibitions presented by Gallery 015 with clarity and context.',
+};
 
 export const dynamic = 'force-dynamic';
 

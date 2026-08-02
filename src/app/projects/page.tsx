@@ -1,6 +1,12 @@
 import { EditorialIndex } from '@/components/public/EditorialExperience';
 import { mediaRepository } from '@/lib/repositories/media';
 import { projectsRepository } from '@/lib/repositories/projects';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Projects | Gallery 015',
+  description: 'Commissioned art programmes for institutions, hospitals, and cultural landmarks across Saudi Arabia.',
+};
 
 export const dynamic = 'force-dynamic';
 
