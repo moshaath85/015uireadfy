@@ -5,13 +5,23 @@ import '@/styles/globals.css';
 import '@/styles/site-2026.css';
 import SiteChrome from '@/components/layout/SiteChrome';
 import LanguageProvider from '@/components/layout/LanguageProvider';
-import { IBM_Plex_Sans } from 'next/font/google';
+import { IBM_Plex_Sans, EB_Garamond } from 'next/font/google';
 import { SITE } from '@/lib/metadata';
 
 const ibmPlexSans = IBM_Plex_Sans({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600'],
   variable: '--font-sans',
+  display: 'swap',
+});
+
+/* Display serif for editorial headings and long-form reading.
+   Italic is shipped because subtitles and hero meta use font-style: italic. */
+const ebGaramond = EB_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif-display',
   display: 'swap',
 });
 
@@ -53,7 +63,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const isRtl = initialLang === 'ar';
 
   return (
-    <html lang={initialLang} dir={isRtl ? 'rtl' : 'ltr'} className={ibmPlexSans.variable}>
+    <html lang={initialLang} dir={isRtl ? 'rtl' : 'ltr'} className={`${ibmPlexSans.variable} ${ebGaramond.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

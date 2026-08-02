@@ -87,3 +87,14 @@ body{background:var(--g-paper);color:var(--g-ink)}
 
 /* ---- 8. Reading measure for long-form body copy ---- */
 .experience-body p{max-width:62ch;font-family:var(--g-serif)}
+
+/* ---- 9. Arabic keeps its own face ----
+   The display serif is Latin-only, so RTL headings and serif body copy must
+   fall back to the Arabic sans rather than a generic system serif. */
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] .experience-body p,
+[dir="rtl"] .experience-detail__subtitle{
+  font-family:var(--font-sans-arabic);
+}
