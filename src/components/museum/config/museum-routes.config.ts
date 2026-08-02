@@ -39,7 +39,7 @@ export const ROUTE_GRAPH: MuseumRouteGraph = {
     },
     'hero-left': {
       id: 'hero-left',
-      label: 'Hero work',
+      label: 'Main work',
       position: [-2.0, 1.68, 4.5],
       lookAt: [-3.8, 1.5, -5.2],
       artworkId: 'aw-004',
@@ -47,7 +47,7 @@ export const ROUTE_GRAPH: MuseumRouteGraph = {
     },
     'hero-right': {
       id: 'hero-right',
-      label: 'Hero work',
+      label: 'Second work',
       position: [2.0, 1.68, 4.5],
       lookAt: [4.0, 1.5, -5.2],
       artworkId: 'aw-128',
@@ -55,7 +55,7 @@ export const ROUTE_GRAPH: MuseumRouteGraph = {
     },
     'left-wall': {
       id: 'left-wall',
-      label: 'Left wall',
+      label: 'Left work',
       position: [-4.0, 1.68, 3],
       lookAt: [-7.0, 2.0, 1],
       artworkId: 'aw-175',
@@ -63,7 +63,7 @@ export const ROUTE_GRAPH: MuseumRouteGraph = {
     },
     'right-wall': {
       id: 'right-wall',
-      label: 'Right wall',
+      label: 'Right work',
       position: [4.0, 1.68, 3],
       lookAt: [7.0, 2.0, -1.5],
       artworkId: 'aw-029',
