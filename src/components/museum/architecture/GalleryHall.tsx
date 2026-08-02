@@ -157,25 +157,6 @@ export default function GalleryHall({ artworks }: { artworks: ArtworkData[] }) {
       <hemisphereLight args={["#fff9ef", "#555045", 0.85]} />
       <ambientLight intensity={0.42} color="#faf6ed" />
 
-      {/* Beyond the doorway — architectural suggestion of next gallery */}
-      {/* Extended floor through doorway */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, SG, -hd - 1.2]} receiveShadow>
-        <planeGeometry args={[2.4, 3.5]} />
-        <meshStandardMaterial roughness={FLOOR_ROUGH} metalness={0.02} color={FLOOR_COLOR} />
-      </mesh>
-      {/* Distant back wall — warm, softly lit */}
-      <mesh position={[0, wy - 0.3, -hd - 3.0]}>
-        <planeGeometry args={[3.0, H - 0.6]} />
-        <meshStandardMaterial color="#d8d3c8" roughness={0.8} />
-      </mesh>
-      {/* Distant ceiling */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H - 0.15, -hd - 1.2]}>
-        <planeGeometry args={[2.4, 3.5]} />
-        <meshStandardMaterial color={CEILING_COLOR} roughness={0.92} />
-      </mesh>
-      {/* Soft light in the beyond space */}
-      <pointLight position={[0, H - 0.4, -hd - 2.0]} intensity={8} distance={6} decay={1.5} color="#fff8ec" />
-
       {/* Cove — hidden in ceiling recess, washing walls */}
       <AccentLight position={[0, H - 0.08, -hd + 0.1]} rotation={[-0.3, 0, 0]} width={W - 2} height={COVE_WIDTH * 0.7} intensity={1.6} />
       <AccentLight position={[-hw + 0.1, H - 0.08, 0]} rotation={[-0.3, -Math.PI / 2, 0]} width={D - 2} height={COVE_WIDTH * 0.7} intensity={1.3} />
@@ -186,6 +167,20 @@ export default function GalleryHall({ artworks }: { artworks: ArtworkData[] }) {
       <AccentLight position={[BACK_WALL_PLACEMENTS[1].position[0], EYE + 0.7, -hd + WT / 2 + 0.6]} rotation={[0, 0, 0]} width={2.65} height={1.5} intensity={2.0} />
       {left.length > 0 && <AccentLight position={[-hw - WT / 2 + 0.6, EYE + 0.7, 0.5]} rotation={[0, -Math.PI / 2, 0]} width={2.25} height={1.5} intensity={1.8} />}
       {right.length > 0 && <AccentLight position={[hw + WT / 2 - 0.6, EYE + 0.7, -2.2]} rotation={[0, Math.PI / 2, 0]} width={2.25} height={1.5} intensity={1.8} />}
+
+      {/* Doorway continuation — all geometry behind back wall (z < -hd - WT/2 = -5.61) */}
+      {/* Floor through doorway */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, SG, -5.8]}>
+        <planeGeometry args={[2.2, 2.5]} />
+        <meshStandardMaterial roughness={FLOOR_ROUGH} metalness={0.02} color={FLOOR_COLOR} />
+      </mesh>
+      {/* Distant wall */}
+      <mesh position={[0, wy - 0.4, -8.0]}>
+        <planeGeometry args={[3.0, H - 1.0]} />
+        <meshStandardMaterial color="#d8d3c8" roughness={0.82} />
+      </mesh>
+      {/* Soft light in beyond space */}
+      <pointLight position={[0, H - 0.5, -7.0]} intensity={6} distance={5} decay={1.5} color="#fff8ec" />
     </group>
   );
 }
