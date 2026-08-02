@@ -32,6 +32,9 @@ export default function MuseumCanvas3D({ artworks }: { artworks: ArtworkData[] }
     if (hash && ROUTE_GRAPH.nodes[hash]) {
       setCurrentNode(hash);
       setTargetNode(hash);
+    } else if (hash && !ROUTE_GRAPH.nodes[hash]) {
+      window.history.replaceState(null, '', '/museum');
+      setCurrentNode('entrance');
     }
     if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('museum-nav-hint')) setHint(false);
   }, []);
@@ -86,15 +89,18 @@ export default function MuseumCanvas3D({ artworks }: { artworks: ArtworkData[] }
         </Suspense>
       </Canvas>
 
-      {/* Connected route markers */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 15, pointerEvents: 'none' }}>
+      {/* Connected route markers — horizontal bar at bottom */}
+      <div style={{
+        position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)', zIndex: 15,
+        display: 'flex', gap: '.5rem', flexWrap: 'wrap', justifyContent: 'center',
+        padding: '0 1rem',
+      }}>
         {connectedMarkers.map((node) => (
           <button
             key={node.id}
             onClick={() => moveTo(node.id)}
             className="museum-dest-marker"
             aria-label={node.label}
-            style={{ pointerEvents: 'auto' }}
           >
             <span aria-hidden="true" />
             <small>{node.label}</small>
