@@ -1,11 +1,13 @@
 'use client';
 
-import { useMemo } from 'react';
-import { CanvasTexture, RepeatWrapping, SRGBColorSpace } from 'three';
+import * as THREE from 'three';
+import { useTexture } from '@react-three/drei';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import AutoArtworkFrame from '../artwork/AutoArtworkFrame';
 import { ROOM, EYE_LEVEL } from '../config/museum-room.config';
-import { BACK_WALL_PLACEMENTS, LEFT_WALL_PLACEMENTS, RIGHT_WALL_PLACEMENTS } from '../config/museum-artworks.config';
+import { useMuseumMaterials } from '../rendering/useMuseumMaterials';
+import { MuseumBench } from '../rendering/MuseumBench';
+import { MuseumAccessories } from '../rendering/MuseumAccessories';
 
 RectAreaLightUniformsLib.init();
 
@@ -18,100 +20,77 @@ interface ArtworkData {
 const W = ROOM.width; const H = ROOM.height; const D = ROOM.depth;
 const EYE = EYE_LEVEL;
 
-function genPlaster(): CanvasTexture {
-  const c = document.createElement('canvas'); c.width = 64; c.height = 64;
-  const ctx = c.getContext('2d')!;
-  const img = ctx.createImageData(64, 64);
-  for (let i = 0; i < img.data.length; i += 4) {
-    const n = 0.985 + Math.random() * 0.03;
-    img.data[i] = 0.80 * 255 * n; img.data[i + 1] = 0.78 * 255 * n;
-    img.data[i + 2] = 0.74 * 255 * n; img.data[i + 3] = 255;
-  }
-  ctx.putImageData(img, 0, 0);
-  const enlarged = document.createElement('canvas'); enlarged.width = 512; enlarged.height = 512;
-  const ectx = enlarged.getContext('2d')!;
-  ectx.imageSmoothingEnabled = true;
-  ectx.filter = 'blur(2px)';
-  ectx.drawImage(c, 0, 0, 512, 512);
-  const t = new CanvasTexture(enlarged); t.wrapS = t.wrapT = RepeatWrapping;
-  t.repeat.set(2, 2); t.colorSpace = SRGBColorSpace;
-  return t;
-}
-
-function genFloor(): CanvasTexture {
-  const c = document.createElement('canvas'); c.width = 256; c.height = 256;
-  const ctx = c.getContext('2d')!;
-  ctx.fillStyle = '#4b463d'; ctx.fillRect(0, 0, 256, 256);
-  const t = new CanvasTexture(c); t.wrapS = t.wrapT = RepeatWrapping;
-  t.repeat.set(4, 4); t.colorSpace = SRGBColorSpace;
-  return t;
-}
-
-function WallPanel({ args, pos, rot, tex }: { args: [number, number]; pos: [number, number, number]; rot: [number, number, number]; tex: CanvasTexture }) {
-  return <mesh position={pos} rotation={rot} receiveShadow><planeGeometry args={args} /><meshStandardMaterial map={tex} roughness={0.7} color="#d2cec6" /></mesh>;
-}
-
-function AccentLight({ position, rotation, width, height, intensity }: { position: [number, number, number]; rotation: [number, number, number]; width: number; height: number; intensity: number }) {
-  return <rectAreaLight position={position} rotation={rotation} width={width} height={height} intensity={intensity} color="#fff7e9" />;
+function WallPlane({ size, position, rotation, material }: { size: [number, number]; position: [number, number, number]; rotation: [number, number, number]; material: THREE.Material }) {
+  return <mesh position={position} rotation={rotation} receiveShadow><planeGeometry args={size} /><primitive object={material} attach="material" /></mesh>;
 }
 
 export default function GalleryHall({ artworks }: { artworks: ArtworkData[] }) {
-  const wallTex = useMemo(() => genPlaster(), []);
-  const floorTex = useMemo(() => genFloor(), []);
-  const all = artworks.slice(0, 4);
-  const back = all.slice(0, 2);
-  const left = all.slice(2, 3);
-  const right = all.slice(3, 4);
+  const curatedById = new Map(artworks.map((work) => [work.id, work]));
+  const curated = ['aw-013', 'aw-128', 'aw-175', 'aw-029']
+    .map((id) => curatedById.get(id))
+    .filter(Boolean) as ArtworkData[];
+  const [heroLeft, heroRight, leftWall, rightWall] = curated;
+  const supporting = curated.length >= 8 ? curated.slice(4) : [
+    { id: 'aw-006', slug: 'abdulrahman-al-suleiman-01', title: 'Untitled', artist: 'Abdulrahman Al-Suleiman', year: 2020, medium: 'Mixed media', dimensions: 'Dimensions available on request', imageUrl: '/images/artworks/abdulrahman-al-suleiman-01.png', sceneRole: 'secondary' as const },
+    { id: 'aw-037', slug: 'fahad-al-hijailan-01', title: 'Untitled', artist: 'Fahad Al-Hijailan', year: 2020, medium: 'Mixed media', dimensions: 'Dimensions available on request', imageUrl: '/images/artworks/fahad-al-hijailan-01.png', sceneRole: 'secondary' as const },
+    { id: 'aw-030', slug: 'abdullah-al-barrak-02', title: 'The Horse Riders', artist: 'Abdullah Al-Barrak', year: 2020, medium: 'Oil on Canvas', dimensions: '55 × 45 cm', imageUrl: '/images/artworks/abdullah-al-barrak-02.png', sceneRole: 'secondary' as const },
+    { id: 'aw-038', slug: 'abdulrahman-al-suleiman-02', title: 'Untitled', artist: 'Abdulrahman Al-Suleiman', year: 2020, medium: 'Mixed media', dimensions: 'Dimensions available on request', imageUrl: '/images/artworks/abdulrahman-al-suleiman-02.png', sceneRole: 'secondary' as const },
+  ];
+  const logoTexture = useTexture('/brand/015-logo-white.svg');
+  const { wallMaterial, floorMaterial, ceilingMaterial } = useMuseumMaterials();
 
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-        <planeGeometry args={[W + 2, D + 8]} />
-        <meshPhysicalMaterial map={floorTex} roughness={0.42} metalness={0} clearcoat={0.12} clearcoatRoughness={0.58} color="#4b463d" emissive="#34302b" emissiveIntensity={0.58} />
+        <planeGeometry args={[16, 11.5]} />
+        <primitive object={floorMaterial} attach="material" />
       </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H, 0]}>
-        <planeGeometry args={[W + 2, D + 2]} />
-        <meshStandardMaterial color="#e8e3d9" roughness={0.96} />
+      <WallPlane size={[16, 4.8]} position={[0, 2.4, -5.75]} rotation={[0, 0, 0]} material={wallMaterial} />
+      <WallPlane size={[11.5, 4.8]} position={[-8, 2.4, 0]} rotation={[0, Math.PI / 2, 0]} material={wallMaterial} />
+      <WallPlane size={[11.5, 4.8]} position={[8, 2.4, 0]} rotation={[0, -Math.PI / 2, 0]} material={wallMaterial} />
+      <WallPlane size={[16, 4.8]} position={[0, 2.4, 5.75]} rotation={[0, Math.PI, 0]} material={wallMaterial} />
+      <group position={[0, 0, -D / 2 + 0.13]}>
+        {heroLeft && <AutoArtworkFrame imageUrl={heroLeft.imageUrl} position={[0, EYE, 0.06]} title={heroLeft.title} artist={heroLeft.artist} meta={[heroLeft.year, heroLeft.medium, heroLeft.dimensions, 'Collection 015'].filter(Boolean).join(' · ')} physicalDimensions={heroLeft.dimensions} inventoryNumber="01" hero />}
+        {supporting.slice(0, 2).map((work, index) => <group key={`back-support-${work.id}`}><AutoArtworkFrame imageUrl={work.imageUrl} position={[index === 0 ? -3.45 : 3.45, EYE - 0.12, 0.06]} title={work.title} artist={work.artist} meta={[work.year, work.medium, work.dimensions, 'Collection 015'].filter(Boolean).join(' · ')} physicalDimensions={work.dimensions} inventoryNumber={`0${index + 5}`} /><pointLight position={[index === 0 ? -3.45 : 3.45, 2.7, 1.4]} intensity={2.2} distance={4.5} decay={2} color="#ffe4c9" /><spotLight position={[index === 0 ? -3.45 : 3.45, 3.15, -3.1]} angle={0.42} penumbra={0.92} intensity={2.55} distance={5.5} color="#ffe0bd" castShadow /></group>)}
+        <pointLight position={[0, 2.9, 1.5]} intensity={3.2} distance={5} decay={2} color="#ffe4c9" />
+        <spotLight position={[0, 3.7, -2.55]} angle={0.38} penumbra={0.9} intensity={4.8} distance={7} color="#ffe0bd" castShadow />
+      </group>
+      {heroRight && <group position={[-W / 2 + 0.13, 0, 0]} rotation={[0, Math.PI / 2, 0]}><AutoArtworkFrame imageUrl={heroRight.imageUrl} position={[0.8, EYE, 0.06]} title={heroRight.title} artist={heroRight.artist} meta={[heroRight.year, heroRight.medium, heroRight.dimensions, 'Collection 015'].filter(Boolean).join(' · ')} physicalDimensions={heroRight.dimensions} inventoryNumber="02" /><pointLight position={[1.0, 2.75, 1.25]} intensity={2.8} distance={4.5} decay={2} color="#ffe4c9" /><spotLight position={[-7.15, 3.25, 0.8]} rotation={[0, Math.PI / 2, 0]} angle={0.42} penumbra={0.92} intensity={3.15} distance={5.5} color="#ffe0bd" castShadow /></group>}
+      {leftWall && <group position={[W / 2 - 0.13, 0, 0]} rotation={[0, -Math.PI / 2, 0]}><AutoArtworkFrame imageUrl={leftWall.imageUrl} position={[-2.35, EYE, 0.06]} title={leftWall.title} artist={leftWall.artist} meta={[leftWall.year, leftWall.medium, leftWall.dimensions, 'Collection 015'].filter(Boolean).join(' · ')} physicalDimensions={leftWall.dimensions} inventoryNumber="03" /><pointLight position={[-2.35, 2.75, 1.25]} intensity={2.6} distance={4.5} decay={2} color="#ffe4c9" /><spotLight position={[7.15, 3.25, -2.35]} rotation={[0, -Math.PI / 2, 0]} angle={0.42} penumbra={0.92} intensity={3.0} distance={5.5} color="#ffe0bd" castShadow /></group>}
+      {rightWall && <group position={[0, 0, D / 2 - 0.25]} rotation={[0, Math.PI, 0]}><AutoArtworkFrame imageUrl={rightWall.imageUrl} position={[5.2, EYE, 0.06]} title={rightWall.title} artist={rightWall.artist} meta={[rightWall.year, rightWall.medium, rightWall.dimensions, 'Collection 015'].filter(Boolean).join(' · ')} physicalDimensions={rightWall.dimensions} inventoryNumber="04" /><pointLight position={[5.2, 2.75, 1.25]} intensity={2.8} distance={4.5} decay={2} color="#ffe4c9" /><spotLight position={[5.2, 3.25, 3.7]} rotation={[0, Math.PI, 0]} angle={0.42} penumbra={0.92} intensity={2.9} distance={5.5} color="#ffe0bd" castShadow /></group>}
+      <group position={[-W / 2 + 0.13, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+        {supporting.slice(2, 3).map((work) => <group key={work.id}><AutoArtworkFrame imageUrl={work.imageUrl} position={[-1.8, EYE - 0.05, 0.06]} title={work.title} artist={work.artist} meta={[work.year, work.medium, work.dimensions, 'Collection 015'].filter(Boolean).join(' · ')} physicalDimensions={work.dimensions} inventoryNumber="07" /><spotLight position={[-7.15, 3.1, -1.8]} rotation={[0, Math.PI / 2, 0]} angle={0.42} penumbra={0.92} intensity={2.35} distance={5.5} color="#ffe0bd" castShadow /></group>)}
+      </group>
+      <group position={[W / 2 - 0.13, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+        {supporting.slice(3, 4).map((work) => <group key={work.id}><AutoArtworkFrame imageUrl={work.imageUrl} position={[2.5, EYE - 0.05, 0.06]} title={work.title} artist={work.artist} meta={[work.year, work.medium, work.dimensions, 'Collection 015'].filter(Boolean).join(' · ')} physicalDimensions={work.dimensions} inventoryNumber="08" /><spotLight position={[7.15, 3.1, 2.5]} rotation={[0, -Math.PI / 2, 0]} angle={0.42} penumbra={0.92} intensity={2.35} distance={5.5} color="#ffe0bd" castShadow /></group>)}
+      </group>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 4.8, 0]} receiveShadow><planeGeometry args={[16, 11.5]} /><primitive object={ceilingMaterial} attach="material" /></mesh>
+      {/* Recessed perimeter tray: the cove sits inside this architectural shadow box. */}
+      <mesh position={[0, H - 0.28, -D / 2 + 0.28]}><boxGeometry args={[W - 0.5, 0.18, 0.18]} /><meshStandardMaterial color="#c9c1b5" roughness={0.88} /></mesh>
+      <mesh position={[0, H - 0.28, D / 2 - 0.28]}><boxGeometry args={[W - 0.5, 0.18, 0.18]} /><meshStandardMaterial color="#c9c1b5" roughness={0.88} /></mesh>
+      <mesh position={[-W / 2 + 0.28, H - 0.28, 0]}><boxGeometry args={[0.18, 0.18, D - 0.5]} /><meshStandardMaterial color="#c9c1b5" roughness={0.88} /></mesh>
+      <mesh position={[W / 2 - 0.28, H - 0.28, 0]}><boxGeometry args={[0.18, 0.18, D - 0.5]} /><meshStandardMaterial color="#c9c1b5" roughness={0.88} /></mesh>
+      <mesh position={[-W / 2 + 0.32, H - 0.3, 0]}><boxGeometry args={[0.045, 0.08, D - 0.7]} /><meshStandardMaterial color="#211e1a" emissive="#6e6252" emissiveIntensity={0.34} /></mesh>
+      <mesh position={[W / 2 - 0.32, H - 0.3, 0]}><boxGeometry args={[0.045, 0.08, D - 0.7]} /><meshStandardMaterial color="#211e1a" emissive="#6e6252" emissiveIntensity={0.34} /></mesh>
+      {/* Restrained plaster reveals, kept shallow so the walls remain continuous. */}
+      <group position={[0, 0, D / 2]}>
+        <mesh position={[-3.8, H / 2, 0]} receiveShadow><boxGeometry args={[W / 2 - 3.0, H, 0.22]} /><primitive object={wallMaterial} attach="material" /></mesh>
+        <mesh position={[3.8, H / 2, 0]} receiveShadow><boxGeometry args={[W / 2 - 3.0, H, 0.22]} /><primitive object={wallMaterial} attach="material" /></mesh>
+        <mesh position={[0, H - 0.9, 0]} receiveShadow><boxGeometry args={[3.0, 1.8, 0.22]} /><primitive object={wallMaterial} attach="material" /></mesh>
+        <mesh position={[-1.5, 1.8, -0.13]}><boxGeometry args={[0.22, 3.6, 0.28]} /><meshStandardMaterial color="#c7beb1" roughness={0.8} /></mesh>
+        <mesh position={[1.5, 1.8, -0.13]}><boxGeometry args={[0.22, 3.6, 0.28]} /><meshStandardMaterial color="#c7beb1" roughness={0.8} /></mesh>
+        <mesh position={[0, 3.6, -0.13]}><boxGeometry args={[3.22, 0.22, 0.28]} /><meshStandardMaterial color="#c7beb1" roughness={0.8} /></mesh>
+      </group>
+      <mesh position={[0, 2.95, D / 2 - 0.16]} rotation={[0, Math.PI, 0]}>
+        <planeGeometry args={[1.18, 0.42]} />
+        <meshBasicMaterial map={logoTexture} transparent opacity={0.78} depthWrite={false} />
       </mesh>
-      <WallPanel args={[W, H]} pos={[0, H / 2, -D / 2]} rot={[0, 0, 0]} tex={wallTex} />
-      <WallPanel args={[D, H]} pos={[-W / 2, H / 2, 0]} rot={[0, Math.PI / 2, 0]} tex={wallTex} />
-      <WallPanel args={[D, H]} pos={[W / 2, H / 2, 0]} rot={[0, -Math.PI / 2, 0]} tex={wallTex} />
 
-      {back.length > 0 && (
-        <group position={[0, 0, -D / 2]}>
-          {back.map((w, i) => {
-            const p = BACK_WALL_PLACEMENTS[i] ?? BACK_WALL_PLACEMENTS[0];
-            return (
-              <AutoArtworkFrame key={w.id} imageUrl={w.imageUrl}
-                position={[p.position[0], EYE, p.position[2]]} title={w.title} artist={w.artist}
-                meta={[w.year, w.medium, w.dimensions].filter(Boolean).join(' · ')}
-                physicalDimensions={w.dimensions} hero={p.hero} />
-            );
-          })}
-        </group>
-      )}
-      {left.length > 0 && (
-        <group position={[-W / 2, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
-          <AutoArtworkFrame imageUrl={left[0].imageUrl} position={[0.5, EYE, 0.06]} title={left[0].title} artist={left[0].artist} meta={[left[0].year, left[0].medium, left[0].dimensions].filter(Boolean).join(' · ')} physicalDimensions={left[0].dimensions} />
-        </group>
-      )}
-      {right.length > 0 && (
-        <group position={[W / 2, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
-          <AutoArtworkFrame imageUrl={right[0].imageUrl} position={[-2.2, EYE, 0.06]} title={right[0].title} artist={right[0].artist} meta={[right[0].year, right[0].medium, right[0].dimensions].filter(Boolean).join(' · ')} physicalDimensions={right[0].dimensions} />
-        </group>
-      )}
 
-      <hemisphereLight args={["#fff9ef", "#5a5143", 0.9]} />
-      <ambientLight intensity={0.45} color="#faf6ed" />
+      {/* Gallery furniture: secondary, grounded, and outside the route spine */}
+      <MuseumBench />
+      <MuseumAccessories />
 
-      <AccentLight position={[0, H - 0.18, -D / 2 + 0.18]} rotation={[0, 0, 0]} width={W - 1} height={0.5} intensity={1.5} />
-      <AccentLight position={[-W / 2 + 0.18, H - 0.18, 0]} rotation={[0, -Math.PI / 2, 0]} width={D - 1} height={0.5} intensity={1.2} />
-      <AccentLight position={[W / 2 - 0.18, H - 0.18, 0]} rotation={[0, Math.PI / 2, 0]} width={D - 1} height={0.5} intensity={1.2} />
-
-      <AccentLight position={[-3.4, EYE + 0.7, -D / 2 + 0.65]} rotation={[0, 0, 0]} width={2.65} height={1.45} intensity={2.2} />
-      <AccentLight position={[3.6, EYE + 0.7, -D / 2 + 0.65]} rotation={[0, 0, 0]} width={2.65} height={1.45} intensity={2.2} />
-      {left.length > 0 && <AccentLight position={[-W / 2 + 0.65, EYE + 0.7, 0.5]} rotation={[0, -Math.PI / 2, 0]} width={2.25} height={1.45} intensity={2.0} />}
-      {right.length > 0 && <AccentLight position={[W / 2 - 0.65, EYE + 0.7, -2.2]} rotation={[0, Math.PI / 2, 0]} width={2.25} height={1.45} intensity={2.0} />}
     </group>
   );
 }

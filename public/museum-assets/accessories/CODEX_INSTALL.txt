@@ -1,0 +1,6 @@
+Install models from models/ using accessory_layout.json.
+Do not show every object at once.
+Entrance: sofa + low table + pedestal/sculpture maximum.
+Side wall: catalog console + brochure stand.
+Preserve original materials. Enable castShadow/receiveShadow.
+Do not change room geometry, routes, cameras, navigation or artwork engine.

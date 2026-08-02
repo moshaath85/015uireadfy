@@ -1,0 +1,9 @@
+{
+  "wall": "textures/wall.jpg",
+  "floor": "textures/floor.jpg",
+  "ceiling": "textures/ceiling.jpg",
+  "shadow_gap": "textures/shadow-gap.jpg",
+  "cove_glow": "textures/cove-glow.jpg",
+  "bench": "models/gallery015_bench.glb",
+  "bench_error": null
+}

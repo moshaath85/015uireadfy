@@ -1,0 +1,43 @@
+GALLERY 015 LEGO INSTALLATION
+
+Use each supplied wall image as a separate wall mesh.
+
+Do not redesign or reinterpret.
+
+1. Create four separate wall planes:
+   - back_wall_hero.jpg
+   - left_wall_doorway.jpg
+   - right_wall_gallery.jpg
+   - entrance_wall.jpg
+
+2. Apply dimensions and transforms exactly from gallery015_lego_layout.json.
+
+3. Apply:
+   - floor_polished_concrete.jpg to floor
+   - ceiling_cove_track.jpg to ceiling
+   - gallery015_bench.glb as bench
+
+4. Texture rules:
+   - SRGBColorSpace
+   - ClampToEdgeWrapping on wall elevations
+   - no repeat on walls
+   - no displacement
+   - roughness 0.72 on walls
+   - floor roughness 0.38, clearcoat 0.10
+   - ceiling roughness 0.88
+
+5. Lighting:
+   - wall images already contain the visual light wash
+   - keep realtime ambient and cove lighting restrained
+   - do not create visible spotlight circles
+   - add only soft contact shadows
+
+6. Preserve:
+   - navigation
+   - route graph
+   - cameras
+   - artwork engine
+   - backend
+   - normal site
+
+Render entrance screenshot and stop.

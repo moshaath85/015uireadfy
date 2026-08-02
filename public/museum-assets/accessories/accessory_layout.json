@@ -1,0 +1,83 @@
+{
+  "recommended_scene": {
+    "sofa": {
+      "model": "models/gallery015_sofa.glb",
+      "position": [
+        1.8,
+        0,
+        1.4
+      ],
+      "rotation_y": 3.14159
+    },
+    "lounge_chair": {
+      "model": "models/gallery015_lounge_chair.glb",
+      "position": [
+        -2.6,
+        0,
+        1.7
+      ],
+      "rotation_y": 2.55
+    },
+    "low_table": {
+      "model": "models/gallery015_low_table.glb",
+      "position": [
+        0,
+        0,
+        1.2
+      ],
+      "rotation_y": 0
+    },
+    "pedestal": {
+      "model": "models/gallery015_pedestal.glb",
+      "position": [
+        5.8,
+        0,
+        -3.8
+      ],
+      "rotation_y": 0
+    },
+    "sculpture": {
+      "model": "models/gallery015_abstract_sculpture.glb",
+      "position": [
+        5.8,
+        1.05,
+        -3.8
+      ],
+      "rotation_y": 0.3
+    },
+    "catalog_console": {
+      "model": "models/gallery015_catalog_console.glb",
+      "position": [
+        -6.6,
+        0,
+        3.4
+      ],
+      "rotation_y": 1.5708
+    },
+    "brochure_stand": {
+      "model": "models/gallery015_brochure_stand.glb",
+      "position": [
+        -6.1,
+        0,
+        4.0
+      ],
+      "rotation_y": 1.5708
+    },
+    "floor_lamp": {
+      "model": "models/gallery015_floor_lamp.glb",
+      "position": [
+        6.6,
+        0,
+        3.8
+      ],
+      "rotation_y": 0
+    }
+  },
+  "rules": [
+    "Use no more than 4 accessories visible from entrance.",
+    "Artworks remain primary.",
+    "Keep 1.2m circulation.",
+    "Preserve original GLB materials.",
+    "Enable castShadow and receiveShadow."
+  ]
+}

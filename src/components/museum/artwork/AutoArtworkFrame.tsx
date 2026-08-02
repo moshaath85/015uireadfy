@@ -5,7 +5,6 @@ import { CanvasTexture } from 'three';
 import { Text } from '@react-three/drei';
 import { FRAME_SCALE } from '../config/museum-artworks.config';
 import { FRAME } from '../config/museum-frames.config';
-import { LABEL } from '../config/museum-labels.config';
 
 const { min: MIN, max: MAX_W, maxHeight: MAX_H } = FRAME_SCALE;
 
@@ -31,9 +30,23 @@ interface Props {
   meta?: string;
   physicalDimensions?: string;
   hero?: boolean;
+  inventoryNumber?: string;
 }
 
-export default function AutoArtworkFrame({ imageUrl, position, title, artist, meta, physicalDimensions, hero = false }: Props) {
+function MuseumPlaque({ title, artist, meta, inventoryNumber, width }: { title?: string; artist?: string; meta?: string; inventoryNumber: string; width: number }) {
+  const details = meta?.split(' · ') ?? [];
+  return <group position={[width / 2 + 0.30, 0, 0.005]}>
+    <mesh castShadow receiveShadow><boxGeometry args={[0.18, 0.09, 0.002]} /><meshStandardMaterial color="#f3f0e9" roughness={0.78} /></mesh>
+    <group position={[-0.08, 0.037, 0.002]}>
+      <Text anchorX="left" anchorY="top" fontSize={0.010} color="#24221f" maxWidth={0.16}>{title ?? ''}</Text>
+      <Text anchorX="left" anchorY="top" position={[0, -0.016, 0]} fontSize={0.0085} color="#37332e" maxWidth={0.16}>{artist ?? ''}</Text>
+      <Text anchorX="left" anchorY="top" position={[0, -0.030, 0]} fontSize={0.0072} color="#5d5750" maxWidth={0.16}>{details.filter(Boolean).join(' · ')}</Text>
+    </group>
+    <Text anchorX="right" anchorY="bottom" position={[0.078, -0.037, 0.002]} fontSize={0.006} color="#77716a">{inventoryNumber}</Text>
+  </group>;
+}
+
+export default function AutoArtworkFrame({ imageUrl, position, title, artist, meta, physicalDimensions, hero = false, inventoryNumber = '00' }: Props) {
   const [tex, setTex] = useState<CanvasTexture | null>(null);
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
   const [hasBorder, setHasBorder] = useState(false);
@@ -53,16 +66,25 @@ export default function AutoArtworkFrame({ imageUrl, position, title, artist, me
       if (physicalW > 0 && physicalH > 0) {
         const scale = Math.min(scaleCfg.physicalScale, scaleCfg.physicalMax / Math.max(physicalW, physicalH));
         fw = physicalW * scale; fh = physicalH * scale;
-      } else if (ar >= 1) { fw = Math.min(scaleCfg.landscapeMax, (img.naturalWidth / FRAME_SCALE.pixelDivisor) * 1.5); fh = fw / ar; }
-      else { fh = Math.min(scaleCfg.portraitMax, (img.naturalHeight / FRAME_SCALE.pixelDivisor) * 1.5); fw = fh * ar; }
+      } else if (ar >= 1) { fw = hero ? 2.2 : 1.45; fh = fw / ar; }
+      else { fh = hero ? 2.4 : 1.7; fw = fh * ar; }
       fw = Math.max(MIN, Math.min(MAX_W, fw));
       fh = Math.max(MIN, Math.min(MAX_H, fh));
+      const border = detectBorder(img);
+      const photographedArtwork = imageUrl.includes('mohammed-siam-01');
+      const ajamLetterArtwork = imageUrl.includes('mohammed-al-ajam-02');
+      const crop = photographedArtwork
+        ? { x: 0.19, y: 0.18, w: 0.62, h: 0.62 }
+        : ajamLetterArtwork
+          ? { x: 0.04, y: 0.18, w: 0.92, h: 0.78 }
+          : { x: border ? 0.045 : 0, y: border ? 0.045 : 0, w: border ? 0.91 : 1, h: border ? 0.91 : 1 };
       const c = document.createElement('canvas');
-      c.width = 1024; c.height = Math.round(1024 / ar);
-      c.getContext('2d')!.drawImage(img, 0, 0, c.width, c.height);
+      const cropAspect = (img.naturalWidth * crop.w) / (img.naturalHeight * crop.h);
+      c.width = 1024; c.height = Math.round(1024 / cropAspect);
+      c.getContext('2d')!.drawImage(img, img.naturalWidth * crop.x, img.naturalHeight * crop.y, img.naturalWidth * crop.w, img.naturalHeight * crop.h, 0, 0, c.width, c.height);
       const t = new CanvasTexture(c); t.colorSpace = 'srgb';
       setTex(t); setDims({ w: fw, h: fh });
-      setHasBorder(detectBorder(img));
+      setHasBorder(border);
     };
     img.src = imageUrl;
     return () => { ok = false; };
@@ -84,30 +106,22 @@ export default function AutoArtworkFrame({ imageUrl, position, title, artist, me
   return (
     <group position={position}>
       {!hasBorder && mp > 0 && (
-        <mesh position={[0, 0, FRAME.matZOffset]}>
+        <mesh castShadow position={[0, 0, FRAME.matZOffset]}>
           <planeGeometry args={[w + mp * 2, h + mp * 2]} />
           <meshStandardMaterial color={FRAME.matColor} roughness={FRAME.matRoughness} />
         </mesh>
       )}
       {tex && (
-        <mesh position={[0, 0, FRAME.textureZOffset]}>
+        <mesh castShadow position={[0, 0, FRAME.textureZOffset]}>
           <planeGeometry args={[w, h]} />
           <meshStandardMaterial map={tex} roughness={FRAME.artworkTextureRoughness} />
         </mesh>
       )}
-      <mesh position={[0, h / 2 + ft / 2, 0]}><boxGeometry args={[w + ft * 2, ft, FRAME.frameDepth]} /><meshStandardMaterial color={FRAME.frameColor} roughness={FRAME.frameRoughness} /></mesh>
-      <mesh position={[0, -h / 2 - ft / 2, 0]}><boxGeometry args={[w + ft * 2, ft, FRAME.frameDepth]} /><meshStandardMaterial color={FRAME.frameColor} roughness={FRAME.frameRoughness} /></mesh>
-      <mesh position={[-w / 2 - ft / 2, 0, 0]}><boxGeometry args={[ft, h, FRAME.frameDepth]} /><meshStandardMaterial color={FRAME.frameColor} roughness={FRAME.frameRoughness} /></mesh>
-      <mesh position={[w / 2 + ft / 2, 0, 0]}><boxGeometry args={[ft, h, FRAME.frameDepth]} /><meshStandardMaterial color={FRAME.frameColor} roughness={FRAME.frameRoughness} /></mesh>
-      {(title || artist || meta) && (
-        <Suspense fallback={null}>
-          <group position={[-w / 2, -h / 2 + LABEL.groupYOffset, LABEL.groupZOffset]}>
-            {title && <Text anchorX="left" anchorY="top" fontSize={LABEL.title.fontSize} color={LABEL.title.color} maxWidth={Math.max(LABEL.minWidth, w * LABEL.maxWidthFactor)}>{title}</Text>}
-            {artist && <Text anchorX="left" anchorY="top" position={[0, LABEL.artist.yOffset, 0]} fontSize={LABEL.artist.fontSize} color={LABEL.artist.color} maxWidth={Math.max(LABEL.minWidth, w * LABEL.maxWidthFactor)}>{artist}</Text>}
-            {meta && <Text anchorX="left" anchorY="top" position={[0, LABEL.meta.yOffset, 0]} fontSize={LABEL.meta.fontSize} color={LABEL.meta.color} maxWidth={Math.max(LABEL.minWidth, w * LABEL.maxWidthFactor)}>{meta}</Text>}
-          </group>
-        </Suspense>
-      )}
+      <mesh castShadow position={[0, h / 2 + ft / 2, 0]}><boxGeometry args={[w + ft * 2, ft, FRAME.frameDepth]} /><meshStandardMaterial color={FRAME.frameColor} roughness={FRAME.frameRoughness} /></mesh>
+      <mesh castShadow position={[0, -h / 2 - ft / 2, 0]}><boxGeometry args={[w + ft * 2, ft, FRAME.frameDepth]} /><meshStandardMaterial color={FRAME.frameColor} roughness={FRAME.frameRoughness} /></mesh>
+      <mesh castShadow position={[-w / 2 - ft / 2, 0, 0]}><boxGeometry args={[ft, h, FRAME.frameDepth]} /><meshStandardMaterial color={FRAME.frameColor} roughness={FRAME.frameRoughness} /></mesh>
+      <mesh castShadow position={[w / 2 + ft / 2, 0, 0]}><boxGeometry args={[ft, h, FRAME.frameDepth]} /><meshStandardMaterial color={FRAME.frameColor} roughness={FRAME.frameRoughness} /></mesh>
+      <Suspense fallback={null}><MuseumPlaque title={title} artist={artist} meta={meta} inventoryNumber={inventoryNumber} width={w} /></Suspense>
     </group>
   );
 }

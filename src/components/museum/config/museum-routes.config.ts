@@ -39,15 +39,15 @@ export const ROUTE_GRAPH: MuseumRouteGraph = {
     },
     'hero-left': {
       id: 'hero-left',
-      label: 'Concrete Gardens',
+      label: 'Hero Wall',
       position: [-1.5, 1.65, 4.0],
       lookAt: [-3.8, 1.5, -5.2],
-      artworkId: 'aw-004',
+      artworkId: 'aw-013',
       connectedNodes: ['overview', 'hero-right'],
     },
     'hero-right': {
       id: 'hero-right',
-      label: 'Khaled Al-Mutlaq',
+      label: 'Right Wall',
       position: [1.5, 1.65, 4.0],
       lookAt: [4.0, 1.5, -5.2],
       artworkId: 'aw-128',
@@ -55,7 +55,7 @@ export const ROUTE_GRAPH: MuseumRouteGraph = {
     },
     'left-wall': {
       id: 'left-wall',
-      label: 'Women',
+      label: 'Left Wall',
       position: [-4.2, 1.65, 2.0],
       lookAt: [-7.0, 1.5, 1.0],
       artworkId: 'aw-175',
@@ -63,7 +63,7 @@ export const ROUTE_GRAPH: MuseumRouteGraph = {
     },
     'right-wall': {
       id: 'right-wall',
-      label: 'The Souq',
+      label: 'Side Gallery',
       position: [4.2, 1.65, 2.0],
       lookAt: [7.0, 1.5, -1.5],
       artworkId: 'aw-029',

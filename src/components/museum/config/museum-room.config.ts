@@ -9,23 +9,23 @@ export const ROOM: RoomDimensions = {
 export const EYE_LEVEL = 1.52;
 
 export const WALL: WallConfig = {
-  color: '#d2cec6',
-  roughness: 0.7,
+  color: '#d0c8bb',
+  roughness: 0.86,
   plasterBase: { r: 0.80, g: 0.78, b: 0.74 },
-  plasterVariation: 0.03,
+  plasterVariation: 0.018,
   plasterNoiseSize: 64,
 };
 
 export const FLOOR: FloorConfig = {
-  baseColor: '#4b463d',
+  baseColor: '#33271e',
   material: {
-    color: '#4b463d',
-    roughness: 0.42,
+    color: '#33271e',
+    roughness: 0.36,
     metalness: 0,
     clearcoat: 0.12,
     clearcoatRoughness: 0.58,
-    emissive: '#34302b',
-    emissiveIntensity: 0.58,
+    emissive: '#28231d',
+    emissiveIntensity: 0.14,
   },
 };
 

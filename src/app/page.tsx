@@ -9,6 +9,40 @@ import { mediaRepository } from '@/lib/repositories/media';
 import { newsRepository } from '@/lib/repositories/news';
 import { projectsRepository } from '@/lib/repositories/projects';
 import type { Media } from '@/types';
+import { getServerLanguage, getText } from '@/lib/i18n/server-language';
+import type { Language } from '@/lib/i18n/language';
+
+const T = {
+  statement_head: { ar: 'منصة فنية معاصرة يصوغها الفنانون وجامعو المقتنيات والمكان.', en: 'A contemporary art platform shaped by artists, collectors, and place.' },
+  statement_side: { ar: 'تجمع غاليري ٠١٥ بين التمثيل الفني والمعارض والاستشارات الخاصة والمشاريع الثقافية في جميع أنحاء المملكة — من الجيل المؤسس للحداثة السعودية إلى الأصوات التي تحدد معالمها الآن.', en: '015 Gallery brings together representation, exhibitions, private advisory, and cultural projects across the Kingdom — from the founding generation of Saudi modernism to the voices defining it now.' },
+  selected_works: { ar: 'أعمال مختارة', en: 'Selected works' },
+  selected_works_note: { ar: 'مجموعة متجددة من المجموعة الفنية. كل عمل موثق ومعتمد ومتاح للمشاهدة الخاصة.', en: 'A rotating selection from the collection. Every work is documented, certified, and available for private viewing.' },
+  the_roster: { ar: 'قائمة الفنانين', en: 'The roster' },
+  exhibition: { ar: 'معرض', en: 'Exhibition' },
+  view_exhibition: { ar: 'عرض المعرض', en: 'View exhibition' },
+  all_artworks: { ar: 'جميع الأعمال', en: 'All artworks' },
+  all_artists: { ar: 'جميع الفنانين', en: 'View all' },
+  full_roster: { ar: 'القائمة الكاملة', en: 'Full roster' },
+  art_in_context: { ar: 'الفن في سياقه', en: 'Art in context' },
+  context_note: { ar: 'برامج فنية مخصصة للمؤسسات والمستشفيات والمعالم الثقافية في جميع أنحاء المملكة.', en: 'Commissioned art programmes for institutions, hospitals, and cultural landmarks across the Kingdom.' },
+  all_projects: { ar: 'جميع المشاريع', en: 'All projects' },
+  journal_title: { ar: 'مجلة ٠١٥', en: '015 Journal' },
+  journal_note: { ar: 'مقالات ونقد حول المشهد الفني السعودي.', en: 'Essays and criticism on the Saudi art scene, written by the gallery.' },
+  enter_journal: { ar: 'تصفح المجلة', en: 'Enter the journal' },
+  visit_title: { ar: 'للاقتناء والتنسيق والبرامج الفنية المؤسسية.', en: 'For acquisition, placement, and institutional art programmes.' },
+  private_viewing: { ar: 'مشاهدة خاصة', en: 'Private viewing' },
+  our_services: { ar: 'خدماتنا', en: 'Our services' },
+  now_on_view: { ar: 'معروض الآن', en: 'Now on view' },
+  from_programme: { ar: 'من البرنامج', en: 'From the programme' },
+  exhibitions_note: { ar: 'معارض يقدمها الغاليري في مقرنا بالرياض وخارجه.', en: 'Exhibitions presented by the gallery, at our Riyadh space and beyond.' },
+  selected_work: { ar: 'عمل مختار', en: 'Selected work' },
+  view_this_work: { ar: 'عرض العمل', en: 'View this work' },
+  commission: { ar: 'تكليف', en: 'Commission' },
+};
+
+function t(key: keyof typeof T, lang: Language): string {
+  return lang === 'ar' ? T[key].ar : T[key].en;
+}
 
 export const metadata: Metadata = {
   title: 'Gallery 015 — Contemporary Art Gallery, Riyadh',
@@ -38,6 +72,7 @@ const monthYear = (value: string) => {
 const hasRealTitle = (title: string) => !title.trim().toLowerCase().startsWith('untitled');
 
 export default async function HomePage() {
+  const lang = await getServerLanguage();
   const [artworks, artists, exhibitions, projects, news, allMedia] = await Promise.all([
     artworksRepository.getPublicAll(),
     artistsRepository.getPublicAll(),
@@ -121,12 +156,8 @@ export default async function HomePage() {
       {/* STATEMENT */}
       <section className="hp-statement">
         <div className="hp-wrap hp-statement__grid">
-          <p className="hp-big">A contemporary art platform shaped by artists, collectors, and place.</p>
-          <p className="hp-side">
-            015 Gallery brings together representation, exhibitions, private advisory, and cultural
-            projects across the Kingdom — from the founding generation of Saudi modernism to the
-            voices defining it now.
-          </p>
+          <p className="hp-big">{t('statement_head', lang)}</p>
+          <p className="hp-side">{t('statement_side', lang)}</p>
         </div>
       </section>
 
@@ -135,8 +166,8 @@ export default async function HomePage() {
         <section className="hp-programme">
           <div className="hp-wrap">
             <div className="hp-sec-head">
-              <h2>{programmeIsCurrent ? 'Now on view' : 'From the programme'}</h2>
-              <p className="hp-note">Exhibitions presented by the gallery, at our Riyadh space and beyond.</p>
+              <h2>{t(programmeIsCurrent ? 'now_on_view' : 'from_programme', lang)}</h2>
+              <p className="hp-note">{t('exhibitions_note', lang)}</p>
             </div>
             <Link className="hp-programme__grid" href={`/exhibitions/${programme.exhibition.slug}`}>
               <figure className="hp-programme__media">
@@ -171,11 +202,8 @@ export default async function HomePage() {
         <section className="hp-works">
           <div className="hp-wrap">
             <div className="hp-sec-head">
-              <h2>Selected works</h2>
-              <p className="hp-note">
-                A rotating selection from the collection. Every work is documented, certified,
-                and available for private viewing.
-              </p>
+              <h2>{t('selected_works', lang)}</h2>
+              <p className="hp-note">{t('selected_works_note', lang)}</p>
             </div>
             <div className="hp-works__grid">
               {selectedWorks.map((work, index) => {
@@ -209,10 +237,9 @@ export default async function HomePage() {
         <section className="hp-artists">
           <div className="hp-wrap">
             <div className="hp-sec-head">
-              <h2>The roster</h2>
+              <h2>{t('the_roster', lang)}</h2>
               <p className="hp-note">
-                {artists.length} artists — the founding generation of Saudi modernism alongside
-                contemporary and international voices.
+                {artists.length} {lang === 'ar' ? 'فنانًا — الجيل المؤسس للحداثة السعودية إلى جانب أصوات معاصرة وعالمية.' : `artists — the founding generation of Saudi modernism alongside contemporary and international voices.`}
               </p>
             </div>
             <div className="hp-artists__grid">
@@ -246,11 +273,8 @@ export default async function HomePage() {
         <section className="hp-projects">
           <div className="hp-wrap">
             <div className="hp-sec-head">
-              <h2>Art in context</h2>
-              <p className="hp-note">
-                Commissioned art programmes for institutions, hospitals, and cultural landmarks
-                across the Kingdom.
-              </p>
+              <h2>{t('art_in_context', lang)}</h2>
+              <p className="hp-note">{t('context_note', lang)}</p>
             </div>
             <div className="hp-projects__grid">
               {featuredProjects.map(({ project, cover }) => (
@@ -277,8 +301,8 @@ export default async function HomePage() {
         <section className="hp-journal">
           <div className="hp-wrap">
             <div className="hp-sec-head">
-              <h2>015 Journal</h2>
-              <p className="hp-note">Essays and criticism on the Saudi art scene, written by the gallery.</p>
+              <h2>{t('journal_title', lang)}</h2>
+              <p className="hp-note">{t('journal_note', lang)}</p>
             </div>
             <div className="hp-journal__list">
               {journal.map((item) => (
@@ -302,11 +326,11 @@ export default async function HomePage() {
         <div className="hp-wrap hp-visit__grid">
           <div>
             <p className="hp-label">Visit</p>
-            <h2>For acquisition, placement, and institutional art programmes.</h2>
+            <h2>{t('visit_title', lang)}</h2>
           </div>
           <div className="hp-visit__links">
-            <Link className="hp-link" href="/contact">Private viewing <span aria-hidden="true">↗</span></Link>
-            <Link className="hp-link" href="/services">Our services <span aria-hidden="true">↗</span></Link>
+            <Link className="hp-link" href="/contact">{t('private_viewing', lang)} <span aria-hidden="true">↗</span></Link>
+            <Link className="hp-link" href="/services">{t('our_services', lang)} <span aria-hidden="true">↗</span></Link>
           </div>
         </div>
       </section>

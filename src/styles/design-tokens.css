@@ -1,0 +1,128 @@
+/* ============================================================
+   015 GALLERY — DESIGN TOKENS (2026)
+   Single source of truth for all design values.
+   Version: 1.0
+   ============================================================ */
+
+:root {
+  /* ---- Typography ---- */
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans-arabic: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-serif: var(--font-sans);
+
+  --type-display-1: clamp(3.5rem, 6.5vw, 8.75rem);
+  --type-display-2: clamp(2.5rem, 4.5vw, 5.5rem);
+  --type-heading-1: clamp(1.75rem, 3vw, 3.25rem);
+  --type-heading-2: clamp(1.35rem, 2vw, 2rem);
+  --type-heading-3: 1.125rem;
+  --type-body: 1rem;
+  --type-body-large: 1.25rem;
+  --type-caption: 0.875rem;
+  --type-label: 0.75rem;
+  --type-label-small: 0.6875rem;
+
+  --leading-display: 1.1;
+  --leading-heading: 1.25;
+  --leading-body: 1.6;
+  --leading-label: 1.4;
+  --leading-arabic: 1.8;
+
+  --tracking-display: -0.05em;
+  --tracking-heading: -0.02em;
+  --tracking-body: 0;
+  --tracking-label: 0.08em;
+
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --measure-body: 62ch;
+  --measure-intro: 48ch;
+  --measure-label: 34ch;
+
+  /* ---- Color — Public Interface ---- */
+  --g-paper: #FAFAF7;
+  --g-ink: #12110F;
+  --g-ink-60: rgba(18,17,15,0.60);
+  --g-ink-40: rgba(18,17,15,0.40);
+  --g-hair: rgba(18,17,15,0.13);
+  --g-hair-strong: rgba(18,17,15,0.28);
+  --g-surface-dark: #161513;
+  --g-surface-dark-text: #BEB6A6;
+  --g-accent: #C8412A;
+
+  /* ---- Color — Homepage scoped ---- */
+  --hp-paper: #FFFFFF;
+  --hp-paper-2: #FFFFFF;
+  --hp-wall: var(--g-surface-dark);
+  --hp-ink: var(--g-ink);
+  --hp-ink-60: var(--g-ink-60);
+  --hp-ink-40: var(--g-ink-40);
+  --hp-line: var(--g-hair);
+  --hp-line-strong: var(--g-hair-strong);
+
+  /* ---- Color — Legacy tokens (mapped to new system) ---- */
+  --color-black: var(--g-ink);
+  --color-white: var(--g-paper);
+  --color-ivory: #FAFAF7;
+  --color-gray-100: #F5F5F5;
+  --color-gray-300: #CCC;
+  --color-gray-600: #666;
+  --color-gray-900: #1A1A1A;
+
+  /* ---- Color — Admin CMS ---- */
+  --admin-ink: #171715;
+  --admin-muted: #77746E;
+  --admin-line: #D9D5CD;
+  --admin-paper: #F3F0E9;
+  --admin-card: #FBFAF7;
+  --admin-black: #151513;
+
+  /* ---- Spatial ---- */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+  --space-xl: 4rem;
+  --space-2xl: 6rem;
+  --space-3xl: 8rem;
+  --space-4xl: 10rem;
+
+  --page-gutter: clamp(1.25rem, 3vw, 3.4rem);
+  --content-max: 1440px;
+  --header-height: 82px;
+
+  /* ---- Spatial — Homepage scoped ---- */
+  --hp-sp-section: clamp(88px, 10vw, 168px);
+  --hp-sp-block: clamp(40px, 5vw, 72px);
+  --hp-gutter: clamp(20px, 4.5vw, 72px);
+  --hp-maxw: 1560px;
+  --hp-serif: var(--font-sans);
+  --g-serif: var(--font-sans);
+
+  /* ---- Motion ---- */
+  --motion-fast: 180ms;
+  --motion-base: 420ms;
+  --motion-slow: 780ms;
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---- Borders & Shadows ---- */
+  --border-hairline: 1px solid var(--g-hair);
+  --border-hairline-strong: 1px solid var(--g-hair-strong);
+  --border-subtle: 1px solid var(--color-gray-300);
+  --shadow-museum: 0 2px 24px rgba(0, 0, 0, 0.06);
+
+  /* ---- Component ---- */
+  --touch-min: 44px;
+  --image-plate-min: 280px;
+
+  /* ---- Breakpoints ---- */
+  --bp-sm: 460px;
+  --bp-md: 760px;
+  --bp-lg: 1180px;
+  --bp-xl: 1440px;
+
+  /* ---- Legacy ---- */
+  --max-width: 1200px;
+}

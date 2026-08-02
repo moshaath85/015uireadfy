@@ -1,0 +1,82 @@
+{
+  "room_meters": {
+    "width": 16.0,
+    "depth": 11.5,
+    "height": 4.8
+  },
+  "walls": [
+    {
+      "id": "back",
+      "asset": "walls/back_wall_hero.jpg",
+      "width_m": 16.0,
+      "height_m": 4.8,
+      "position": [
+        0,
+        2.4,
+        -5.75
+      ],
+      "rotation_y": 0
+    },
+    {
+      "id": "left",
+      "asset": "walls/left_wall_doorway.jpg",
+      "width_m": 11.5,
+      "height_m": 4.8,
+      "position": [
+        -8.0,
+        2.4,
+        0
+      ],
+      "rotation_y": 1.5707963268
+    },
+    {
+      "id": "right",
+      "asset": "walls/right_wall_gallery.jpg",
+      "width_m": 11.5,
+      "height_m": 4.8,
+      "position": [
+        8.0,
+        2.4,
+        0
+      ],
+      "rotation_y": -1.5707963268
+    },
+    {
+      "id": "entrance",
+      "asset": "walls/entrance_wall.jpg",
+      "width_m": 16.0,
+      "height_m": 4.8,
+      "position": [
+        0,
+        2.4,
+        5.75
+      ],
+      "rotation_y": 3.1415926536
+    }
+  ],
+  "floor": {
+    "asset": "surfaces/floor_polished_concrete.jpg",
+    "size_m": [
+      16.0,
+      11.5
+    ],
+    "roughness": 0.38,
+    "clearcoat": 0.1
+  },
+  "ceiling": {
+    "asset": "surfaces/ceiling_cove_track.jpg",
+    "size_m": [
+      16.0,
+      11.5
+    ],
+    "roughness": 0.88
+  },
+  "rules": [
+    "Use each wall as a separate plane/mesh like LEGO.",
+    "Do not generate new wall materials.",
+    "No displacement.",
+    "Use sRGB for all color textures.",
+    "Preserve current navigation/cameras/routes.",
+    "Baked lighting is already included in wall images; keep realtime lighting subtle."
+  ]
+}

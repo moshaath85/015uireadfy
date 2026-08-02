@@ -1,0 +1,15 @@
+{
+  "kit": "Gallery015 Rendering Fix Kit",
+  "assets": {
+    "wall": "/museum-assets/rendering/wall_plaster.jpg",
+    "floor": "/museum-assets/rendering/floor_polished_concrete.jpg",
+    "ceiling": "/museum-assets/rendering/ceiling_warm_matte.jpg",
+    "bench": "/museum-assets/models/gallery015_bench.glb"
+  },
+  "components": [
+    "MuseumRendererConfig.tsx",
+    "MuseumLightingRig.tsx",
+    "useMuseumMaterials.ts",
+    "MuseumBench.tsx"
+  ]
+}

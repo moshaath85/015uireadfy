@@ -16,16 +16,16 @@ export const RIGHT_WALL_PLACEMENTS: ArtworkPlacement[] = [
 export const FRAME_SCALE = {
   pixelDivisor: 390,
   hero: {
-    physicalScale: 1.8,
+    physicalScale: 2.2,
     physicalMax: 4.2,
     landscapeMax: 4.2,
     portraitMax: 3.6,
   },
   secondary: {
-    physicalScale: 1.4,
-    physicalMax: 3.4,
-    landscapeMax: 3.8,
-    portraitMax: 3.2,
+    physicalScale: 2.15,
+    physicalMax: 3.0,
+    landscapeMax: 3.0,
+    portraitMax: 2.8,
   },
   min: 0.3,
   max: 3.6,

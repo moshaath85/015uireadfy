@@ -2,8 +2,12 @@
 
 import { Canvas } from '@react-three/fiber';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { Color } from 'three';
+import { Color, PMREMGenerator, SRGBColorSpace, ACESFilmicToneMapping, PCFSoftShadowMap } from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import GalleryHall from '../architecture/GalleryHall';
+import { MuseumRendererConfig } from '../rendering/MuseumRendererConfig';
+import { MuseumLightingRig } from '../rendering/MuseumLightingRig';
+import { MUSEUM_RENDERING_CONFIG } from '../config/museum-rendering.config';
 import MuseumCamera from '../navigation/MuseumCamera';
 import { ROUTE_GRAPH, getConnectedNodes } from '../config/museum-routes.config';
 import { DEFAULT_CAMERA, CAMERA_CONFIG, SCENE_BACKGROUND } from '../config/museum-navigation.config';
@@ -14,7 +18,7 @@ interface ArtworkData {
   sceneRole: 'hero' | 'secondary';
 }
 
-const EXHIBITION_ORDER = ['aw-004', 'aw-128', 'aw-175', 'aw-029'];
+const EXHIBITION_ORDER = ['aw-013', 'aw-128', 'aw-175', 'aw-029'];
 
 export default function MuseumCanvas3D({ artworks }: { artworks: ArtworkData[] }) {
   const [mobile, setMobile] = useState(false);
@@ -75,13 +79,26 @@ export default function MuseumCanvas3D({ artworks }: { artworks: ArtworkData[] }
     <>
     <div className="museum-3d-surface" style={{ position: 'fixed', inset: 0, background: SCENE_BACKGROUND, zIndex: 10, cursor: dragging ? 'grabbing' : 'grab', touchAction: mobile ? 'none' : 'auto' }}>
       <Canvas
-        shadows="soft"
+        shadows={{ type: PCFSoftShadowMap }}
         camera={{ position: DEFAULT_CAMERA.position as [number, number, number], fov: mobile ? CAMERA_CONFIG.mobileFov : CAMERA_CONFIG.desktopFov, near: 0.3, far: 50 }}
-        dpr={mobile ? CAMERA_CONFIG.mobileDpr : CAMERA_CONFIG.desktopDpr}
-        gl={{ antialias: true, toneMapping: 3, toneMappingExposure: 1.0 }}
-        onCreated={({ scene }) => { scene.background = new Color(SCENE_BACKGROUND); }}
+        dpr={MUSEUM_RENDERING_CONFIG.renderer.dpr}
+        gl={{ antialias: true, toneMapping: ACESFilmicToneMapping, toneMappingExposure: 0.95 }}
+        onCreated={({ gl, scene }) => {
+          scene.background = new Color(SCENE_BACKGROUND);
+          gl.outputColorSpace = SRGBColorSpace;
+          gl.toneMapping = ACESFilmicToneMapping;
+          gl.toneMappingExposure = 0.95;
+          gl.shadowMap.enabled = true;
+          gl.shadowMap.type = PCFSoftShadowMap;
+          (gl as typeof gl & { physicallyCorrectLights?: boolean }).physicallyCorrectLights = true;
+          const pmrem = new PMREMGenerator(gl);
+          scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+          pmrem.dispose();
+        }}
       >
         <Suspense fallback={null}>
+          <MuseumRendererConfig />
+          <MuseumLightingRig />
           <GalleryHall artworks={artworks} />
           <MuseumCamera targetNodeId={targetNode} onArrive={handleArrive} onDragState={setDragging} />
         </Suspense>

@@ -1,0 +1,60 @@
+GALLERY 015 — RENDERING FIX KIT
+
+COPY CONTENTS INTO PROJECT ROOT:
+ /Users/apple/Downloads/015_Gallery_GitHub_Ready_Sprint_01
+
+FILES PROVIDED:
+- src/components/museum/config/museum-rendering.config.ts
+- src/components/museum/rendering/MuseumRendererConfig.tsx
+- src/components/museum/rendering/useMuseumMaterials.ts
+- src/components/museum/rendering/MuseumLightingRig.tsx
+- src/components/museum/rendering/MuseumBench.tsx
+- public/museum-assets/rendering/*.jpg
+- public/museum-assets/models/gallery015_bench.glb
+
+INTEGRATION:
+
+1. In MuseumCanvas3D.tsx, inside <Canvas>:
+   <MuseumRendererConfig />
+   <MuseumLightingRig />
+
+2. Set Canvas dpr:
+   dpr={MUSEUM_RENDERING_CONFIG.renderer.dpr}
+
+3. In GalleryHall.tsx:
+   const { wallMaterial, floorMaterial, ceilingMaterial } = useMuseumMaterials()
+
+   Assign:
+   - wallMaterial to all wall meshes
+   - floorMaterial to floor mesh
+   - ceilingMaterial to ceiling mesh
+
+4. Remove old procedural CanvasTextures and random-dot textures.
+5. Remove old flat ambient/directional/point light setup.
+6. Replace primitive bench with:
+   <MuseumBench />
+
+7. Keep:
+   - existing geometry
+   - navigation
+   - camera nodes
+   - route graph
+   - artwork engine
+
+8. Verify:
+   - all assets return HTTP 200
+   - floor has no checkerboard
+   - bench uses original walnut/steel GLB materials
+   - soft shadows visible
+   - no wall overexposure
+   - no visible spotlight circles
+
+RUN:
+npm run typecheck
+npm run build
+
+CAPTURE:
+- entrance
+- overview
+- floor close-up
+- bench close-up

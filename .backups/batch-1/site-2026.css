@@ -1,0 +1,97 @@
+/* ============================================================
+   015 GALLERY — SITE DESIGN SYSTEM (2026)
+   Extends the approved homepage language to every other page.
+   Loaded after globals.css so it refines the existing markup
+   rather than replacing it.
+   ============================================================ */
+
+:root{
+  --g-paper:#FFFFFF;
+  --g-ink:#12110F;
+  --g-ink-60:#5C574F;
+  --g-ink-40:#8A857B;
+  --g-hair:rgba(18,17,15,.13);
+  --g-hair-strong:rgba(18,17,15,.28);
+  --g-serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+}
+
+/* ---- 1. One white ground, matching the white the artwork is shot on ---- */
+body{background:var(--g-paper);color:var(--g-ink)}
+.experience-index,.experience-detail,
+.artist-roster-page,.artist-roster-hero{background:var(--g-paper)}
+.site-header{background:rgba(255,255,255,.96);border-bottom:1px solid var(--g-hair)}
+
+/* ---- 2. Shared display type ---- */
+.experience-index__intro h1,
+.experience-detail__heading h1,
+.experience-inquiry h2,
+.experience-related h2,
+.experience-card__copy h2,
+.experience-related h3,
+.artist-roster-hero h1{
+  font-family:var(--g-serif);font-weight:400;letter-spacing:-.035em;
+}
+
+/* ---- 3. One hairline frame rule for every image plate on the site ---- */
+.experience-card__media,
+.experience-detail__media,
+.experience-related figure,
+.artwork-experience-media,
+.project-experience-media,
+.exhibition-experience-media{
+  border:1px solid var(--g-hair);
+  background:var(--g-paper);
+}
+
+/* ---- 4. Artwork is never cropped ----
+   Paintings and works on paper are shown whole, centred on white, with a
+   museum shadow. Documentary photography (installation views, portraits,
+   project sites) still fills its frame, which is correct for photography. */
+.experience-index--grid .experience-card__media,
+.artwork-experience-media,
+.experience-related figure{
+  display:grid;place-items:center;
+  padding:clamp(16px,2vw,38px);
+  overflow:hidden;
+}
+.experience-index--grid .experience-card__media img,
+.artwork-experience-media img,
+.experience-related figure img{
+  max-width:100%;max-height:100%;
+  width:auto;height:auto;
+  object-fit:contain;
+  box-shadow:
+    0 1px 3px rgba(18,17,15,.08),
+    0 8px 18px rgba(18,17,15,.07),
+    0 24px 52px rgba(18,17,15,.09);
+}
+/* the hover zoom from the legacy sheet would crop a contained work */
+.experience-index--grid .experience-card:hover .experience-card__media img,
+.experience-related a:hover img{transform:none;opacity:.92}
+
+/* ---- 5. Detail hero: give the work room ---- */
+.experience-detail__media{
+  display:grid;place-items:center;
+  padding:clamp(20px,2.6vw,52px);
+  background:
+    radial-gradient(120% 82% at 50% 26%,
+      #FFFFFF 0%,#FDFDFC 40%,#F7F5F2 74%,#F0EDE9 100%);
+}
+
+/* ---- 6. Quieter meta, consistent with the homepage ---- */
+.experience-kicker,
+.experience-card__meta,
+.experience-facts dt{
+  font-size:10px;letter-spacing:.19em;text-transform:uppercase;color:var(--g-ink-40);
+}
+.experience-card__description,
+.experience-index__intro>p:last-child{color:var(--g-ink-60)}
+
+/* ---- 7. Rules and dividers share one weight ---- */
+.experience-index__intro{border-bottom:1px solid var(--g-hair-strong)}
+.experience-related,
+.experience-detail__information{border-bottom:1px solid var(--g-hair)}
+.experience-facts>div{border-bottom:1px solid var(--g-hair)}
+
+/* ---- 8. Reading measure for long-form body copy ---- */
+.experience-body p{max-width:62ch;font-family:var(--g-serif)}
