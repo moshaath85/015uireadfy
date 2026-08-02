@@ -2512,6 +2512,7 @@ body:has(.g-arrival){background:#000}
 .g-header__nav a{font-size:var(--type-label);letter-spacing:var(--tracking-label);text-transform:uppercase;white-space:nowrap;text-decoration:none;color:var(--g-ink);font-weight:var(--weight-medium);padding-bottom:3px;border-bottom:1px solid transparent;transition:opacity var(--motion-fast) ease,border-color var(--motion-fast) ease}.g-header__nav a:hover{opacity:.6;text-decoration:none}.g-header__nav a.is-active{border-bottom-color:var(--g-ink)}
 .g-header__actions{display:flex;align-items:center;justify-content:flex-end;gap:1.25rem}
 .g-header__cta{font-size:var(--type-label);letter-spacing:var(--tracking-label);text-transform:uppercase;white-space:nowrap;text-decoration:none;color:var(--g-ink);font-weight:var(--weight-medium)}.g-header__cta:hover{opacity:.6;text-decoration:none}
+.g-header__lang{font-size:var(--type-label);letter-spacing:.06em;font-weight:var(--weight-medium);color:var(--g-ink);background:none;border:1px solid var(--g-hair);padding:4px 8px;cursor:pointer;transition:border-color var(--motion-fast) ease;min-height:44px;min-width:44px}.g-header__lang:hover{border-color:var(--g-ink)}
 .g-header__toggle{display:none;width:31px;padding:8px 2px;border:0;background:none;cursor:pointer}.g-header__toggle span{display:block;height:1px;background:var(--g-ink);transition:transform var(--motion-base) var(--motion-ease),opacity var(--motion-base) var(--motion-ease)}.g-header__toggle span:first-child{margin-bottom:5px}.g-header__toggle.is-open span:first-child{transform:translateY(3px) rotate(45deg)}.g-header__toggle.is-open span:last-child{transform:translateY(-3px) rotate(-45deg)}
 
 /* Mobile nav overlay */
@@ -2572,3 +2573,17 @@ body:has(.g-arrival){background:#000}
 .g-contact__error{color:var(--g-accent);font-size:var(--type-caption)}
 .g-contact__sent{display:grid;gap:var(--space-md);padding:var(--space-xl) 0}.g-contact__sent h2{font-size:var(--type-heading-2);font-weight:var(--weight-light);color:var(--g-ink)}.g-contact__sent p{color:var(--g-ink-60);font-size:var(--type-body)}.g-contact__reset{justify-self:start;margin-top:var(--space-md);padding:0;border:0;border-bottom:1px solid var(--g-ink);background:none;font:inherit;font-size:var(--type-label);letter-spacing:var(--tracking-label);text-transform:uppercase;cursor:pointer;color:var(--g-ink)}.g-contact__reset:hover{opacity:.6}
 @media(max-width:800px){.g-contact__grid{grid-template-columns:1fr}.g-contact__details{grid-column:1;grid-row:auto}}
+
+/* ============================================================
+   RTL — Arabic language support
+   ============================================================ */
+[dir="rtl"] body,[dir="rtl"] p,[dir="rtl"] .g-page__body,[dir="rtl"] .g-contact__intro,[dir="rtl"] .g-contact__info{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif}
+[dir="rtl"] .g-header__lang{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;font-size:.8rem}
+[dir="rtl"] .g-header__cta,[dir="rtl"] .g-header__nav a{letter-spacing:0}
+[dir="rtl"] .g-page__kicker,[dir="rtl"] .g-page__links a,[dir="rtl"] .g-contact__kicker{letter-spacing:.04em}
+[dir="rtl"] .g-footer__col h3{letter-spacing:.04em}
+[dir="rtl"] .experience-kicker,[dir="rtl"] .g-contact__submit{letter-spacing:.04em}
+[dir="rtl"] .g-header{grid-template-columns:minmax(140px,.7fr) minmax(0,2fr) minmax(170px,.7fr)}
+[dir="rtl"] .g-header__actions{gap:1.25rem;flex-direction:row-reverse}
+[dir="rtl"] .g-skip-link{left:auto;right:18px}
+[dir="rtl"] .g-museum__link{margin-left:0;margin-right:auto}

@@ -3,6 +3,7 @@ import '@/styles/design-tokens.css';
 import '@/styles/globals.css';
 import '@/styles/site-2026.css';
 import SiteChrome from '@/components/layout/SiteChrome';
+import LanguageProvider from '@/components/layout/LanguageProvider';
 import { IBM_Plex_Sans } from 'next/font/google';
 import { SITE } from '@/lib/metadata';
 
@@ -46,8 +47,15 @@ export const dynamic = 'force-dynamic';
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={ibmPlexSans.variable}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet" />
+      </head>
       <body>
-        <SiteChrome>{children}</SiteChrome>
+        <LanguageProvider>
+          <SiteChrome>{children}</SiteChrome>
+        </LanguageProvider>
       </body>
     </html>
   );

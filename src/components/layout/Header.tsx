@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { useLanguage } from '@/components/layout/LanguageProvider';
 
 const mainLinks = [
   { href: '/museum', label: 'Museum' },
@@ -25,6 +26,7 @@ export default function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { lang, switchLang } = useLanguage();
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -85,6 +87,14 @@ export default function Header() {
         </nav>
 
         <div className="g-header__actions">
+          <button
+            type="button"
+            className="g-header__lang"
+            onClick={() => switchLang(lang === 'en' ? 'ar' : 'en')}
+            aria-label={lang === 'en' ? 'التبديل إلى العربية' : 'Switch to English'}
+          >
+            {lang === 'en' ? 'AR' : 'EN'}
+          </button>
           <Link href="/contact" className="g-header__cta">Contact</Link>
           <button
             type="button"
