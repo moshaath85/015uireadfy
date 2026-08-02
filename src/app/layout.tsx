@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import '@/styles/design-tokens.css';
 import '@/styles/globals.css';
 import '@/styles/site-2026.css';
@@ -44,16 +45,25 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = 'force-dynamic';
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get('gallery-lang');
+  const initialLang = langCookie?.value === 'ar' ? 'ar' : 'en';
+  const isRtl = initialLang === 'ar';
+
   return (
-    <html lang="en" className={ibmPlexSans.variable}>
+    <html lang={initialLang} dir={isRtl ? 'rtl' : 'ltr'} className={ibmPlexSans.variable}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body>
-        <LanguageProvider>
+        <LanguageProvider initialLang={initialLang}>
           <SiteChrome>{children}</SiteChrome>
         </LanguageProvider>
       </body>

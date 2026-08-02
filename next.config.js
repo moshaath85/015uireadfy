@@ -26,8 +26,10 @@ const nextConfig = {
   images: {
     remotePatterns,
   },
+  compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
+  productionBrowserSourceMaps: false,
 };
 
 module.exports = nextConfig;

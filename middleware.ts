@@ -11,11 +11,20 @@ function isAdminAsset(pathname: string): boolean {
   return pathname.startsWith("/admin/_next") || pathname.includes(".");
 }
 
+function addSecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const response = NextResponse.next();
 
   if (!pathname.startsWith("/admin") || isAdminAsset(pathname)) {
-    return NextResponse.next();
+    return addSecurityHeaders(response);
   }
 
   const sessionToken = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
@@ -23,22 +32,22 @@ export async function middleware(request: NextRequest) {
 
   if (pathname === ADMIN_LOGIN_PATH) {
     if (!allowed) {
-      return NextResponse.next();
+      return addSecurityHeaders(NextResponse.next());
     }
 
-    return NextResponse.redirect(new URL(ADMIN_HOME_PATH, request.url));
+    return addSecurityHeaders(NextResponse.redirect(new URL(ADMIN_HOME_PATH, request.url)));
   }
 
   if (allowed) {
-    return NextResponse.next();
+    return addSecurityHeaders(NextResponse.next());
   }
 
   const loginUrl = new URL(ADMIN_LOGIN_PATH, request.url);
   loginUrl.searchParams.set("next", pathname);
 
-  return NextResponse.redirect(loginUrl);
+  return addSecurityHeaders(NextResponse.redirect(loginUrl));
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|brand/|robots.txt|sitemap.xml).*)"],
 };

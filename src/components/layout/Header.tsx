@@ -111,17 +111,20 @@ export default function Header() {
             className={`g-header__toggle${menuOpen ? ' is-open' : ''}`}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-expanded={menuOpen}
+            aria-controls="g-nav-overlay"
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           >
-            <span />
-            <span />
+            <span aria-hidden="true" />
+            <span aria-hidden="true" />
           </button>
         </div>
       </header>
 
       <div
+        id="g-nav-overlay"
         className={`g-nav-overlay${menuOpen ? ' is-open' : ''}`}
         aria-hidden={!menuOpen}
+        aria-modal={menuOpen ? 'true' : undefined}
       >
         <nav className="g-nav-overlay__inner" aria-label="Mobile navigation">
           <ul className="g-nav-overlay__primary">
@@ -133,6 +136,7 @@ export default function Header() {
                 <Link
                   href={link.href}
                   className={isActive(link.href) ? 'is-active' : undefined}
+                  aria-current={isActive(link.href) ? 'page' : undefined}
                   onClick={closeMenu}
                 >
                   <span className="g-nav-overlay__num">

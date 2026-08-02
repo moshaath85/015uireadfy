@@ -12,13 +12,13 @@ export function useLanguage() {
   return useContext(LangCtx);
 }
 
-export default function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Language>('en');
+export default function LanguageProvider({ children, initialLang }: { children: React.ReactNode; initialLang?: string }) {
+  const [lang, setLang] = useState<Language>((initialLang === 'ar' ? 'ar' : 'en') as Language);
 
   useEffect(() => {
     const detected = getLanguage();
-    setLang(detected);
-    if (typeof document !== 'undefined') {
+    if (detected !== lang) {
+      setLang(detected);
       document.documentElement.lang = detected;
       document.documentElement.dir = detected === 'ar' ? 'rtl' : 'ltr';
     }

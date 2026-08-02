@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { useLanguage } from '@/components/layout/LanguageProvider';
 
@@ -19,6 +21,8 @@ const L = {
   rights: { ar: '© {year} غاليري ٠١٥. جميع الحقوق محفوظة.', en: '© {year} Gallery 015. All rights reserved.' },
   location: { ar: 'الرياض · المملكة العربية السعودية', en: 'Riyadh · Saudi Arabia' },
   tagline: { ar: 'منصة فنية معاصرة يصوغها الفنانون وجامعو المقتنيات والمكان — من الجيل المؤسس للحداثة السعودية إلى الأصوات التي تحدد معالمها الآن.', en: 'A contemporary art platform shaped by artists, collectors, and place — from the founding generation of Saudi modernism to the voices defining it now.' },
+  programme_nav: { ar: 'روابط البرنامج', en: 'Programme links' },
+  about_nav: { ar: 'روابط الموقع', en: 'Site links' },
 };
 
 export default function Footer() {
@@ -27,11 +31,11 @@ export default function Footer() {
   const t = (k: keyof typeof L) => lang === 'ar' ? L[k].ar : L[k].en;
 
   return (
-    <footer className="g-footer" role="contentinfo">
+    <footer className="g-footer">
       <div className="g-footer__inner">
         <div className="g-footer__brand">
           <Link href="/" aria-label="Gallery 015 — Home">
-            <img src="/brand/015-logo-white.svg" alt="Gallery 015" />
+            <img src="/brand/015-logo-white.svg" alt="Gallery 015" loading="lazy" />
           </Link>
           <p>{t('tagline')}</p>
         </div>
@@ -41,7 +45,7 @@ export default function Footer() {
           <a href="mailto:info@gallery015.com">info@gallery015.com</a>
           <Link href="/contact">{t('plan_visit')}</Link>
         </div>
-        <div className="g-footer__col">
+        <nav className="g-footer__col" aria-label={t('programme_nav')}>
           <h3>{t('programme')}</h3>
           <Link href="/artists">{t('artists')}</Link>
           <Link href="/exhibitions">{t('exhibitions')}</Link>
@@ -49,14 +53,14 @@ export default function Footer() {
           <Link href="/collections">{t('collections')}</Link>
           <Link href="/projects">{t('projects')}</Link>
           <Link href="/news">{t('journal')}</Link>
-        </div>
-        <div className="g-footer__col">
+        </nav>
+        <nav className="g-footer__col" aria-label={t('about_nav')}>
           <h3>{t('about')}</h3>
           <Link href="/services">{t('services')}</Link>
           <Link href="/publications">{t('publications')}</Link>
           <Link href="/contact">{t('contact')}</Link>
           <Link href="/verify">{t('certificates')}</Link>
-        </div>
+        </nav>
       </div>
       <div className="g-footer__bottom">
         <span>{t('rights').replace('{year}', String(year))}</span>

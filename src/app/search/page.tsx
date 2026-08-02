@@ -35,9 +35,7 @@ const S = {
   resultsFor: { ar: "نتائج عن", en: "Results for" },
   error: { ar: "حدث خطأ أثناء البحث.", en: "Something went wrong while searching." },
   searching: { ar: "جارٍ البحث…", en: "Searching…" },
-  pressEnter: { ar: "اضغط Enter للبحث", en: "Press Enter to search" },
   clearSearch: { ar: "مسح البحث", en: "Clear search" },
-  close: { ar: "إغلاق", en: "Close" },
   emptyPrompt: { ar: "جرّب البحث عن اسم فنان، معرض، أو مجموعة.", en: "Try searching for an artist, exhibition, or collection." },
 };
 
@@ -52,9 +50,7 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const resultsRef = useRef<HTMLUListElement>(null);
   const announcerRef = useRef<HTMLDivElement>(null);
 
   const announce = useCallback((msg: string) => {
@@ -73,11 +69,16 @@ export default function SearchPage() {
       setError(false);
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&lang=${lang}`);
+        if (!res.ok) {
+          setError(true);
+          setResults([]);
+          announce(s("error"));
+          return;
+        }
         const data = await res.json();
         setResults(data.items ?? []);
         setTotal(data.total ?? 0);
         setSearched(true);
-        setFocusedIndex(-1);
         announce(`${data.total} ${ar ? "نتيجة" : "result"}${data.total !== 1 ? "s" : ""}`);
       } catch {
         setError(true);
@@ -95,11 +96,12 @@ export default function SearchPage() {
   }, []);
 
   useEffect(() => {
-    if (query.length >= 2 && searched) {
+    if (query.length >= 2 && searched && !loading) {
       const timer = setTimeout(() => fetchResults(query), 300);
       return () => clearTimeout(timer);
     }
-  }, [query, fetchResults, searched]);
+    return undefined;
+  }, [query, fetchResults, searched, loading]);
 
   const handleInput = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,19 +113,7 @@ export default function SearchPage() {
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setFocusedIndex((prev) => {
-          const next = prev < results.length - 1 ? prev + 1 : 0;
-          return next;
-        });
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setFocusedIndex((prev) => {
-          const next = prev > 0 ? prev - 1 : results.length - 1;
-          return next;
-        });
-      } else if (e.key === "Enter" && !searched) {
+      if (e.key === "Enter" && !searched) {
         e.preventDefault();
         fetchResults(query);
       } else if (e.key === "Escape") {
@@ -134,52 +124,46 @@ export default function SearchPage() {
         inputRef.current?.focus();
       }
     },
-    [results.length, searched, fetchResults, query],
+    [searched, fetchResults, query],
   );
-
-  useEffect(() => {
-    if (focusedIndex >= 0 && resultsRef.current) {
-      const items = resultsRef.current.querySelectorAll("a");
-      (items[focusedIndex] as HTMLElement)?.focus();
-    }
-  }, [focusedIndex]);
 
   const clearSearch = useCallback(() => {
     setQuery("");
     setResults([]);
     setTotal(0);
     setSearched(false);
-    setFocusedIndex(-1);
     inputRef.current?.focus();
   }, []);
 
   return (
-    <main className="experience-index experience-index--search" role="search">
+    <main className="experience-index experience-index--search">
       <div ref={announcerRef} className="sr-only" role="status" aria-live="polite" />
 
-      <header className="experience-index__intro">
-        <p className="experience-kicker">{ar ? "غاليري ٠١٥" : "Gallery 015"}</p>
-        <h1>{s("title")}</h1>
-        <div className="g-search-input-wrap">
-          <input
-            ref={inputRef}
-            type="search"
-            className="g-search-input"
-            value={query}
-            onChange={handleInput}
-            onKeyDown={handleKeyDown}
-            placeholder={s("placeholder")}
-            aria-label={s("title")}
-            autoComplete="off"
-            maxLength={200}
-          />
-          {query && (
-            <button type="button" className="g-search-clear" onClick={clearSearch} aria-label={s("clearSearch")}>
-              ×
-            </button>
-          )}
-        </div>
-      </header>
+      <search>
+        <header className="experience-index__intro">
+          <p className="experience-kicker">{ar ? "غاليري ٠١٥" : "Gallery 015"}</p>
+          <h1>{s("title")}</h1>
+          <div className="g-search-input-wrap">
+            <input
+              ref={inputRef}
+              type="search"
+              className="g-search-input"
+              value={query}
+              onChange={handleInput}
+              onKeyDown={handleKeyDown}
+              placeholder={s("placeholder")}
+              aria-label={s("title")}
+              autoComplete="off"
+              maxLength={200}
+            />
+            {query && (
+              <button type="button" className="g-search-clear" onClick={clearSearch} aria-label={s("clearSearch")}>
+                ×
+              </button>
+            )}
+          </div>
+        </header>
+      </search>
 
       {loading && (
         <p className="g-search-status" aria-busy="true">
@@ -209,13 +193,10 @@ export default function SearchPage() {
           <p className="g-search-count" role="status" aria-live="polite">
             {total} {s("resultsFor")} &ldquo;{query}&rdquo;
           </p>
-          <ul ref={resultsRef} className="g-search-results" role="listbox" aria-label={s("title")}>
-            {results.map((item, index) => (
-              <li key={`${item.type}-${item.href}`} role="option" aria-selected={index === focusedIndex}>
-                <Link
-                  href={item.href}
-                  className={`g-search-result-item${index === focusedIndex ? " g-search-result-item--focused" : ""}`}
-                >
+          <ul className="g-search-results" aria-label={s("title")}>
+            {results.map((item) => (
+              <li key={`${item.type}-${item.href}`}>
+                <Link href={item.href} className="g-search-result-item">
                   <span className="g-search-result-type">
                     {ar ? (TYPE_LABELS[item.type]?.ar ?? item.type) : (TYPE_LABELS[item.type]?.en ?? item.type)}
                   </span>
@@ -247,7 +228,8 @@ export default function SearchPage() {
         .g-search-count { font-size: 0.875rem; margin: 1.5rem 0 1rem; color: var(--g-ink); opacity: 0.6; }
         .g-search-results { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0; }
         .g-search-result-item { display: flex; flex-direction: column; gap: 0.25rem; padding: 1.25rem 1rem; border-bottom: 1px solid var(--g-hair); text-decoration: none; color: var(--g-ink); transition: background 0.15s; }
-        .g-search-result-item:hover, .g-search-result-item--focused { background: var(--g-hair); }
+        .g-search-result-item:hover { background: var(--g-hair); }
+        .g-search-result-item:focus-visible { background: var(--g-hair); outline: 2px solid var(--g-ink); outline-offset: -2px; }
         .g-search-result-type { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.5; }
         .g-search-result-title { font-size: 1.125rem; }
         .g-search-result-meta { font-size: 0.875rem; opacity: 0.6; }

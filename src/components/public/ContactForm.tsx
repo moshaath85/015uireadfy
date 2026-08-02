@@ -50,6 +50,14 @@ const EMPTY: FormData = {
 
 type Status = 'idle' | 'submitting' | 'success' | 'validationError' | 'serverError' | 'rateLimited';
 
+const FIELD_IDS: Record<string, string> = {
+  name: 'contact-name-err',
+  email: 'contact-email-err',
+  subject: 'contact-subject-err',
+  message: 'contact-message-err',
+  consent: 'contact-consent-err',
+};
+
 export default function ContactForm() {
   const { lang } = useLanguage();
   const s = (k: keyof typeof STR) => lang === 'ar' ? STR[k].ar : STR[k].en;
@@ -57,19 +65,11 @@ export default function ContactForm() {
   const [form, setForm] = useState<FormData>(EMPTY);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [reference, setReference] = useState('');
-  const [globalError, setGlobalError] = useState('');
   const startedAt = useRef(Date.now());
-  const announcer = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     startedAt.current = Date.now();
   }, []);
-
-  const announce = (message: string) => {
-    if (announcer.current) {
-      announcer.current.textContent = message;
-    }
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -86,7 +86,6 @@ export default function ContactForm() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setGlobalError('');
     setFieldErrors({});
 
     if (!form.consent) {
@@ -112,7 +111,6 @@ export default function ContactForm() {
 
       if (res.status === 429) {
         setStatus('rateLimited');
-        announce(s('rate_limited'));
         return;
       }
 
@@ -126,10 +124,8 @@ export default function ContactForm() {
           }
           setFieldErrors(errors);
           setStatus('validationError');
-          announce(s('validation_error'));
         } else {
           setStatus('serverError');
-          announce(s('server_error'));
         }
         return;
       }
@@ -138,10 +134,8 @@ export default function ContactForm() {
       setStatus('success');
       setForm(EMPTY);
       startedAt.current = Date.now();
-      announce(s('thanks'));
     } catch {
       setStatus('serverError');
-      announce(s('server_error'));
     }
   };
 
@@ -149,14 +143,13 @@ export default function ContactForm() {
     setStatus('idle');
     setForm(EMPTY);
     setFieldErrors({});
-    setGlobalError('');
     setReference('');
     startedAt.current = Date.now();
   };
 
   if (status === 'success') {
     return (
-      <div className="g-contact__sent">
+      <div className="g-contact__sent" role="status" aria-live="polite">
         <h2>{s('thanks')}</h2>
         <p>{s('reply')}</p>
         {reference && (
@@ -173,7 +166,7 @@ export default function ContactForm() {
 
   if (status === 'rateLimited') {
     return (
-      <div className="g-contact__sent">
+      <div className="g-contact__sent" role="alert">
         <h2>{s('rate_limited')}</h2>
         <button type="button" className="g-contact__reset" onClick={reset}>
           {s('another')}
@@ -184,9 +177,7 @@ export default function ContactForm() {
 
   return (
     <>
-      <div ref={announcer} className="sr-only" role="status" aria-live="polite" />
       <form className="g-contact__form" onSubmit={handleSubmit} noValidate>
-        {/* honeypot */}
         <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
           <label htmlFor="gallery_website">Website</label>
           <input id="gallery_website" name="gallery_website" type="text" tabIndex={-1} autoComplete="off" />
@@ -194,14 +185,24 @@ export default function ContactForm() {
 
         <div className={`g-contact__field${fieldErrors.name ? ' g-contact__field--error' : ''}`}>
           <label htmlFor="contact-name">{s('name')}</label>
-          <input id="contact-name" name="name" type="text" required value={form.name} onChange={handleChange} placeholder={s('name_placeholder')} />
-          {fieldErrors.name && <span className="g-contact__field-error">{fieldErrors.name}</span>}
+          <input id="contact-name" name="name" type="text" required
+            value={form.name} onChange={handleChange}
+            placeholder={s('name_placeholder')}
+            aria-invalid={Boolean(fieldErrors.name)}
+            aria-describedby={fieldErrors.name ? 'contact-name-err' : undefined}
+          />
+          {fieldErrors.name && <span id="contact-name-err" className="g-contact__field-error" role="alert">{fieldErrors.name}</span>}
         </div>
 
         <div className={`g-contact__field${fieldErrors.email ? ' g-contact__field--error' : ''}`}>
           <label htmlFor="contact-email">{s('email')}</label>
-          <input id="contact-email" name="email" type="email" required value={form.email} onChange={handleChange} placeholder={s('email_placeholder')} />
-          {fieldErrors.email && <span className="g-contact__field-error">{fieldErrors.email}</span>}
+          <input id="contact-email" name="email" type="email" required
+            value={form.email} onChange={handleChange}
+            placeholder={s('email_placeholder')}
+            aria-invalid={Boolean(fieldErrors.email)}
+            aria-describedby={fieldErrors.email ? 'contact-email-err' : undefined}
+          />
+          {fieldErrors.email && <span id="contact-email-err" className="g-contact__field-error" role="alert">{fieldErrors.email}</span>}
         </div>
 
         <div className="g-contact__field">
@@ -216,29 +217,42 @@ export default function ContactForm() {
 
         <div className={`g-contact__field${fieldErrors.subject ? ' g-contact__field--error' : ''}`}>
           <label htmlFor="contact-subject">{s('subject')}</label>
-          <input id="contact-subject" name="subject" type="text" value={form.subject} onChange={handleChange} placeholder={s('subject_placeholder')} />
-          {fieldErrors.subject && <span className="g-contact__field-error">{fieldErrors.subject}</span>}
+          <input id="contact-subject" name="subject" type="text"
+            value={form.subject} onChange={handleChange}
+            placeholder={s('subject_placeholder')}
+            aria-invalid={Boolean(fieldErrors.subject)}
+            aria-describedby={fieldErrors.subject ? 'contact-subject-err' : undefined}
+          />
+          {fieldErrors.subject && <span id="contact-subject-err" className="g-contact__field-error" role="alert">{fieldErrors.subject}</span>}
         </div>
 
         <div className={`g-contact__field${fieldErrors.message ? ' g-contact__field--error' : ''}`}>
           <label htmlFor="contact-message">{s('message')}</label>
-          <textarea id="contact-message" name="message" required rows={6} value={form.message} onChange={handleChange} placeholder={s('message_placeholder')} />
-          {fieldErrors.message && <span className="g-contact__field-error">{fieldErrors.message}</span>}
+          <textarea id="contact-message" name="message" required rows={6}
+            value={form.message} onChange={handleChange}
+            placeholder={s('message_placeholder')}
+            aria-invalid={Boolean(fieldErrors.message)}
+            aria-describedby={fieldErrors.message ? 'contact-message-err' : undefined}
+          />
+          {fieldErrors.message && <span id="contact-message-err" className="g-contact__field-error" role="alert">{fieldErrors.message}</span>}
         </div>
 
         <div className={`g-contact__field g-contact__field--checkbox${fieldErrors.consent ? ' g-contact__field--error' : ''}`}>
           <label htmlFor="contact-consent">
-            <input id="contact-consent" name="consent" type="checkbox" checked={form.consent} onChange={handleChange} />
+            <input id="contact-consent" name="consent" type="checkbox" checked={form.consent} onChange={handleChange}
+              aria-invalid={Boolean(fieldErrors.consent)}
+              aria-describedby={fieldErrors.consent ? 'contact-consent-err' : undefined}
+            />
             <span>{s('consent')}</span>
           </label>
-          {fieldErrors.consent && <span className="g-contact__field-error">{fieldErrors.consent}</span>}
+          {fieldErrors.consent && <span id="contact-consent-err" className="g-contact__field-error" role="alert">{fieldErrors.consent}</span>}
         </div>
 
         {status === 'serverError' && (
-          <p className="g-contact__error">{s('server_error')}</p>
+          <p className="g-contact__error" role="alert">{s('server_error')}</p>
         )}
         {status === 'validationError' && !Object.keys(fieldErrors).length && (
-          <p className="g-contact__error">{s('validation_error')}</p>
+          <p className="g-contact__error" role="alert">{s('validation_error')}</p>
         )}
 
         <button type="submit" className="g-contact__submit" disabled={status === 'submitting'}>

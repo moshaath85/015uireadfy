@@ -41,7 +41,7 @@ export function EditorialIndex({
             <Link className="experience-card" href={item.href} key={item.href}>
               <figure className="experience-card__media">
                 {item.image ? (
-                  <img src={item.image.src} alt={item.image.alt} loading={index < 2 ? 'eager' : 'lazy'} />
+                  <img src={item.image.src} alt={item.image.alt} loading={index < 2 ? 'eager' : 'lazy'} decoding="async" />
                 ) : (
                   <span
                     aria-label={`${item.title} image unavailable`}
@@ -114,7 +114,7 @@ export function EditorialDetail({
           {subtitle ? <p className="experience-detail__subtitle">{subtitle}</p> : null}
         </div>
         <figure className="experience-detail__media">
-          {image ? <img src={image.src} alt={image.alt} /> : (
+          {image ? <img src={image.src} alt={image.alt} decoding="async" /> : (
             <span
               aria-label={`${title} image unavailable`}
               className="experience-detail__media-fallback"
@@ -177,7 +177,7 @@ export function EditorialRelated({
           {items.map((item) => (
             <li className="experience-related__item" key={item.href}>
               <Link href={item.href}>
-                <figure>{item.image ? <img src={item.image.src} alt={item.image.alt} loading="lazy" /> : null}</figure>
+                <figure>{item.image ? <img src={item.image.src} alt={item.image.alt} loading="lazy" decoding="async" /> : null}</figure>
                 <h3>{item.title}</h3>
                 {item.meta ? <p>{item.meta}</p> : null}
               </Link>
