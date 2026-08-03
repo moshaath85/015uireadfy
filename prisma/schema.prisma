@@ -593,3 +593,28 @@ model ContactInquiry {
   @@index([ipHash, createdAt])
   @@index([createdAt])
 }
+
+model ArtworkCrop {
+  id                String    @id @default(cuid())
+  mediaId           String    @map("media_id")
+  artworkId         String    @map("artwork_id")
+  status            String    @default("NEEDS_REVIEW")
+  confidence        Float?
+  metadata          Json
+  processingVersion String    @map("processing_version")
+  processingError   String?   @map("processing_error")
+  processedAt       DateTime? @map("processed_at")
+  reviewedAt        DateTime? @map("reviewed_at")
+  reviewedBy        String?   @map("reviewed_by")
+  displayImageKey   String?   @map("display_image_key")
+  thumbnailKey      String?   @map("thumbnail_key")
+  manualCropRect    Json?     @map("manual_crop_rect")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@unique([mediaId, processingVersion])
+  @@index([mediaId])
+  @@index([artworkId])
+  @@index([status])
+  @@index([confidence])
+}
