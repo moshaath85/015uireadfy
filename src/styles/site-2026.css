@@ -98,3 +98,11 @@ body{background:var(--g-paper);color:var(--g-ink)}
 [dir="rtl"] .experience-detail__subtitle{
   font-family:var(--font-sans-arabic);
 }
+
+/* ---- 10. Index mastheads give the work its fold back ----
+   The intro's bottom padding and the grid's top padding both resolved to
+   115px at 1440, so 230px of empty space sat between the title and the first
+   work — roughly a quarter of the viewport on every index page. */
+.experience-index__intro{padding-bottom:clamp(2.5rem,4.5vw,4.5rem)}
+.experience-index__grid{padding-top:clamp(2.5rem,4.5vw,4.5rem)}
+.experience-index{padding-top:clamp(3rem,5vw,5rem)}
