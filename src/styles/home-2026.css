@@ -158,8 +158,12 @@
   .hp-hero{grid-template-columns:1fr;min-height:0}
   .hp-hero__art{order:-1;border-left:0;border-bottom:1px solid rgba(18,17,15,.13);
     padding:clamp(20px,4vw,34px) clamp(16px,3.4vw,26px)}
-  .hp-slide img{max-height:56svh}
-  .hp-hero__type{padding:clamp(34px,7vw,58px) var(--hp-gutter) clamp(50px,9vw,72px)}
+  /* The stage is sized by the tallest slide, so a portrait work capped at 56svh
+     left landscape works floating in ~90px of dead space above and below.
+     A 4:3 work at this width cannot grow without cropping, so tighten the
+     stage instead: the caption rises and the whole hero loses ~100px. */
+  .hp-slide img{max-height:42svh}
+  .hp-hero__type{padding:clamp(24px,5vw,40px) var(--hp-gutter) clamp(38px,7vw,56px)}
   .hp-hero__cue{display:none}
 }
 
