@@ -108,8 +108,8 @@ export async function runIntelligence(options: { dryRun?: boolean; limit?: numbe
 
       const duplicates = await detectDuplicates(buffer, rec.mediaId);
       result.duplicates = duplicates;
-      if (duplicates.isExactDuplicate) report.exactDuplicates++;
-      if (duplicates.isNearDuplicate) report.nearDuplicates++;
+      if (duplicates.classification === "EXACT_DUPLICATE") report.exactDuplicates++;
+      else if (duplicates.classification === "NEAR_DUPLICATE" || duplicates.classification === "DERIVATIVE_VARIANT") report.nearDuplicates++;
 
       const curatorial = await analyzeCuratorial(buffer, colors);
       result.curatorial = curatorial;

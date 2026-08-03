@@ -1,31 +1,39 @@
 import { createHash } from "crypto";
 import sharp from "sharp";
 
+export type DuplicateClass =
+  | "EXACT_DUPLICATE"
+  | "DERIVATIVE_VARIANT"
+  | "NEAR_DUPLICATE"
+  | "UNCERTAIN"
+  | "UNIQUE";
+
 export interface DuplicateReport {
   checksum: string;
   perceptualHash: string;
-  exactDuplicateGroup: string | null; // checksum of first occurrence
-  nearDuplicateGroup: string | null; // perceptual hash group
-  isExactDuplicate: boolean;
-  isNearDuplicate: boolean;
+  classification: DuplicateClass;
+  exactDuplicateGroup: string | null;
+  nearDuplicateGroup: string | null;
+  signals: string[];
+  aspectRatio: number;
+  luminanceHistogram: number[];
 }
 
-const registry = new Map<string, { mediaId: string; checksum: string; phash: string }>();
+const NEAR_DUPLICATE_THRESHOLD = 8;
+const UNCERTAIN_THRESHOLD = 14;
+
+const registry = new Map<string, { mediaId: string; checksum: string; phash: string; aspectRatio: number; histogram: number[] }>();
 
 export function resetDuplicateRegistry() {
   registry.clear();
 }
 
-export function registerAsset(mediaId: string, checksum: string, phash: string) {
-  registry.set(mediaId, { mediaId, checksum, phash });
+export function registerAsset(mediaId: string, checksum: string, phash: string, aspectRatio: number, histogram: number[]) {
+  registry.set(mediaId, { mediaId, checksum, phash, aspectRatio, histogram });
 }
 
-/**
- * Compute perceptual hash (dHash — difference hash) for near-duplicate detection.
- * dHash is resistant to minor color/scale changes.
- */
 export async function computePerceptualHash(buffer: Buffer): Promise<string> {
-  const hashSize = 9; // 9x8 grid → 64-bit hash
+  const hashSize = 9;
   const { data } = await sharp(buffer)
     .resize(hashSize, hashSize - 1, { fit: "fill" })
     .grayscale()
@@ -43,54 +51,111 @@ export async function computePerceptualHash(buffer: Buffer): Promise<string> {
   return hash;
 }
 
-/**
- * Hamming distance between two perceptual hashes.
- * Distance < 10 = near duplicate (same image, minor variations)
- */
 export function hammingDistance(a: string, b: string): number {
   let dist = 0;
-  for (let i = 0; i < a.length && i < b.length; i++) {
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
     if (a[i] !== b[i]) dist++;
   }
   return dist;
 }
 
-const NEAR_DUPLICATE_THRESHOLD = 10;
+function histSimilarity(a: number[], b: number[]): number {
+  if (a.length === 0 || b.length === 0) return 0;
+  let intersection = 0;
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    intersection += Math.min(a[i], b[i]);
+  }
+  return intersection;
+}
+
+function aspectRatioMatch(a1: number, a2: number): boolean {
+  return Math.abs(a1 - a2) / Math.max(a1, a2) < 0.05;
+}
+
+export async function extractLuminanceHistogram(buffer: Buffer): Promise<number[]> {
+  const hist = new Array(10).fill(0);
+  try {
+    const { data } = await sharp(buffer)
+      .resize(64, 64, { fit: "fill" })
+      .grayscale()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    for (let i = 0; i < data.length; i++) {
+      const bin = Math.min(9, Math.floor(data[i] / 25.6));
+      hist[bin]++;
+    }
+    const total = data.length || 1;
+    for (let i = 0; i < hist.length; i++) hist[i] /= total;
+  } catch { /* return zeros */ }
+  return hist;
+}
+
+function classifyDuplicate(
+  checksum: string,
+  phash: string,
+  aspectRatio: number,
+  histogram: number[],
+  mediaId: string
+): { classification: DuplicateClass; exactDuplicateGroup: string | null; nearDuplicateGroup: string | null; signals: string[] } {
+  const signals: string[] = [];
+
+  for (const [, entry] of Array.from(registry)) {
+    if (entry.mediaId === mediaId) continue;
+
+    // Signal 1: exact checksum
+    if (entry.checksum === checksum) {
+      return { classification: "EXACT_DUPLICATE", exactDuplicateGroup: checksum, nearDuplicateGroup: null, signals: ["checksum"] };
+    }
+
+    const dist = hammingDistance(phash, entry.phash);
+    const arMatch = aspectRatioMatch(aspectRatio, entry.aspectRatio);
+    const histSim = histSimilarity(histogram, entry.histogram);
+
+    // Signal collection
+    if (dist <= NEAR_DUPLICATE_THRESHOLD) signals.push(`dHash:${dist}`);
+    if (arMatch) signals.push("aspect-ratio");
+    if (histSim > 0.85) signals.push(`histogram:${histSim.toFixed(2)}`);
+
+    // Classification
+    const strongSignals = signals.filter(s => !s.startsWith("histogram:"));
+    const allSignals = signals.length;
+
+    if (strongSignals.length >= 2) {
+      return { classification: "DERIVATIVE_VARIANT", exactDuplicateGroup: null, nearDuplicateGroup: entry.phash, signals };
+    }
+    if (strongSignals.length >= 1 && histSim > 0.7) {
+      return { classification: "NEAR_DUPLICATE", exactDuplicateGroup: null, nearDuplicateGroup: entry.phash, signals };
+    }
+    if (allSignals >= 1 && histSim > 0.65) {
+      return { classification: "UNCERTAIN", exactDuplicateGroup: null, nearDuplicateGroup: entry.phash, signals };
+    }
+  }
+
+  return { classification: "UNIQUE", exactDuplicateGroup: null, nearDuplicateGroup: null, signals: [] };
+}
 
 export async function detectDuplicates(
   buffer: Buffer,
   mediaId: string
 ): Promise<DuplicateReport> {
   const checksum = createHash("sha256").update(buffer).digest("hex");
+  const meta = await sharp(buffer).metadata();
+  const aspectRatio = (meta.width && meta.height) ? meta.width / meta.height : 1;
+  const histogram = await extractLuminanceHistogram(buffer);
   const phash = await computePerceptualHash(buffer);
 
-  let exactDuplicateGroup: string | null = null;
-  let nearDuplicateGroup: string | null = null;
-  let isExact = false;
-  let isNear = false;
+  const result = classifyDuplicate(checksum, phash, aspectRatio, histogram, mediaId);
 
-  // Check existing registry
-  for (const entry of Array.from(registry.values())) {
-    if (entry.mediaId === mediaId) continue;
-    if (entry.checksum === checksum) {
-      exactDuplicateGroup = entry.checksum;
-      isExact = true;
-      break;
-    }
-  }
+  registerAsset(mediaId, checksum, phash, aspectRatio, histogram);
 
-  if (!isExact) {
-    for (const entry of Array.from(registry.values())) {
-      if (entry.mediaId === mediaId) continue;
-      if (hammingDistance(phash, entry.phash) <= NEAR_DUPLICATE_THRESHOLD) {
-        nearDuplicateGroup = entry.phash;
-        isNear = true;
-        break;
-      }
-    }
-  }
-
-  registerAsset(mediaId, checksum, phash);
-
-  return { checksum, perceptualHash: phash, exactDuplicateGroup, nearDuplicateGroup, isExactDuplicate: isExact, isNearDuplicate: isNear };
+  return {
+    checksum,
+    perceptualHash: phash,
+    classification: result.classification,
+    exactDuplicateGroup: result.exactDuplicateGroup,
+    nearDuplicateGroup: result.nearDuplicateGroup,
+    signals: result.signals,
+    aspectRatio,
+    luminanceHistogram: histogram,
+  };
 }

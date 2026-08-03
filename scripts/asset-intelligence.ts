@@ -43,8 +43,8 @@ async function main() {
     console.log("\n  Sample results:");
     for (const r of report.results.slice(0, 10)) {
       const q = r.quality?.overall ?? "?";
-      const dup = r.duplicates?.isExactDuplicate ? "DUP" : r.duplicates?.isNearDuplicate ? "NEAR" : "—";
-      const frame = r.curatorial?.hasFrame ? "FRM" : "—";
+    const dup = r.duplicates?.classification ?? "—";
+    const frame = r.curatorial?.hasFrame ? "FRM" : "—";
       const mat = r.curatorial?.hasInternalMat ? "MAT" : "—";
       console.log(`  ${r.status === "COMPLETED" ? "✓" : "✗"} [${q.padEnd(8)}] [${dup.padEnd(4)}] [${frame}/${mat}] ${r.mediaId}`);
     }
