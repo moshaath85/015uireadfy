@@ -36,6 +36,9 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "OmniRoute-release-v3.8.50",
+    "backups",
+    "imports"
   ]
 }

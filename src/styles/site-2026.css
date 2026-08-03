@@ -124,3 +124,14 @@ body{background:var(--g-paper);color:var(--g-ink)}
 /* Interactive controls were the smallest text on the roster at 9px. */
 .artist-roster-hero__taxonomy span,
 .artist-roster-entry__link span{font-size:11px}
+
+/* ---- 12. Every roster plate carries the same frame ----
+   Portraits are shot on white, so against a white page they had no edge at
+   all while the "015" placeholders did — the rows read as two different
+   treatments. Put the hairline on the figure so photo and placeholder are
+   framed identically, and drop the duplicate from the placeholder. */
+.artist-roster-media{
+  background:#fff;
+  box-shadow:inset 0 0 0 1px rgba(18,17,15,.10);
+}
+.artist-roster-media__fallback{box-shadow:none}

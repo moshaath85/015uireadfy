@@ -355,14 +355,14 @@
     "alt_ar": "صورة الفنان عبدالله إدريس",
     "type": "image",
     "mime_type": "image/webp",
-    "file_size": 103904,
+    "file_size": 116398,
     "storage_provider": "local",
     "storage_path": "/images/artists/abdullah-idris-profile.webp",
     "created_at": "2026-08-01T00:00:00Z",
     "updated_at": "2026-08-01T00:00:00Z",
-    "width": 1031,
-    "height": 1024,
-    "checksum": "sha256:3922ecc750a7acb966e1821cf2f99468c981c9feb577cc38488f52abae8a9b96"
+    "width": 998,
+    "height": 1020,
+    "checksum": "sha256:612792c02bcc4d56cb6e522eab10fad250b8c3d2719fe6b89d0017f993c54d6e"
   },
   {
     "id": "media-018",
@@ -371,14 +371,14 @@
     "alt_ar": "صورة الفنان عمر النجدي",
     "type": "image",
     "mime_type": "image/webp",
-    "file_size": 48932,
+    "file_size": 60660,
     "storage_provider": "local",
     "storage_path": "/images/artists/omar-el-nagdi-profile.webp",
     "created_at": "2026-08-01T00:00:00Z",
     "updated_at": "2026-08-01T00:00:00Z",
-    "width": 1280,
-    "height": 675,
-    "checksum": "sha256:f2d7cc72b9f6da7284b452507d8fc4f86b69f0580912f51a09288beca1d563c1"
+    "width": 771,
+    "height": 585,
+    "checksum": "sha256:6d3596fea4e31bd20f9254e57070b557ce1fbdbf54fb723dae1ec4e7d489c7d0"
   },
   {
     "id": "media-019",
@@ -387,14 +387,14 @@
     "alt_ar": "صورة الفنان منى السعودي",
     "type": "image",
     "mime_type": "image/webp",
-    "file_size": 36464,
+    "file_size": 42892,
     "storage_provider": "local",
     "storage_path": "/images/artists/mona-saudi-profile.webp",
     "created_at": "2026-08-01T00:00:00Z",
     "updated_at": "2026-08-01T00:00:00Z",
-    "width": 1280,
-    "height": 731,
-    "checksum": "sha256:f4a518804bb3e19a91e0dbc77b1530892981c0921eab855e6e05ec74525a93de"
+    "width": 676,
+    "height": 678,
+    "checksum": "sha256:8080c6faf5542cb285fb1b24f150174a63804ee1e4aea6359093013f62a3dee5"
   },
   {
     "id": "media-020",
@@ -3043,14 +3043,14 @@
     "alt_ar": "صورة الفنان ركان دبدوب",
     "type": "image",
     "mime_type": "image/webp",
-    "file_size": 61350,
+    "file_size": 68488,
     "storage_provider": "local",
     "storage_path": "/images/artists/rakan-debdoub-profile.webp",
     "created_at": "2026-08-01T00:00:00Z",
     "updated_at": "2026-08-01T00:00:00Z",
-    "width": 912,
-    "height": 1156,
-    "checksum": "sha256:f2df85e6dd3e233acaab1bdd5af97b0d83adedd7f6b4fb4da39045645e47c27c"
+    "width": 873,
+    "height": 1057,
+    "checksum": "sha256:fd47be39b75c86c38cc51e7c4dfe8eb5f14dfe59478f0ed6cb4d1aabab6bc59e"
   },
   {
     "id": "media-186",
@@ -3427,14 +3427,14 @@
     "alt_ar": "صورة الفنان ضياء غزاوي",
     "type": "image",
     "mime_type": "image/webp",
-    "file_size": 83608,
+    "file_size": 95836,
     "storage_provider": "local",
     "storage_path": "/images/artists/diaa-ghazawi-profile.webp",
     "created_at": "2026-08-01T00:00:00Z",
     "updated_at": "2026-08-01T00:00:00Z",
-    "width": 1031,
-    "height": 1024,
-    "checksum": "sha256:f88146caa1938756f6cf1a49bf34c25433392cca7429fde4c89d571e145cf085"
+    "width": 952,
+    "height": 994,
+    "checksum": "sha256:f551c3ddf769b0294589f6fd17d59cb667393e8e58b315ea5d1bf6ae965119da"
   },
   {
     "id": "media-210",
@@ -3699,14 +3699,14 @@
     "alt_ar": "صورة الفنان عثمان خزيم",
     "type": "image",
     "mime_type": "image/webp",
-    "file_size": 57138,
+    "file_size": 66936,
     "storage_provider": "local",
     "storage_path": "/images/artists/othman-khuzaim-profile.webp",
     "created_at": "2026-08-01T00:00:00Z",
     "updated_at": "2026-08-01T00:00:00Z",
-    "width": 1280,
-    "height": 720,
-    "checksum": "sha256:d14195a7ac193e803f8b49508c791ca199d40d5ba18c5d9cdb5d89aba4144daa"
+    "width": 975,
+    "height": 677,
+    "checksum": "sha256:3df382a8e5da85755f2799b0fe7dca14cf68778e0c2b5baf9f1e89f994bd9d78"
   },
   {
     "id": "media-227",

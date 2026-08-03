@@ -42,3 +42,6 @@ coverage/
 
 # Pre-trim image backups — kept locally, never deployed or committed
 backups/
+
+# Unrelated project dropped into this repo root — not part of Gallery 015
+OmniRoute-release-v3.8.50/
