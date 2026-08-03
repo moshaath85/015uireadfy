@@ -19,6 +19,8 @@
     "test": "vitest run",
     "data:migrate:dry-run": "node scripts/migrate-legacy-json.mjs --dry-run",
     "data:migrate": "node scripts/migrate-legacy-json.mjs --execute",
+    "assets:smart-crop": "npx tsx scripts/smart-crop.ts",
+    "assets:intelligence": "npx tsx scripts/asset-intelligence.ts",
     "production:verify": "npm run prisma:validate && npm run prisma:generate && npm run typecheck && npm run build:app"
   },
   "dependencies": {

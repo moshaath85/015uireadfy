@@ -618,3 +618,71 @@ model ArtworkCrop {
   @@index([status])
   @@index([confidence])
 }
+
+model AssetIntelligence {
+  id                String    @id @default(cuid())
+  mediaId           String    @map("media_id")
+  artworkId         String    @map("artwork_id")
+  checksum          String
+  processingVersion  String    @map("processing_version")
+
+  // Technical
+  format            String?
+  fileSize          Int?
+  dimensions        Json?
+  resolution        String?
+  compression       Float?
+  hasExif           Boolean?  @map("has_exif")
+
+  // Visual
+  dominantColors    Json?     @map("dominant_colors")
+  palette           Json?
+  brightness        Float?
+  contrast          Float?
+  visualComplexity  Float?    @map("visual_complexity")
+  visualWeight      Json?     @map("visual_weight")
+  symmetryScore     Float?    @map("symmetry_score")
+  negativeSpace     Float?    @map("negative_space")
+
+  // Duplicates
+  exactDuplicateGroup  String?  @map("exact_duplicate_group")
+  perceptualHash       String?  @map("perceptual_hash")
+  nearDuplicateGroup   String?  @map("near_duplicate_group")
+
+  // Frame / Mat
+  hasFrame          Boolean?  @map("has_frame")
+  frameColor        String?   @map("frame_color")
+  frameWidth        Float?    @map("frame_width")
+  hasInternalMat    Boolean?  @map("has_internal_mat")
+  matColor          String?   @map("mat_color")
+  matWidth          Float?    @map("mat_width")
+
+  // Curatorial
+  primaryMedium     String?   @map("primary_medium")
+  colorTemperature  String?   @map("color_temperature")
+  visualPeriod      String?   @map("visual_period")
+  compositionType   String?   @map("composition_type")
+
+  // Quality
+  qualityScore      Float?    @map("quality_score")
+  qualityComponents  Json?    @map("quality_components")
+
+  // Rights
+  rightsComplete    Boolean?  @map("rights_complete")
+  missingRights     Json?     @map("missing_rights")
+  creditStatus      String?   @map("credit_status")
+
+  // Confidence per field
+  confidence        Json?
+
+  processedAt       DateTime? @map("processed_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  @@unique([mediaId, processingVersion])
+  @@index([mediaId])
+  @@index([artworkId])
+  @@index([exactDuplicateGroup])
+  @@index([perceptualHash])
+  @@index([qualityScore])
+}
