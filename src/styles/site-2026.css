@@ -106,3 +106,21 @@ body{background:var(--g-paper);color:var(--g-ink)}
 .experience-index__intro{padding-bottom:clamp(2.5rem,4.5vw,4.5rem)}
 .experience-index__grid{padding-top:clamp(2.5rem,4.5vw,4.5rem)}
 .experience-index{padding-top:clamp(3rem,5vw,5rem)}
+
+/* ---- 11. Legibility floor ----
+   Uppercase tracked labels at 10-11px are a gallery convention and stay.
+   What does not stay is content set like a label: .experience-card__meta
+   carries the artist's name, year and medium, and was 10px uppercase at 40%
+   black — roughly 2.5:1 against white, below the 4.5:1 minimum, with proper
+   names harder to read in caps. Treat it as the caption it is. */
+.experience-card__meta{
+  font-size:12px;
+  text-transform:none;
+  letter-spacing:.01em;
+  color:rgba(18,17,15,.62);
+}
+.experience-kicker{color:rgba(18,17,15,.55)}
+
+/* Interactive controls were the smallest text on the roster at 9px. */
+.artist-roster-hero__taxonomy span,
+.artist-roster-entry__link span{font-size:11px}
