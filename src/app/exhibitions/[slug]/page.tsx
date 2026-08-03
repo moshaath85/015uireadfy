@@ -9,7 +9,9 @@ interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
 
 function localizeData(data: ExhibitionExperienceData, ar: boolean): ExhibitionExperienceData {
-  if (!ar) return data;
+  // English view shows no Arabic: the secondary Arabic title line is
+  // dropped rather than rendered alongside the English one.
+  if (!ar) return { ...data, exhibition: { ...data.exhibition, titleAr: '' } };
   return {
     ...data,
     exhibition: {

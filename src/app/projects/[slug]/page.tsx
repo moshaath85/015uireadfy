@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { ProjectExperience } from '@/components/experience';
 import { projectsRepository } from '@/lib/repositories/projects';
+import { getServerLanguage } from '@/lib/i18n/server-language';
 
 interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
@@ -10,5 +11,9 @@ export default async function ProjectDetailPage({ params }: Props) {
   const data = await projectsRepository.getPublicExperienceBySlug(slug);
   if (!data) notFound();
 
-  return <ProjectExperience data={data} />;
+  // English view shows no Arabic: drop the secondary Arabic title line.
+  const ar = (await getServerLanguage()) === 'ar';
+  const localized = ar ? data : { ...data, project: { ...data.project, titleAr: '' } };
+
+  return <ProjectExperience data={localized} />;
 }

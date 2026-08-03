@@ -93,7 +93,8 @@ export default async function ArtistDetailPage({ params }: Props) {
         <div className="experience-detail__heading">
           <p className="experience-kicker">Artist</p>
           <h1>{name}</h1>
-          {artist.name_ar && <p className="experience-detail__subtitle" dir="rtl" lang="ar">{artist.name_ar}</p>}
+          {/* English view shows no Arabic; in Arabic the h1 already carries it. */}
+          {ar && artist.name_ar && <p className="experience-detail__subtitle" dir="rtl" lang="ar">{artist.name_ar}</p>}
         </div>
         <figure className="experience-detail__media">
           {profileMedia ? (

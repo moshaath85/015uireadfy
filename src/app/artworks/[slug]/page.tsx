@@ -24,7 +24,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 function localizeData(data: ArtworkExperienceData, ar: boolean): ArtworkExperienceData {
-  if (!ar) return data;
+  // English view shows no Arabic: the secondary Arabic title line is
+  // dropped rather than rendered alongside the English one.
+  if (!ar) return { ...data, artwork: { ...data.artwork, titleAr: '' } };
   return {
     ...data,
     artwork: {
