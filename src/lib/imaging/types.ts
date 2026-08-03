@@ -39,7 +39,7 @@ export interface CropMetadata {
   checksum: string;
 }
 
-export const PROCESSOR_VERSION = "1.0.0";
+export const PROCESSOR_VERSION = "2.0.0";
 
 export const SAFE_PADDING_DEFAULT = 0.01; // 1%
 export const SAFE_PADDING_MIN = 0.005; // 0.5%
