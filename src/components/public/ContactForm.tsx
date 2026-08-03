@@ -178,7 +178,22 @@ export default function ContactForm() {
   return (
     <>
       <form className="g-contact__form" onSubmit={handleSubmit} noValidate>
-        <div style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
+        {/* Honeypot. Clipped rather than pushed off-canvas: a negative `left`
+            creates 9999px of scrollable emptiness once `dir="rtl"` flips the
+            scroll origin. */}
+        <div
+          style={{
+            position: 'absolute',
+            width: 1,
+            height: 1,
+            overflow: 'hidden',
+            clipPath: 'inset(50%)',
+            whiteSpace: 'nowrap',
+            opacity: 0,
+            pointerEvents: 'none',
+          }}
+          aria-hidden="true"
+        >
           <label htmlFor="gallery_website">Website</label>
           <input id="gallery_website" name="gallery_website" type="text" tabIndex={-1} autoComplete="off" />
         </div>
