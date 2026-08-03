@@ -42,7 +42,9 @@
   --measure-label: 34ch;
 
   /* ---- Color — Public Interface ---- */
-  --g-paper: #FAFAF7;
+  /* Pure white, not off-white: 11 of 14 sampled artwork sources are matted on
+     #FFFFFF, so any warmer ground draws a visible rectangle around the work. */
+  --g-paper: #FFFFFF;
   --g-ink: #12110F;
   --g-ink-60: rgba(18,17,15,0.60);
   --g-ink-40: rgba(18,17,15,0.40);

@@ -199,7 +199,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 }
 
 /* 015 Artists roster experience */
-.artist-roster-page{--artist-roster-ink:#0a0a09;--artist-roster-paper:#eee9df;--artist-roster-muted:#817b72;--artist-roster-line:rgba(10,10,9,.18);background:var(--artist-roster-paper);color:var(--artist-roster-ink)}
+.artist-roster-page{--artist-roster-ink:#0a0a09;--artist-roster-paper:#ffffff;--artist-roster-muted:#817b72;--artist-roster-line:rgba(10,10,9,.18);background:var(--artist-roster-paper);color:var(--artist-roster-ink)}
 .artist-roster-hero{padding:70px 5vw 56px;border:0;border-bottom:1px solid var(--artist-roster-line);background:transparent}
 .artist-roster-hero h1{margin:0;font-family:var(--font-serif);font-size:clamp(72px,11vw,150px);font-weight:400;line-height:.82;letter-spacing:-.065em}
 .artist-roster-hero>p{max-width:620px;margin:25px 0 0;font-size:18px;line-height:1.45;color:#5e5952}
@@ -236,9 +236,9 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 .artist-roster-media--thumbnail img{filter:grayscale(100%)}
 .artist-roster-media--portrait{min-height:520px;height:65vh}
 .artist-roster-media--work{aspect-ratio:1/1}
-.artist-roster-media__fallback{display:grid;width:100%;height:100%;place-content:center;gap:8px;text-align:center;color:#746e65;background:linear-gradient(145deg,#e2dccf,#d5cec0)}
+.artist-roster-media__fallback{display:grid;width:100%;height:100%;place-content:center;gap:8px;text-align:center;color:#9a948b;background:#fcfcfb;box-shadow:inset 0 0 0 1px rgba(18,17,15,.10)}
 .artist-roster-media__fallback>span{font-family:var(--font-serif);font-size:clamp(18px,3vw,36px);letter-spacing:-.05em}
-.artist-roster-media__fallback small{font-size:7px;letter-spacing:.15em;text-transform:uppercase}
+.artist-roster-media__fallback small{font-size:11px;letter-spacing:.15em;text-transform:uppercase}
 .artist-roster-media--thumbnail .artist-roster-media__fallback small{display:none}
 .artist-roster-empty{padding:60px 0;color:var(--artist-roster-muted)}
 @keyframes artist-roster-reveal{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
@@ -260,7 +260,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 }
 
 /* 015 Artwork experience */
-.artwork-experience-page{--artwork-experience-ink:#11110f;--artwork-experience-paper:#f0ece4;--artwork-experience-muted:#706b63;--artwork-experience-line:rgba(17,17,15,.19);min-height:100vh;padding:0 5vw;background:var(--artwork-experience-paper);color:var(--artwork-experience-ink)}
+.artwork-experience-page{--artwork-experience-ink:#11110f;--artwork-experience-paper:#ffffff;--artwork-experience-muted:#706b63;--artwork-experience-line:rgba(17,17,15,.19);min-height:100vh;padding:0 5vw;background:var(--artwork-experience-paper);color:var(--artwork-experience-ink)}
 .artwork-experience-back{padding:28px 0 24px}
 .artwork-experience-back a{display:inline-flex;align-items:center;gap:10px;font-size:9px;letter-spacing:.17em;text-transform:uppercase;text-decoration:none}
 .artwork-experience-back a:hover,.artwork-experience-back a:focus-visible{text-decoration:none;opacity:.55}
@@ -269,7 +269,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 .artwork-experience-media img{display:block;width:100%;height:100%;object-fit:contain}
 .artwork-experience-media--hero{width:100%;height:min(78svh,920px);min-height:560px;padding:clamp(24px,4vw,62px)}
 .artwork-experience-media--related{aspect-ratio:4/5;padding:clamp(12px,2vw,28px)}
-.artwork-experience-media__fallback{display:grid;width:100%;height:100%;place-content:center;gap:10px;text-align:center;color:#79736a;background:linear-gradient(145deg,#e7e2d9,#d8d1c6)}
+.artwork-experience-media__fallback{display:grid;width:100%;height:100%;place-content:center;gap:10px;text-align:center;color:#9a948b;background:#fcfcfb;box-shadow:inset 0 0 0 1px rgba(18,17,15,.10)}
 .artwork-experience-media__fallback>span{font-family:var(--font-serif);font-size:clamp(34px,5vw,72px);letter-spacing:-.055em}
 .artwork-experience-media__fallback small{font-size:8px;letter-spacing:.17em;text-transform:uppercase}
 .artwork-experience-identity{display:grid;grid-template-columns:minmax(150px,.42fr) minmax(0,1.58fr);column-gap:clamp(28px,6vw,90px);align-items:start;padding-top:clamp(28px,4vw,52px)}
@@ -356,7 +356,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 }
 
 /* 015 Collection experience */
-.collection-experience-page{--collection-experience-ink:#12110f;--collection-experience-paper:#ebe6dc;--collection-experience-muted:#716b62;--collection-experience-line:rgba(18,17,15,.2);min-height:100vh;padding:0 5vw;background:var(--collection-experience-paper);color:var(--collection-experience-ink)}
+.collection-experience-page{--collection-experience-ink:#12110f;--collection-experience-paper:#ffffff;--collection-experience-muted:#716b62;--collection-experience-line:rgba(18,17,15,.2);min-height:100vh;padding:0 5vw;background:var(--collection-experience-paper);color:var(--collection-experience-ink)}
 .collection-experience-back{padding:28px 0 24px}
 .collection-experience-back a{display:inline-flex;align-items:center;gap:10px;font-size:9px;letter-spacing:.17em;text-transform:uppercase;text-decoration:none}
 .collection-experience-back a:hover,.collection-experience-back a:focus-visible{text-decoration:none;opacity:.55}
@@ -478,7 +478,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 }
 
 /* 015 Exhibition experience */
-.exhibition-experience-page{--exhibition-experience-ink:#10100f;--exhibition-experience-paper:#e8e4dc;--exhibition-experience-muted:#6c675f;--exhibition-experience-line:rgba(16,16,15,.2);min-height:100vh;padding:0 5vw;background:var(--exhibition-experience-paper);color:var(--exhibition-experience-ink)}
+.exhibition-experience-page{--exhibition-experience-ink:#10100f;--exhibition-experience-paper:#ffffff;--exhibition-experience-muted:#6c675f;--exhibition-experience-line:rgba(16,16,15,.2);min-height:100vh;padding:0 5vw;background:var(--exhibition-experience-paper);color:var(--exhibition-experience-ink)}
 .exhibition-experience-back{padding:28px 0 24px}
 .exhibition-experience-back a{display:inline-flex;align-items:center;gap:10px;font-size:9px;letter-spacing:.17em;text-transform:uppercase;text-decoration:none}
 .exhibition-experience-back a:hover,.exhibition-experience-back a:focus-visible{text-decoration:none;opacity:.55}
@@ -591,7 +591,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
   .exhibition-experience-artists__identity strong,.exhibition-experience-artworks__image-link .exhibition-experience-media img{transition:none}
 }
 
-.project-experience-page{--project-experience-ink:#12110f;--project-experience-paper:#eee8dd;--project-experience-muted:#6f6960;--project-experience-line:rgba(18,17,15,.2);min-height:100vh;padding:0 5vw;background:var(--project-experience-paper);color:var(--project-experience-ink)}
+.project-experience-page{--project-experience-ink:#12110f;--project-experience-paper:#ffffff;--project-experience-muted:#6f6960;--project-experience-line:rgba(18,17,15,.2);min-height:100vh;padding:0 5vw;background:var(--project-experience-paper);color:var(--project-experience-ink)}
 .project-experience-back{padding:28px 0 24px}
 .project-experience-back a{display:inline-flex;align-items:center;gap:10px;font-size:9px;letter-spacing:.17em;text-transform:uppercase;text-decoration:none}
 .project-experience-back a:hover,.project-experience-back a:focus-visible{text-decoration:none;opacity:.55}
@@ -1142,7 +1142,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
   --artist-detail-ink:#141311;
   --artist-detail-muted:#6a655d;
   --artist-detail-line:rgba(20,19,17,.2);
-  --artist-detail-paper:#f2eee6;
+  --artist-detail-paper:#ffffff;
   --artist-detail-measure:64ch;
   color:var(--artist-detail-ink);
 }
@@ -1803,7 +1803,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 
 /* Sprint 08B Phase 4 - Exhibition detail refinement */
 .exhibition-experience-page{
-  --exhibition-experience-paper:#eae6de;
+  --exhibition-experience-paper:#ffffff;
   --exhibition-experience-muted:#605b54;
   --exhibition-experience-line:rgba(16,16,15,.26);
 }
@@ -1963,7 +1963,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 
 /* Sprint 08B Phase 5 - Artwork experience institutional refinement */
 .artwork-experience-page{
-  --artwork-experience-paper:#efebe2;
+  --artwork-experience-paper:#ffffff;
   --artwork-experience-line:rgba(17,17,15,.24);
   --artwork-experience-muted:#5f5a53;
 }
