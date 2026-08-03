@@ -300,3 +300,10 @@
 /* Homepage runs on pure white, so the shared warm-paper header would show a
    seam. Scoped with :has() so every other page keeps its existing header. */
 body:has(.hp) .g-header{background:rgba(255,255,255,.96)}
+
+/* Directional arrows point away from the reading direction, so mirror them
+   under RTL rather than shipping a second glyph. */
+[dir="rtl"] .hp-link span[aria-hidden="true"]{
+  display:inline-block;
+  transform:scaleX(-1);
+}

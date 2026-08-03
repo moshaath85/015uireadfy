@@ -13,9 +13,18 @@ export interface HeroSlide {
   alt: string;
 }
 
+/** Chrome labels are passed in already translated — this component is client-side
+    and has no access to the server language cookie. */
+export interface HeroLabels {
+  selectedWork: string;
+  viewThisWork: string;
+  navigation: string;
+  show: string;
+}
+
 const INTERVAL = 6500;
 
-export default function HeroRotator({ slides }: { slides: HeroSlide[] }) {
+export default function HeroRotator({ slides, labels }: { slides: HeroSlide[]; labels: HeroLabels }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -37,12 +46,12 @@ export default function HeroRotator({ slides }: { slides: HeroSlide[] }) {
   return (
     <section
       className="hp-hero"
-      aria-label="Selected work"
+      aria-label={labels.selectedWork}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       <div className="hp-hero__type">
-        <p className="hp-label">Selected work</p>
+        <p className="hp-label">{labels.selectedWork}</p>
 
         {/* the caption cross-fades in step with the work */}
         <div className="hp-hero__cap" key={current.id}>
@@ -54,11 +63,11 @@ export default function HeroRotator({ slides }: { slides: HeroSlide[] }) {
         </div>
 
         <Link className="hp-link" href={`/artworks/${current.slug}`}>
-          View this work <span aria-hidden="true">↗</span>
+          {labels.viewThisWork} <span aria-hidden="true">↗</span>
         </Link>
 
         {slides.length > 1 ? (
-          <div className="hp-hero__nav" role="group" aria-label="Selected work navigation">
+          <div className="hp-hero__nav" role="group" aria-label={labels.navigation}>
             <span className="hp-hero__count">
               {String(index + 1).padStart(2, '0')} <i /> {String(slides.length).padStart(2, '0')}
             </span>
@@ -68,7 +77,7 @@ export default function HeroRotator({ slides }: { slides: HeroSlide[] }) {
                   type="button"
                   key={slide.id}
                   className={i === index ? 'is-on' : undefined}
-                  aria-label={`Show ${slide.title}`}
+                  aria-label={`${labels.show} ${slide.title}`}
                   aria-current={i === index}
                   onClick={() => go(i)}
                 />

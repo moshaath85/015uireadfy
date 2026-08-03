@@ -38,6 +38,8 @@ const T = {
   exhibitions_note: { ar: 'معارض يقدمها الغاليري في مقرنا بالرياض وخارجه.', en: 'Exhibitions presented by the gallery, at our Riyadh space and beyond.' },
   selected_work: { ar: 'عمل مختار', en: 'Selected work' },
   view_this_work: { ar: 'عرض العمل', en: 'View this work' },
+  hero_nav: { ar: 'التنقل بين الأعمال المختارة', en: 'Selected work navigation' },
+  hero_show: { ar: 'عرض', en: 'Show' },
   commission: { ar: 'تكليف', en: 'Commission' },
 };
 
@@ -85,7 +87,7 @@ export default async function HomePage() {
 
   const mediaById = new Map(allMedia.map((item) => [item.id, item]));
   const media = (id: string | null | undefined): Media | null => (id ? mediaById.get(id) ?? null : null);
-  const artistName = new Map(artists.map((artist) => [artist.id, artist.name_en]));
+  const artistName = new Map(artists.map((artist) => [artist.id, getText(artist.name_ar, artist.name_en, lang)]));
 
   // ---- Hero + selected works: titled works that actually have an image ----
   const titledWorks = artworks
@@ -109,11 +111,11 @@ export default async function HomePage() {
     return {
       id: work.id,
       slug: work.slug,
-      title: work.title_en,
+      title: getText(work.title_ar, work.title_en, lang),
       artist: artistName.get(work.artist_id) ?? 'Gallery 015',
-      spec: [work.medium_en, work.dimensions, work.year].filter(Boolean).join(' · '),
+      spec: [getText(work.medium_ar, work.medium_en, lang), work.dimensions, work.year].filter(Boolean).join(' · '),
       src: cover.url,
-      alt: cover.alt_en || work.title_en,
+      alt: getText(cover.alt_ar, cover.alt_en, lang) || getText(work.title_ar, work.title_en, lang),
     };
   });
 
@@ -156,7 +158,15 @@ export default async function HomePage() {
       <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }]} />
       <div className="hp">
 
-      <HeroRotator slides={heroSlides} />
+      <HeroRotator
+        slides={heroSlides}
+        labels={{
+          selectedWork: t('selected_work', lang),
+          viewThisWork: t('view_this_work', lang),
+          navigation: t('hero_nav', lang),
+          show: t('hero_show', lang),
+        }}
+      />
 
       {/* STATEMENT */}
       <section className="hp-statement">
