@@ -70,7 +70,9 @@ export default async function ArtworkDetailPage({ params }: Props) {
         description={data.artwork.description?.slice(0, 300)}
         creatorName={data.artist.name}
         creatorUrl={`https://gallery015.com/artists/${data.artist.slug}`}
-        dateCreated={String(data.artwork.year)}
+        /* year 0 means the creation date is not recorded; emitting "0" would be
+           invalid structured data, so omit the property instead. */
+        dateCreated={data.artwork.year ? String(data.artwork.year) : undefined}
         artMedium={data.artwork.medium}
         url={`https://gallery015.com/artworks/${slug}`}
       />

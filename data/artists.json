@@ -1228,5 +1228,23 @@
     "visibility_status": "public",
     "created_at": "2026-08-01T00:00:00Z",
     "updated_at": "2026-08-01T00:00:00Z"
+  },
+  {
+    "id": "art-069",
+    "slug": "alia-al-farsi",
+    "name_en": "Alia Al Farsi",
+    "name_ar": "عالية الفارسي",
+    "bio_en": "Omani artist from Muscat. Her solo exhibition opened 015 GALLERY's Mode Al Faisaliah space in October 2021, under the patronage of the Omani Ambassador to Saudi Arabia.\n\nFuller biography to be completed from the exhibition file in the gallery archive.",
+    "bio_ar": "فنانة عُمانية من مسقط. افتتح معرضها الشخصي مقر 015 GALLERY في مود الفيصلية في أكتوبر 2021، برعاية سفير سلطنة عُمان لدى المملكة العربية السعودية.\n\nتُستكمل سيرتها من ملف المعرض في أرشيف الجاليري.",
+    "birth_year": 1900,
+    "nationality_en": "Omani",
+    "nationality_ar": "عُمانية",
+    "profile_image_id": null,
+    "featured": false,
+    "display_order": 69,
+    "representation_status": "collection",
+    "visibility_status": "public",
+    "created_at": "2026-08-03T00:00:00Z",
+    "updated_at": "2026-08-03T00:00:00Z"
   }
 ]

@@ -97,7 +97,8 @@ export interface VisualArtworkLdProps {
   description?: string;
   creatorName: string;
   creatorUrl: string;
-  dateCreated: string;
+  /** Omitted when the creation date is not recorded. */
+  dateCreated?: string;
   artMedium?: string;
   image?: string;
   url: string;
@@ -126,8 +127,8 @@ export function VisualArtworkLd({
       name: creatorName,
       url: creatorUrl,
     },
-    dateCreated,
   };
+  if (dateCreated) ld.dateCreated = dateCreated;
   if (alternateName) ld.alternateName = alternateName;
   if (description) ld.description = description;
   if (artMedium) ld.artMedium = artMedium;
