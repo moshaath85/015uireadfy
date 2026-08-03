@@ -13,7 +13,10 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
-function representationLabel(status: string): string {
+/* Only returns a label where the relationship actually distinguishes an
+   artist. Every artist on a gallery's roster is a gallery artist, so the
+   generic case says nothing and repeats down the whole page. */
+function representationLabel(status: string): string | null {
   switch (status.trim().toLowerCase()) {
     case 'represented':
     case 'exclusive':
@@ -22,7 +25,7 @@ function representationLabel(status: string): string {
     case 'non_exclusive':
       return 'Collaborating Artist';
     default:
-      return 'Gallery Artist';
+      return null;
   }
 }
 
@@ -74,9 +77,6 @@ export default async function ArtistsPage() {
       <header className="artist-roster-hero">
         <h1>The roster</h1>
         <p>A curated collective of artists represented by 015.<br />Each voice is distinct. Together, they shape our vision.</p>
-        <div className="artist-roster-hero__taxonomy" aria-label="Artist relationships">
-          <span>All</span><span>Exclusive</span><span>Collaborating</span>
-        </div>
       </header>
       <section className="artist-roster-section" aria-label="Artists roster">
         <ArtistRoster artists={items} />

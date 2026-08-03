@@ -2,7 +2,7 @@ interface ArtistMetadataProps {
   birthYear?: number | null;
   discipline?: string | null;
   nationality?: string | null;
-  representationLabel: string;
+  representationLabel: string | null;
   variant: 'identity' | 'panel';
 }
 
@@ -23,7 +23,9 @@ export function ArtistMetadata({
   if (variant === 'identity') {
     return (
       <>
-        <small className="artist-roster-entry__relationship">{representationLabel}</small>
+        {representationLabel ? (
+          <small className="artist-roster-entry__relationship">{representationLabel}</small>
+        ) : null}
         {primary || biographical ? (
           <em className="artist-roster-entry__summary-meta">{joinMetadata([primary, biographical])}</em>
         ) : null}

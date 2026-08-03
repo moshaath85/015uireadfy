@@ -18,7 +18,7 @@ export interface ArtistRosterItem {
   birthYear?: number | null;
   discipline?: string | null;
   nationality?: string | null;
-  representationLabel: string;
+  representationLabel: string | null;
   profileImage?: ArtistMediaSource | null;
   works: ArtistRosterWork[];
 }
