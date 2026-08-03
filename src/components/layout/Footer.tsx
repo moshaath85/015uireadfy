@@ -25,7 +25,7 @@ const L = {
   about_nav: { ar: 'روابط الموقع', en: 'Site links' },
 };
 
-export default function Footer() {
+export default function Footer({ emptySections = [] }: { emptySections?: string[] }) {
   const year = new Date().getFullYear();
   const { lang } = useLanguage();
   const t = (k: keyof typeof L) => lang === 'ar' ? L[k].ar : L[k].en;
@@ -50,14 +50,14 @@ export default function Footer() {
           <Link href="/artists">{t('artists')}</Link>
           <Link href="/exhibitions">{t('exhibitions')}</Link>
           <Link href="/artworks">{t('artworks')}</Link>
-          <Link href="/collections">{t('collections')}</Link>
+          {emptySections.includes('/collections') ? null : <Link href="/collections">{t('collections')}</Link>}
           <Link href="/projects">{t('projects')}</Link>
           <Link href="/news">{t('journal')}</Link>
         </nav>
         <nav className="g-footer__col" aria-label={t('about_nav')}>
           <h3>{t('about')}</h3>
           <Link href="/services">{t('services')}</Link>
-          <Link href="/publications">{t('publications')}</Link>
+          {emptySections.includes('/publications') ? null : <Link href="/publications">{t('publications')}</Link>}
           <Link href="/contact">{t('contact')}</Link>
           <Link href="/verify">{t('certificates')}</Link>
         </nav>

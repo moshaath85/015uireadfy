@@ -156,3 +156,21 @@ body{background:var(--g-paper);color:var(--g-ink)}
     aspect-ratio:4/3;
   }
 }
+
+/* ---- 14. Fact blocks use the page instead of stacking down one edge ----
+   .g-page__body is a single column capped at reading measure, which is right
+   for prose but left Visit's four fact blocks (Location, Hours, Contact,
+   Access) in a 595px column with two-thirds of a 1440px page empty beside
+   them. Discrete blocks now sit two-up; prose still spans and stays measured. */
+@media(min-width:900px){
+  .g-page__body:has(.g-page__section){
+    max-width:none;
+    grid-template-columns:repeat(2,minmax(0,var(--measure-body)));
+    column-gap:clamp(3rem,6vw,7rem);
+    align-items:start;
+  }
+  .g-page__body:has(.g-page__section) > :not(.g-page__section){
+    grid-column:1/-1;
+    max-width:var(--measure-body);
+  }
+}

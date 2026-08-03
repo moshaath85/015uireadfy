@@ -4,6 +4,9 @@ import '@/styles/design-tokens.css';
 import '@/styles/globals.css';
 import '@/styles/site-2026.css';
 import SiteChrome from '@/components/layout/SiteChrome';
+import { collectionsRepository } from '@/lib/repositories/collections';
+import { publicationsRepository } from '@/lib/repositories/publications';
+import { servicesRepository } from '@/lib/repositories/services';
 import LanguageProvider from '@/components/layout/LanguageProvider';
 import { IBM_Plex_Sans, EB_Garamond } from 'next/font/google';
 import { SITE } from '@/lib/metadata';
@@ -56,7 +59,24 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic';
 
+/* A nav link to an empty section is worse than no link: the visitor clicks
+   Collections or Publications and lands on a blank page. Only advertise
+   sections that actually have public content. */
+async function sectionsWithContent(): Promise<string[]> {
+  const [collections, publications, services] = await Promise.all([
+    collectionsRepository.getPublicAll().catch(() => []),
+    publicationsRepository.getPublicAll().catch(() => []),
+    servicesRepository.getPublicAll().catch(() => []),
+  ]);
+  const empty: string[] = [];
+  if (!collections.length) empty.push('/collections');
+  if (!publications.length) empty.push('/publications');
+  if (!services.length) empty.push('/services');
+  return empty;
+}
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const emptySections = await sectionsWithContent();
   const cookieStore = await cookies();
   const langCookie = cookieStore.get('gallery-lang');
   const initialLang = langCookie?.value === 'ar' ? 'ar' : 'en';
@@ -74,7 +94,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body>
         <LanguageProvider initialLang={initialLang}>
-          <SiteChrome>{children}</SiteChrome>
+          <SiteChrome emptySections={emptySections}>{children}</SiteChrome>
         </LanguageProvider>
       </body>
     </html>

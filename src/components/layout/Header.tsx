@@ -22,8 +22,9 @@ const secondaryLinks = [
   { href: '/verify', label: 'Certificates', labelAr: 'الشهادات' },
 ];
 
-export default function Header() {
+export default function Header({ emptySections = [] }: { emptySections?: string[] }) {
   const pathname = usePathname();
+  const visible = (l: { href: string }) => !emptySections.includes(l.href);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { lang, switchLang } = useLanguage();
@@ -72,7 +73,7 @@ export default function Header() {
 
         <nav className="g-header__nav" aria-label="Primary">
           <ul>
-            {mainLinks.map((link) => (
+            {mainLinks.filter(visible).map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
@@ -128,7 +129,7 @@ export default function Header() {
       >
         <nav className="g-nav-overlay__inner" aria-label="Mobile navigation">
           <ul className="g-nav-overlay__primary">
-            {[...mainLinks, ...secondaryLinks].map((link, i) => (
+            {[...mainLinks, ...secondaryLinks].filter(visible).map((link, i) => (
               <li
                 key={link.href}
                 style={{ '--stagger': i } as React.CSSProperties}

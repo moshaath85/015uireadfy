@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
-export default function SiteChrome({ children }: { children: React.ReactNode }) {
+export default function SiteChrome({ children, emptySections = [] }: { children: React.ReactNode; emptySections?: string[] }) {
   const pathname = usePathname();
   const isMuseum = pathname.startsWith('/museum');
 
@@ -21,9 +21,9 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
 
   return (
     <>
-      <Header />
+      <Header emptySections={emptySections} />
       <main id="main-content">{children}</main>
-      <Footer />
+      <Footer emptySections={emptySections} />
     </>
   );
 }
