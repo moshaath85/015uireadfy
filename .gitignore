@@ -39,3 +39,6 @@ imports/
 coverage/
 .cache/
 *.tsbuildinfo
+
+# Pre-trim image backups — kept locally, never deployed or committed
+backups/
