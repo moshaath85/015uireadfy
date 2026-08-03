@@ -135,3 +135,24 @@ body{background:var(--g-paper);color:var(--g-ink)}
   box-shadow:inset 0 0 0 1px rgba(18,17,15,.10);
 }
 .artist-roster-media__fallback{box-shadow:none}
+
+/* ---- 13. Documentary covers keep their own shape ----
+   Every index declares aspect-ratio 4/3, but a min-height of 648-720px won
+   at these card widths and produced 0.89 (portrait) frames. Exhibition,
+   project and collection covers are landscape source photography — 1.5 to
+   1.78 — so the sides were being cropped away. Let the ratio govern.
+   The artworks grid is left alone: it contains rather than crops, and the
+   taller plate is deliberate there. */
+.experience-index--exhibitions .experience-card__media,
+.experience-index--projects .experience-card__media,
+.experience-index--collections .experience-card__media{
+  aspect-ratio:3/2;
+  min-height:0;
+}
+@media(max-width:600px){
+  .experience-index--exhibitions .experience-card__media,
+  .experience-index--projects .experience-card__media,
+  .experience-index--collections .experience-card__media{
+    aspect-ratio:4/3;
+  }
+}

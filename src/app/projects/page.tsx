@@ -28,11 +28,14 @@ export default async function ProjectsPage() {
   const items = await Promise.all(projects.map(async (project) => {
     const media = project.cover_media_id ? await mediaRepository.getPublicById(project.cover_media_id) : null;
     const client = ar && project.client_ar ? project.client_ar : project.client_en;
+    const title = ar && project.title_ar ? project.title_ar : project.title_en;
     return {
       href: `/projects/${project.slug}`,
-      title: ar && project.title_ar ? project.title_ar : project.title_en,
+      title,
       kicker: project.type?.replaceAll('_', ' '),
-      meta: [client, project.year].filter(Boolean).join(' · '),
+      /* client duplicates the title on most records, which printed the project
+         name twice in a row; show it only when it adds something. */
+      meta: [client && client !== title ? client : null, project.year].filter(Boolean).join(' · '),
       description: ar && project.description_ar ? project.description_ar : project.description_en,
       image: media ? { src: media.url, alt: media.alt_ar && ar ? media.alt_ar : media.alt_en || project.title_en } : null,
     };
