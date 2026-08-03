@@ -6,6 +6,22 @@ export type CropStatus =
   | "ALREADY_CROPPED"
   | "PROCESSING_FAILED";
 
+export type AssetType =
+  | "ARTWORK"
+  | "ARTWORK_DETAIL"
+  | "ARTIST_PORTRAIT"
+  | "ARTIST_WORK"
+  | "INSTALLATION"
+  | "EXHIBITION_COVER"
+  | "PUBLICATION"
+  | "NEWS"
+  | "HERO"
+  | "SERVICE"
+  | "PROJECT_COVER"
+  | "COLLECTION"
+  | "PAGE_MEDIA"
+  | "OTHER";
+
 export interface CropRect {
   left: number;
   top: number;
