@@ -7,7 +7,8 @@ import {
   SAFE_PADDING_MIN,
   SAFE_PADDING_MAX,
   AUTO_APPROVE_THRESHOLD,
-  REVIEW_THRESHOLD,
+  REVIEW_MIN_THRESHOLD,
+  MIN_IMAGE_DIMENSION,
 } from "./types";
 
 export interface SmartCropInput {
@@ -137,9 +138,19 @@ export async function smartCrop(input: SmartCropInput): Promise<SmartCropResult>
     .resize(400, 400, { fit: "inside", withoutEnlargement: true })
     .toBuffer();
 
-  const overall = best.overall;
-  const status: CropStatus = overall >= AUTO_APPROVE_THRESHOLD ? "AUTO_APPROVED"
-    : overall >= REVIEW_THRESHOLD ? "NEEDS_REVIEW" : "NEEDS_REVIEW";
+  // Controlled rollout: size gate + confidence gate
+  const belowMinSize = cropRect.width < MIN_IMAGE_DIMENSION || cropRect.height < MIN_IMAGE_DIMENSION;
+  let status: CropStatus;
+  if (belowMinSize) {
+    status = "NEEDS_REVIEW";
+  } else if (best.overall >= AUTO_APPROVE_THRESHOLD) {
+    status = "AUTO_APPROVED";
+  } else if (best.overall >= REVIEW_MIN_THRESHOLD) {
+    status = "NEEDS_REVIEW";
+  } else {
+    // Low confidence: keep original active, mark for review
+    status = "NEEDS_REVIEW";
+  }
 
   const metadata: CropMetadata = {
     sourceAssetKey: input.sourceKey,
@@ -158,7 +169,7 @@ export async function smartCrop(input: SmartCropInput): Promise<SmartCropResult>
       backgroundDetection: bg.confidence,
       edgeDetection: best.edgeContinuity,
       rectangularity: best.rectangularity,
-      overall,
+      overall: best.overall,
     },
     processorVersion: PROCESSOR_VERSION,
     checksum: createHash("sha256").update(displayBuffer).digest("hex"),

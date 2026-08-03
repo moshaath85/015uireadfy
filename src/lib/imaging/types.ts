@@ -45,5 +45,7 @@ export const SAFE_PADDING_DEFAULT = 0.01; // 1%
 export const SAFE_PADDING_MIN = 0.005; // 0.5%
 export const SAFE_PADDING_MAX = 0.02; // 2%
 
-export const AUTO_APPROVE_THRESHOLD = 0.92;
-export const REVIEW_THRESHOLD = 0.75;
+// Controlled rollout gates
+export const AUTO_APPROVE_THRESHOLD = 0.95;
+export const REVIEW_MIN_THRESHOLD = 0.80;
+export const MIN_IMAGE_DIMENSION = 400;
