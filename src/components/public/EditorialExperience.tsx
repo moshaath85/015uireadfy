@@ -19,7 +19,7 @@ export interface EditorialIndexItem {
     /artworks and the plain indexes cannot drift apart. */
 export function EditorialCard({ item, eager = false }: { item: EditorialIndexItem; eager?: boolean }) {
   return (
-    <Link className="experience-card" href={item.href}>
+    <Link className="experience-card" data-reveal="" href={item.href}>
       <figure className="experience-card__media">
         {item.image ? (
           <img src={item.image.src} alt={item.image.alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />

@@ -365,6 +365,49 @@ body{background:var(--g-paper);color:var(--g-ink)}
 
 
 /* ============================================================
+   VIEWPORT REVEAL
+   A block arriving from below settles the last 8px of its travel
+   and comes up the last 3% of its opacity. That is the whole
+   effect. It is not a fade-in and it must never read as one — the
+   page should feel settled rather than animated.
+
+   The markup ships data-reveal with no value and only the pending
+   and in states are styled, so no JavaScript means no hidden
+   content. Only blocks that start entirely below the fold are ever
+   armed; the hero is never touched.
+   ============================================================ */
+[data-reveal],
+[data-reveal-group] > *{
+  transition:opacity 400ms var(--motion-ease),transform 400ms var(--motion-ease);
+}
+[data-reveal="pending"],
+[data-reveal-group="pending"] > *{
+  opacity:.97;
+  transform:translateY(8px);
+}
+[data-reveal="in"],
+[data-reveal-group="in"] > *{
+  opacity:1;
+  transform:none;
+}
+/* A group settles across itself rather than all at once. Four steps of 60ms
+   is the whole ladder — a twenty-four card grid rippling for a second and a
+   half would be a effect, and this is not meant to be one. */
+[data-reveal-group="in"] > *:nth-child(2){transition-delay:60ms}
+[data-reveal-group="in"] > *:nth-child(3){transition-delay:120ms}
+[data-reveal-group="in"] > *:nth-child(n+4){transition-delay:180ms}
+
+@media(prefers-reduced-motion:reduce){
+  [data-reveal],
+  [data-reveal-group] > *{
+    transition:none;
+    opacity:1;
+    transform:none;
+  }
+}
+
+
+/* ============================================================
    ARCHIVAL SCANS
    Twenty-four works exist only as scans of a few hundred pixels
    (docs/LOW_RES_ARTWORK_IMAGE_AUDIT.md). Nothing here enlarges,
