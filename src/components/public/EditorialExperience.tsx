@@ -15,6 +15,36 @@ export interface EditorialIndexItem {
   image?: EditorialImage | null;
 }
 
+/** The one card the indexes share. Extracted verbatim so the explorer on
+    /artworks and the plain indexes cannot drift apart. */
+export function EditorialCard({ item, eager = false }: { item: EditorialIndexItem; eager?: boolean }) {
+  return (
+    <Link className="experience-card" href={item.href}>
+      <figure className="experience-card__media">
+        {item.image ? (
+          <img src={item.image.src} alt={item.image.alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+        ) : (
+          <span
+            aria-label={`${item.title} image unavailable`}
+            className="experience-card__fallback"
+            role="img"
+          >
+            <span aria-hidden="true">015</span>
+            <small>Image forthcoming</small>
+          </span>
+        )}
+      </figure>
+      <div className="experience-card__copy">
+        {item.kicker ? <p className="experience-kicker">{item.kicker}</p> : null}
+        <h2>{item.title}</h2>
+        {item.meta ? <p className="experience-card__meta">{item.meta}</p> : null}
+        {item.description ? <p className="experience-card__description">{item.description}</p> : null}
+        <span>View</span>
+      </div>
+    </Link>
+  );
+}
+
 export function EditorialIndex({
   eyebrow,
   title,
@@ -38,29 +68,7 @@ export function EditorialIndex({
       {items.length ? (
         <div className="experience-index__grid">
           {items.map((item, index) => (
-            <Link className="experience-card" href={item.href} key={item.href}>
-              <figure className="experience-card__media">
-                {item.image ? (
-                  <img src={item.image.src} alt={item.image.alt} loading={index < 2 ? 'eager' : 'lazy'} decoding="async" />
-                ) : (
-                  <span
-                    aria-label={`${item.title} image unavailable`}
-                    className="experience-card__fallback"
-                    role="img"
-                  >
-                    <span aria-hidden="true">015</span>
-                    <small>Image forthcoming</small>
-                  </span>
-                )}
-              </figure>
-              <div className="experience-card__copy">
-                {item.kicker ? <p className="experience-kicker">{item.kicker}</p> : null}
-                <h2>{item.title}</h2>
-                {item.meta ? <p className="experience-card__meta">{item.meta}</p> : null}
-                {item.description ? <p className="experience-card__description">{item.description}</p> : null}
-                <span>View</span>
-              </div>
-            </Link>
+            <EditorialCard item={item} eager={index < 2} key={item.href} />
           ))}
         </div>
       ) : (

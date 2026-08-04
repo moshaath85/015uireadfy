@@ -311,3 +311,129 @@ body:has(.hp) .g-header{background:rgba(255,255,255,.96)}
   display:inline-block;
   transform:scaleX(-1);
 }
+
+
+/* ============================================================
+   PRODUCTION POLISH — 2026
+   Same page, same content, same components. Cadence and craft.
+   ============================================================ */
+
+/* ---- P1. The work is never cropped ----
+   See site-2026.css rule 15. .hp-plate takes its height from aspect-ratio,
+   which left max-height:100% unresolved: four of the six selected works were
+   overflowing their plate by 72 to 223px and being clipped. */
+.hp-plate{
+  grid-template-rows:minmax(0,1fr);
+  grid-template-columns:minmax(0,1fr);
+}
+
+/* ---- P2. Editorial cadence ----
+   Every section below the hero carried the same 144px foot and the same 63px
+   head, so seven chapters arrived at exactly the same volume and the page
+   read as one long column. Nothing moves and nothing is cut; only the
+   interval changes. The statement is a held breath, the programme and the
+   selected works are the two principal chapters and take the full measure,
+   and the roster, the projects and the journal step down — which is what
+   makes the principal ones read as principal. */
+.hp{
+  --hp-sp-xl:clamp(104px,11.5vw,192px);
+  --hp-sp-lg:clamp(88px,10vw,168px);
+  --hp-sp-md:clamp(68px,7.6vw,124px);
+}
+.hp-statement{padding-top:var(--hp-sp-xl);padding-bottom:var(--hp-sp-md)}
+.hp-programme{padding-bottom:var(--hp-sp-xl)}
+.hp-works{padding-bottom:var(--hp-sp-xl)}
+.hp-artists{padding-bottom:var(--hp-sp-md)}
+.hp-projects{padding-bottom:var(--hp-sp-lg)}
+.hp-journal{padding-bottom:var(--hp-sp-md)}
+
+/* Supporting sections announce themselves one level down. */
+.hp-artists .hp-sec-head h2,
+.hp-projects .hp-sec-head h2,
+.hp-journal .hp-sec-head h2{font-size:clamp(28px,3.3vw,50px);max-width:20ch}
+.hp-artists .hp-sec-head,
+.hp-projects .hp-sec-head,
+.hp-journal .hp-sec-head{padding-bottom:clamp(30px,3.6vw,52px)}
+
+/* ---- P3. A publication sets a plate off the line ----
+   A three-column grid where every plate begins on the same baseline is a
+   catalogue of thumbnails. Dropping the centre column gives the spread the
+   rhythm a printed plate section has — the same device the index pages
+   already use on their second and third cards. Below three columns the
+   offset would only be a gap, so it stops. */
+@media(min-width:1001px){
+  .hp-works__grid > a:nth-child(3n+2){margin-top:clamp(28px,3.2vw,62px)}
+}
+@media(min-width:1001px){
+  .hp-projects__grid > a:nth-child(3n+2){margin-top:clamp(24px,2.8vw,54px)}
+}
+
+/* ---- P4. Quiet text is still information ----
+   Dates, media, counts and kickers were 40% black at 10-12px: 2.6:1 against
+   paper, where 4.5:1 is the floor. --g-ink-quiet is 4.9:1. Hairlines, dots
+   and the scroll cue keep 40% — they are marks, not words. */
+.hp-label,
+.hp-cap .hp-idx,
+.hp-record dt,
+.hp-entry time,
+.hp-hero__count,
+.hp-entry .hp-arw{color:var(--g-ink-quiet)}
+.hp-visit .hp-label{color:rgba(244,242,237,.62)}
+.g-nav-overlay__num{color:var(--g-ink-quiet)}
+
+/* ---- P5. Hover ----
+   A work shown whole cannot be scaled: the plate is now exactly the size of
+   the work, so 1.025 would crop it. The plate's own rule darkens instead and
+   the title takes an underline drawn from the reading edge. Photography that
+   fills its frame keeps its movement, standardised to one distance and one
+   duration across the three grids that use it. */
+.hp-plate{transition:border-color var(--motion-ui) var(--motion-ease)}
+.hp-works a:hover .hp-plate{border-color:var(--g-hair-strong)}
+.hp-works a:hover .hp-plate img{transform:none}
+
+.hp-cap h3,
+.hp-artist__cap h3,
+.hp-proj__cap h3,
+.hp-entry h3{
+  background-image:linear-gradient(currentColor,currentColor);
+  background-repeat:no-repeat;
+  background-position:0 100%;
+  background-size:0 1px;
+  transition:background-size var(--motion-ui) var(--motion-ease);
+}
+[dir="rtl"] .hp-cap h3,
+[dir="rtl"] .hp-artist__cap h3,
+[dir="rtl"] .hp-proj__cap h3,
+[dir="rtl"] .hp-entry h3{background-position:100% 100%}
+.hp-works a:hover .hp-cap h3,
+.hp-artists a:hover .hp-artist__cap h3,
+.hp-projects a:hover .hp-proj__cap h3,
+.hp-entry:hover h3{background-size:100% 1px}
+
+.hp-artists a:hover .hp-artist__media img,
+.hp-projects a:hover .hp-proj__media img,
+.hp-programme__grid:hover .hp-programme__media img{transform:scale(1.02)}
+.hp-artist__media img,
+.hp-proj__media img,
+.hp-programme__media img,
+.hp-plate img{transition:transform var(--motion-image) var(--motion-ease)}
+
+/* ---- P6. The rotator's dots are a control, not a rule ----
+   24x2px. The bar stays 2px; the target becomes 24x32. */
+.hp-hero__dots button{
+  box-sizing:content-box;
+  padding-block:15px;
+}
+/* the state rules above set `background` as a shorthand, which resets the
+   clip — each one has to be told, or the active dot paints its whole target */
+.hp-hero__dots button,
+.hp-hero__dots button:hover,
+.hp-hero__dots button.is-on{background-clip:content-box}
+.hp-hero__dots{margin-block:-15px}
+
+@media(prefers-reduced-motion:reduce){
+  .hp-cap h3,.hp-artist__cap h3,.hp-proj__cap h3,.hp-entry h3{transition:none}
+  .hp-artists a:hover .hp-artist__media img,
+  .hp-projects a:hover .hp-proj__media img,
+  .hp-programme__grid:hover .hp-programme__media img{transform:none}
+}

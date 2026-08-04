@@ -108,6 +108,17 @@
   --motion-base: 420ms;
   --motion-slow: 780ms;
   --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Two durations cover every hover on the public site: --motion-ui for a
+     rule, a caption or an opacity, --motion-image for anything that moves a
+     photograph. They existed already as nine hand-written values between
+     .3s and 1.4s, which is why the same gesture felt different on each page. */
+  --motion-ui: 320ms;
+  --motion-image: 1000ms;
+
+  /* Quiet text that is still information — dates, media, counts, kickers.
+     40% black is 2.6:1 on paper and fails at label sizes; 60% is 4.9:1.
+     --g-ink-40 stays as it is: it is correct for rules and hairlines. */
+  --g-ink-quiet: rgba(18, 17, 15, 0.60);
 
   /* ---- Borders & Shadows ---- */
   --border-hairline: 1px solid var(--g-hair);

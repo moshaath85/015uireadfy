@@ -174,3 +174,312 @@ body{background:var(--g-paper);color:var(--g-ink)}
     max-width:var(--measure-body);
   }
 }
+
+
+/* ============================================================
+   PRODUCTION POLISH — 2026
+   Refinement pass. No page is redesigned, no component replaced,
+   no content changed. Every rule below closes a gap between what
+   the design intends and what the browser was actually drawing.
+   ============================================================ */
+
+/* ---- 15. The work is never cropped — this time in the browser too ----
+   Rule 4 above states the principle and sets max-width/max-height:100% on
+   every contained plate. A percentage max-height only resolves against a
+   track whose size the grid has been told; these plates take their height
+   from aspect-ratio or a clamped min-height, so max-height silently computed
+   to none. Portrait works therefore laid out at intrinsic size and were
+   clipped by the plate's own overflow:hidden. Measured at 1440 before this
+   rule: the artwork detail hero overflowed its plate by 600px, homepage
+   plates by up to 223px, index plates by up to 192px. Two-thirds of the
+   collection is portrait, so this was most of the collection.
+   One explicit track is all it takes. */
+.experience-index--grid .experience-card__media,
+.artwork-experience-media,
+.experience-related figure{
+  grid-template-rows:minmax(0,1fr);
+  grid-template-columns:minmax(0,1fr);
+}
+
+/* ---- 15b. One white, including the header ----
+   Rule 1 above sets the header to the paper white, but it addresses
+   .site-header — a class no component renders any more. The live header is
+   .g-header and it was still on the warm ivory of the previous palette, so
+   every page except the homepage (which patches it separately) opened with a
+   82px band a shade warmer than the paper beneath it. On a site whose ground
+   has to match the white the artwork is photographed on, that band is the
+   first thing the eye finds. */
+.g-header{background:rgba(255,255,255,.96)}
+
+/* ---- 16. A plate with no photograph is not a plate ----
+   Nine of nine journal entries have no image, so the index drew nine 641x677
+   grey rectangles reading "Image forthcoming" and every article opened with a
+   1002px void above the first line. An institution publishes the writing or
+   it doesn't publish; it does not publish the absence of a picture. Where
+   there is no photograph the type carries the card, with a rule above it so
+   the index still reads as an index. Cards that do have one are untouched. */
+.experience-index--grid .experience-card__media:has(.experience-card__fallback),
+.experience-detail__media:has(.experience-detail__media-fallback){
+  display:none;
+}
+.experience-card:has(.experience-card__fallback){margin-top:0}
+.experience-card:has(.experience-card__fallback) .experience-card__copy{
+  padding-top:1.1rem;
+  border-top:1px solid var(--g-hair-strong);
+}
+.experience-detail__hero:has(.experience-detail__media-fallback){
+  grid-template-columns:minmax(0,1fr);
+}
+
+/* ---- 17. Long-form is set to be read ----
+   .experience-body is shared by a one-paragraph exhibition statement, where
+   32px serif is the right voice, and by a five-paragraph journal essay, where
+   it is not — the reader gets six words a line and a page four screens long.
+   Three paragraphs or more is an essay: drop to a reading size and let the
+   62ch measure from rule 8 actually govern. Shorter bodies keep their voice. */
+.experience-body:has(p:nth-of-type(3)) p{
+  font-size:clamp(1.125rem,1.35vw,1.3rem);
+  line-height:1.72;
+  color:var(--g-ink);
+}
+.experience-body:has(p:nth-of-type(3)) p + p{margin-top:1.15em}
+
+/* ---- 18. Legibility floor, continued ----
+   Rule 11 fixed the card meta and stopped there. The same 40% black is still
+   carrying dates, kickers, fact labels and counts at 9-11px — 2.6:1, where
+   4.5:1 is the floor. 60% is 4.9:1 and reads as more certain, not louder.
+   Sizes below 10px are raised to 10px; the tracked uppercase convention is
+   kept exactly. */
+.experience-kicker,
+.experience-facts dt,
+.g-page__kicker,
+.g-page__section h2{
+  color:var(--g-ink-quiet);
+}
+.artwork-experience-kicker,
+.artist-roster-entry__relationship,
+.artist-roster-entry__summary-meta,
+.artist-roster-entry__panel-meta,
+.artist-roster-entry__link{
+  font-size:10px;
+  color:var(--g-ink-quiet);
+}
+/* "015 / Image forthcoming" sat at 2.9:1 — the one thing on the page a
+   visitor should be able to read without effort is why it is empty. */
+.experience-card__fallback,
+.experience-detail__media-fallback,
+.artwork-experience-media__fallback,
+.artist-roster-media__fallback{
+  color:#6f6a62;
+}
+/* Footer headings and the legal line were half-opacity on the dark wall:
+   3.4:1 at 11-12px. */
+.g-footer__col h3,
+.g-footer__bottom{opacity:.72}
+
+/* ---- 19. Hover is an acknowledgement, not an event ----
+   An index card answered the pointer by fading its photograph 8%, and a title
+   not at all — the page felt inert. A title is a link, so it takes the oldest
+   signal a link has: a rule drawn under it, slowly, from the reading edge. */
+.experience-card__copy h2,
+.experience-related h3{
+  background-image:linear-gradient(currentColor,currentColor);
+  background-repeat:no-repeat;
+  background-position:0 100%;
+  background-size:0 1px;
+  transition:background-size var(--motion-ui) var(--motion-ease);
+}
+[dir="rtl"] .experience-card__copy h2,
+[dir="rtl"] .experience-related h3{background-position:100% 100%}
+.experience-card:hover .experience-card__copy h2,
+.experience-related a:hover h3{background-size:100% 1px}
+.experience-card__copy span,
+.experience-card__media{transition:opacity var(--motion-ui) ease,border-color var(--motion-ui) ease}
+.experience-card:hover .experience-card__copy span{opacity:.55}
+.experience-card:hover .experience-card__media{border-color:var(--g-hair-strong)}
+/* Contained works must not move: the plate is exactly the size of the work
+   now, so any scale would crop it. Rule 4's opacity is the whole gesture. */
+.experience-index--grid .experience-card:hover .experience-card__media img,
+.experience-related a:hover img{
+  transition:opacity var(--motion-ui) ease;
+}
+
+/* ---- 20. The roster answers the pointer ----
+   Sixty-seven rows, each a control, none of which changed under the cursor.
+   The wash is the one already used by the journal rows on the homepage, so
+   the two lists behave identically. The plus becomes a minus by turning,
+   which is the only way that gesture reads as one mark rather than two. */
+.artist-roster-entry{transition:border-color var(--motion-ui) var(--motion-ease)}
+.artist-roster-entry__summary{transition:background-color var(--motion-ui) var(--motion-ease)}
+.artist-roster-entry__summary:hover{background:rgba(10,10,9,.028)}
+.artist-roster-entry:hover{border-bottom-color:rgba(10,10,9,.42)}
+.artist-roster-entry__number{transition:color var(--motion-ui) var(--motion-ease)}
+.artist-roster-entry:hover .artist-roster-entry__number{color:var(--artist-roster-ink)}
+.artist-roster-entry__toggle::before,
+.artist-roster-entry__toggle::after{
+  transition:transform var(--motion-base) var(--motion-ease),opacity var(--motion-ui) ease;
+}
+.artist-roster-entry[open] .artist-roster-entry__toggle::after{
+  opacity:0;
+  transform:translate(-50%,-50%) rotate(90deg);
+}
+/* A 67-row list is scanned, not read: the eye needs the row to end somewhere
+   definite. The panel opens against the same easing as everything else. */
+.artist-roster-entry__panel{animation-timing-function:var(--motion-ease)}
+
+/* ---- 21. Targets a thumb can find ----
+   Nothing here changes by a pixel on screen. The header links were 19px tall
+   and the search icon 18x22 next to a 44x44 language button; the hit areas
+   are extended past the glyph instead of padding the glyph, so the nav's
+   optical spacing and the active underline stay exactly where they were. */
+.g-header__nav a,
+.g-header__cta{position:relative}
+.g-header__nav a::after,
+.g-header__cta::after{
+  content:"";position:absolute;inset:-13px -8px;
+}
+.g-header__search{
+  display:grid;place-items:center;
+  min-width:44px;min-height:44px;
+  margin-inline:-13px;
+}
+.g-header__toggle{place-content:center;min-width:44px;min-height:44px;margin-inline-end:-6px}
+.g-nav-overlay__secondary a{padding-block:12px}
+.g-footer__col a,
+.g-footer__bottom a{display:inline-block;padding-block:5px}
+
+/* ---- 22. One motion vocabulary ----
+   Photographs that fill their frame may move a little; works shown whole may
+   not. Both now use the same duration and the same curve everywhere. */
+.experience-card__media img,
+.experience-detail__media img,
+.experience-related figure img,
+.artwork-experience-media img{
+  transition:transform var(--motion-image) var(--motion-ease),opacity var(--motion-ui) ease;
+}
+
+/* ---- 23. Focus is visible on the dark wall too ----
+   The ring is ink on ink inside the footer and the Visit band. */
+.g-footer :focus-visible,
+.hp-visit :focus-visible{outline-color:var(--g-paper)}
+
+
+/* ============================================================
+   ARCHIVE FILTER — /artworks
+   A reading room's index card drawer, not a shop's sidebar.
+   One line of hairline-ruled controls, the count, and a way out.
+   No panel, no chips, no sort, no page numbers.
+   ============================================================ */
+
+.archive-filter{
+  display:grid;gap:clamp(1.25rem,2.4vw,2rem);
+  padding:clamp(1.75rem,3vw,2.75rem) 0;
+  border-bottom:1px solid var(--g-hair);
+}
+.archive-filter__controls{
+  display:grid;
+  grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr));
+  gap:clamp(1.25rem,2.6vw,2.75rem);
+  align-items:end;
+}
+.archive-filter__field{display:grid;gap:.55rem;min-width:0}
+.archive-filter__field label{
+  font-size:10px;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--g-ink-quiet);
+}
+/* The control is a ruled line with a word on it — the same hairline the
+   rest of the page is built from, so the bar reads as part of the page
+   rather than as an interface bolted above it. */
+.archive-filter__field input,
+.archive-filter__field select{
+  width:100%;min-width:0;
+  min-height:44px;padding:0 0 .5rem;
+  font-family:inherit;font-size:15px;color:var(--g-ink);
+  background:transparent;
+  border:0;border-bottom:1px solid var(--g-hair-strong);
+  border-radius:0;
+  transition:border-color var(--motion-ui) ease;
+}
+.archive-filter__field select{
+  appearance:none;-webkit-appearance:none;
+  padding-inline-end:1.4rem;
+  background-image:linear-gradient(45deg,transparent 50%,var(--g-ink-quiet) 50%),
+                   linear-gradient(135deg,var(--g-ink-quiet) 50%,transparent 50%);
+  background-size:5px 5px,5px 5px;
+  background-repeat:no-repeat;
+  background-position:right .35rem center,right calc(.35rem + 4px) center;
+  cursor:pointer;
+}
+[dir="rtl"] .archive-filter__field select{
+  background-position:left calc(.35rem + 4px) center,left .35rem center;
+  background-image:linear-gradient(135deg,transparent 50%,var(--g-ink-quiet) 50%),
+                   linear-gradient(45deg,var(--g-ink-quiet) 50%,transparent 50%);
+}
+.archive-filter__field input:hover,
+.archive-filter__field select:hover,
+.archive-filter__field input:focus,
+.archive-filter__field select:focus{border-bottom-color:var(--g-ink)}
+.archive-filter__field input::placeholder{color:var(--g-ink-40)}
+.archive-filter__field input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
+
+.archive-filter__status{
+  display:flex;align-items:baseline;justify-content:space-between;
+  gap:1.5rem;flex-wrap:wrap;
+}
+.archive-filter__status p{
+  margin:0;font-size:12px;letter-spacing:.03em;color:var(--g-ink-quiet);
+  font-variant-numeric:tabular-nums;
+}
+.archive-filter__count{font-size:15px;color:var(--g-ink)}
+.archive-filter__of{color:var(--g-ink-40)}
+.archive-filter__clear{
+  padding:0 0 3px;border:0;border-bottom:1px solid currentColor;
+  background:none;cursor:pointer;font-family:inherit;
+  font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--g-ink);
+  transition:opacity var(--motion-ui) ease;
+}
+.archive-filter__clear:hover{opacity:.55}
+/* the rule is the affordance, so the target is extended past it */
+.archive-filter__clear{position:relative}
+.archive-filter__clear::after{content:"";position:absolute;inset:-14px -8px}
+
+/* ---- Load more ---- */
+.archive-more{
+  display:grid;justify-items:center;gap:1rem;
+  padding-top:clamp(3rem,6vw,6rem);
+}
+.archive-more__button{
+  display:inline-flex;align-items:center;gap:.7em;
+  min-height:44px;padding:0 2.25rem;
+  border:1px solid var(--g-hair-strong);background:none;cursor:pointer;
+  font-family:inherit;font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--g-ink);
+  transition:border-color var(--motion-ui) ease,background-color var(--motion-ui) ease;
+}
+.archive-more__button:hover{border-color:var(--g-ink);background:rgba(18,17,15,.028)}
+.archive-more__note{
+  margin:0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--g-ink-quiet);font-variant-numeric:tabular-nums;
+}
+
+/* ---- Empty state: text, and the way back ---- */
+.archive-empty{
+  display:grid;justify-items:start;gap:1.1rem;
+  padding:clamp(4rem,9vw,9rem) 0;
+  max-width:46ch;
+}
+.archive-empty h2{
+  font-family:var(--g-serif);font-weight:400;
+  font-size:clamp(1.75rem,3vw,2.75rem);line-height:1.1;letter-spacing:-.03em;
+  margin:0;
+}
+.archive-empty p{margin:0;color:var(--g-ink-quiet);line-height:var(--leading-body)}
+.archive-empty .archive-filter__clear{margin-top:.5rem;justify-self:start}
+
+@media(max-width:900px){
+  .archive-filter__controls{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .archive-filter__field--search{grid-column:1/-1}
+}
+@media(max-width:520px){
+  .archive-filter__controls{grid-template-columns:1fr;gap:1.4rem}
+}

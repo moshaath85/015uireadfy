@@ -49,6 +49,10 @@ export default function HeroRotator({ slides, labels }: { slides: HeroSlide[]; l
       aria-label={labels.selectedWork}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      /* The rotation pauses under the pointer, which left a keyboard visitor
+         with a carousel that moves away from the link they are reading. */
+      onFocus={() => setPaused(true)}
+      onBlur={() => setPaused(false)}
     >
       <div className="hp-hero__type">
         <p className="hp-label">{labels.selectedWork}</p>
