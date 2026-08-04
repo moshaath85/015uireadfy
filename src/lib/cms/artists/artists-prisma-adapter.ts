@@ -387,3 +387,59 @@ export async function archiveArtistPrismaRecord(
     return mapPrismaError("archive", error);
   }
 }
+
+/** The mirror of archiveArtistPrismaRecord: clears archivedAt and returns the
+    record to Hidden rather than guessing it back to Public — restoring is not
+    the same as republishing, and the curator confirms visibility explicitly
+    through the normal edit form afterwards. */
+export async function unarchiveArtistPrismaRecord(
+  artistId: Artist["id"],
+  options: ArtistPrismaSaveOptions,
+): Promise<ArtistPrismaWriteResult> {
+  try {
+    const now = options.now ? new Date(options.now) : new Date();
+    const record = await getTex7PrismaClient().artist.update({
+      where: {
+        organizationId_id: {
+          organizationId: options.organizationId,
+          id: artistId,
+        },
+      },
+      data: {
+        visibilityStatus: VisibilityStatus.Hidden,
+        archivedAt: null,
+        updatedAt: now,
+      },
+    });
+
+    return {
+      ok: true,
+      operation: "archive",
+      target: "postgresql.artist",
+      record: toDomainArtist(record),
+      message: "Artist was restored from the archive.",
+    };
+  } catch (error) {
+    return mapPrismaError("archive", error);
+  }
+}
+
+/** listArchivedArtistPrismaRecords: the archived counterpart of
+    listArtistPrismaRecords, so a restore control has something to list.
+    Newest-archived first — that is the order a curator undoing a recent
+    mistake wants. */
+export async function listArchivedArtistPrismaRecords(organizationId: string): Promise<readonly Artist[]> {
+  try {
+    const records = await getTex7PrismaClient().artist.findMany({
+      where: {
+        organizationId,
+        archivedAt: { not: null },
+      },
+      orderBy: [{ archivedAt: "desc" }],
+    });
+
+    return records.map(toDomainArtist);
+  } catch {
+    return [];
+  }
+}

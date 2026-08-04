@@ -7,12 +7,13 @@ import { ProjectsTable } from "@/components/admin/ProjectsTable";
 import { requireAdminServerAction } from "@/lib/auth/admin-action-security";
 import { getAdminAuthConfig } from "@/lib/auth/admin-auth-runtime";
 import { getCmsModuleCapability } from "@/lib/cms/capabilities/capability-registry";
-import { archiveProjectRecord, listProjectRecords } from "@/lib/cms/production-prisma";
+import { archiveProjectRecord, listArchivedProjectRecords, listProjectRecords, unarchiveProjectRecord } from "@/lib/cms/production-prisma";
 import type { Project } from "@/types";
 
 interface AdminProjectPageProps {
   readonly searchParams?: Promise<{
     readonly q?: string;
+    readonly view?: string;
   }>;
 }
 
@@ -53,24 +54,48 @@ async function archiveProjectAction(formData: FormData): Promise<void> {
   revalidatePath("/admin/projects");
 }
 
+async function restoreProjectAction(formData: FormData): Promise<void> {
+  "use server";
+  const id = String(formData.get("projectId") ?? "").trim();
+  const adminContext = await requireAdminServerAction("projects.update");
+  if (!id) return;
+  await unarchiveProjectRecord(id, { organizationId: adminContext.organizationId });
+  revalidatePath("/projects");
+  revalidatePath("/admin/projects");
+}
+
 export default async function AdminProjectPage({ searchParams }: AdminProjectPageProps) {
   const resolvedSearchParams = await searchParams;
   const organizationId = getAdminAuthConfig()?.organizationId;
   const capability = getCmsModuleCapability("projects");
   const query = normalize(resolvedSearchParams?.q);
-  const records = organizationId ? await listProjectRecords(organizationId) : [];
+  const viewingArchived = resolvedSearchParams?.view === "archived";
+  const records = organizationId
+    ? await (viewingArchived ? listArchivedProjectRecords(organizationId) : listProjectRecords(organizationId))
+    : [];
   const filteredRecords = records.filter((record) => includesSearch(record, query));
 
   return (
     <AdminShell title="Projects" description={capability.messaging.listDescription}>
       <PageToolbar
-        title="Projects"
+        title={viewingArchived ? "Projects — Archived" : "Projects"}
         capability={capability}
-        description="Create and manage PostgreSQL-backed project records."
+        description={viewingArchived
+          ? "Records removed from the live site. Restore returns a record to Hidden — re-publish it from Edit."
+          : "Create and manage PostgreSQL-backed project records."}
         search={<SearchBar label="Search projects" placeholder="Search project records" defaultValue={resolvedSearchParams?.q ?? ""} queryParam="q" />}
-        action={<Link className="admin-button admin-button--primary" href="/admin/projects/new">Create Project</Link>}
+        action={
+          <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+            <Link className="admin-inline-link" href={viewingArchived ? "/admin/projects" : "/admin/projects?view=archived"}>
+              {viewingArchived ? "Back to active projects" : "View archived"}
+            </Link>
+            {!viewingArchived ? (
+              <Link className="admin-button admin-button--primary" href="/admin/projects/new">Create Project</Link>
+            ) : null}
+          </div>
+        }
       />
-      <ProjectsTable projects={filteredRecords} archiveAction={archiveProjectAction} />
+      <ProjectsTable projects={filteredRecords} archiveAction={archiveProjectAction} restoreAction={restoreProjectAction} mode={viewingArchived ? "archived" : "active"} />
     </AdminShell>
   );
 }

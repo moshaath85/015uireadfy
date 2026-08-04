@@ -7,12 +7,13 @@ import { ServicesTable } from "@/components/admin/ServicesTable";
 import { requireAdminServerAction } from "@/lib/auth/admin-action-security";
 import { getAdminAuthConfig } from "@/lib/auth/admin-auth-runtime";
 import { getCmsModuleCapability } from "@/lib/cms/capabilities/capability-registry";
-import { archiveServiceRecord, listServiceRecords } from "@/lib/cms/production-prisma";
+import { archiveServiceRecord, listArchivedServiceRecords, listServiceRecords, unarchiveServiceRecord } from "@/lib/cms/production-prisma";
 import type { Service } from "@/types";
 
 interface AdminServicePageProps {
   readonly searchParams?: Promise<{
     readonly q?: string;
+    readonly view?: string;
   }>;
 }
 
@@ -48,24 +49,48 @@ async function archiveServiceAction(formData: FormData): Promise<void> {
   revalidatePath("/admin/services");
 }
 
+async function restoreServiceAction(formData: FormData): Promise<void> {
+  "use server";
+  const id = String(formData.get("serviceId") ?? "").trim();
+  const adminContext = await requireAdminServerAction("services.update");
+  if (!id) return;
+  await unarchiveServiceRecord(id, { organizationId: adminContext.organizationId });
+  revalidatePath("/services");
+  revalidatePath("/admin/services");
+}
+
 export default async function AdminServicePage({ searchParams }: AdminServicePageProps) {
   const resolvedSearchParams = await searchParams;
   const organizationId = getAdminAuthConfig()?.organizationId;
   const capability = getCmsModuleCapability("services");
   const query = normalize(resolvedSearchParams?.q);
-  const records = organizationId ? await listServiceRecords(organizationId) : [];
+  const viewingArchived = resolvedSearchParams?.view === "archived";
+  const records = organizationId
+    ? await (viewingArchived ? listArchivedServiceRecords(organizationId) : listServiceRecords(organizationId))
+    : [];
   const filteredRecords = records.filter((record) => includesSearch(record, query));
 
   return (
     <AdminShell title="Services" description={capability.messaging.listDescription}>
       <PageToolbar
-        title="Services"
+        title={viewingArchived ? "Services — Archived" : "Services"}
         capability={capability}
-        description="Create and manage PostgreSQL-backed service records."
+        description={viewingArchived
+          ? "Records removed from the live site. Restore returns a record to Hidden — re-publish it from Edit."
+          : "Create and manage PostgreSQL-backed service records."}
         search={<SearchBar label="Search services" placeholder="Search service records" defaultValue={resolvedSearchParams?.q ?? ""} queryParam="q" />}
-        action={<Link className="admin-button admin-button--primary" href="/admin/services/new">Create Service</Link>}
+        action={
+          <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+            <Link className="admin-inline-link" href={viewingArchived ? "/admin/services" : "/admin/services?view=archived"}>
+              {viewingArchived ? "Back to active services" : "View archived"}
+            </Link>
+            {!viewingArchived ? (
+              <Link className="admin-button admin-button--primary" href="/admin/services/new">Create Service</Link>
+            ) : null}
+          </div>
+        }
       />
-      <ServicesTable services={filteredRecords} archiveAction={archiveServiceAction} />
+      <ServicesTable services={filteredRecords} archiveAction={archiveServiceAction} restoreAction={restoreServiceAction} mode={viewingArchived ? "archived" : "active"} />
     </AdminShell>
   );
 }

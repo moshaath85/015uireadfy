@@ -7,13 +7,19 @@ import { ExhibitionStatusBadge } from "./ExhibitionStatusBadge";
 export interface ExhibitionsTableProps {
   readonly exhibitions: readonly Exhibition[];
   readonly archiveAction?: (formData: FormData) => void | Promise<void>;
+  readonly restoreAction?: (formData: FormData) => void | Promise<void>;
+  readonly mode?: "active" | "archived";
 }
 
 function formatValue(value?: string | number | null): string {
   return value === undefined || value === null || value === "" ? "Not configured" : String(value);
 }
 
-function createExhibitionColumns(archiveAction?: ExhibitionsTableProps["archiveAction"]): readonly DataTableColumn<Exhibition>[] {
+function createExhibitionColumns(
+  archiveAction: ExhibitionsTableProps["archiveAction"],
+  restoreAction: ExhibitionsTableProps["restoreAction"],
+  mode: NonNullable<ExhibitionsTableProps["mode"]>,
+): readonly DataTableColumn<Exhibition>[] {
   return [
   {
     key: "title",
@@ -64,27 +70,34 @@ function createExhibitionColumns(archiveAction?: ExhibitionsTableProps["archiveA
       <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
         <Link className="admin-inline-link" href={`/admin/exhibitions/${exhibition.id}/edit`}>Edit</Link>
         <Link className="admin-inline-link" href={`/exhibitions#${exhibition.slug}`}>View</Link>
-        <form action={archiveAction}>
-          <input type="hidden" name="exhibitionId" value={exhibition.id} />
-          <button type="submit" disabled={!archiveAction}>Archive</button>
-        </form>
+        {mode === "active" ? (
+          <form action={archiveAction}>
+            <input type="hidden" name="exhibitionId" value={exhibition.id} />
+            <button type="submit" disabled={!archiveAction}>Archive</button>
+          </form>
+        ) : (
+          <form action={restoreAction}>
+            <input type="hidden" name="exhibitionId" value={exhibition.id} />
+            <button type="submit" disabled={!restoreAction}>Restore</button>
+          </form>
+        )}
       </div>
     )
   }
 ];
 }
 
-export function ExhibitionsTable({ exhibitions, archiveAction }: ExhibitionsTableProps) {
-  const exhibitionColumns = createExhibitionColumns(archiveAction);
+export function ExhibitionsTable({ exhibitions, archiveAction, restoreAction, mode = "active" }: ExhibitionsTableProps) {
+  const exhibitionColumns = createExhibitionColumns(archiveAction, restoreAction, mode);
 
   return (
     <DataTable
-      caption="Exhibitions"
+      caption={mode === "archived" ? "Archived exhibitions" : "Exhibitions"}
       columns={exhibitionColumns}
       rows={exhibitions}
       getRowKey={(exhibition) => exhibition.id}
-      emptyTitle="No exhibition records are currently available."
-      emptyDescription="Exhibition records will appear here when they are ready."
+      emptyTitle={mode === "archived" ? "No exhibitions are currently archived." : "No exhibition records are currently available."}
+      emptyDescription={mode === "archived" ? "Archived records will appear here after they are removed from the live site." : "Exhibition records will appear here when they are ready."}
     />
   );
 }

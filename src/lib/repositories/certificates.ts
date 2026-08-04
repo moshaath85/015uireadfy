@@ -1,6 +1,7 @@
 import {
   findCertificateByVerificationValue,
   listCertificateRecords,
+  listRevokedCertificateRecords,
   getProductionOrganizationId,
 } from "@/lib/cms/production-prisma";
 import type { Certificate } from "@/types";
@@ -8,6 +9,11 @@ import type { Certificate } from "@/types";
 async function getOrganizationCertificates(): Promise<readonly Certificate[]> {
   const organizationId = await getProductionOrganizationId();
   return organizationId ? listCertificateRecords(organizationId) : [];
+}
+
+async function getRevokedCertificates(): Promise<readonly Certificate[]> {
+  const organizationId = await getProductionOrganizationId();
+  return organizationId ? listRevokedCertificateRecords(organizationId) : [];
 }
 
 async function getCertificateByNumber(certificateNumber: string): Promise<Certificate | null> {
@@ -28,6 +34,7 @@ async function getCertificateByVerificationUrl(verificationUrl: string): Promise
 
 export const certificatesRepository = {
   getAll: getOrganizationCertificates,
+  getRevoked: getRevokedCertificates,
   getByNumber: getCertificateByNumber,
   getByVerificationUrl: getCertificateByVerificationUrl,
   findByVerificationValue: findCertificateByVerificationValue,

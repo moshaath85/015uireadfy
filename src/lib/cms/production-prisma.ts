@@ -830,6 +830,38 @@ export async function archiveCollectionRecord(id: string, options: ProductionWri
   }
 }
 
+/** The mirror of archiveCollectionRecord: clears archivedAt and returns the record to
+    Hidden rather than guessing it back to Public — restoring is not the same
+    as republishing, and the curator confirms visibility explicitly through
+    the normal edit form afterwards. */
+export async function unarchiveCollectionRecord(id: string, options: ProductionWriteOptions): Promise<ProductionWriteResult<Collection>> {
+  try {
+    const now = options.now ? new Date(options.now) : new Date();
+    const record = await prisma().collection.update({
+      where: { organizationId_id: { organizationId: options.organizationId, id } },
+      data: { visibilityStatus: VisibilityStatus.Hidden, archivedAt: null, updatedAt: now },
+    });
+    return { ok: true, record: toCollection(record), message: "Collection was restored from the archive." };
+  } catch (error) {
+    return failure(error, "Collection restore did not complete.");
+  }
+}
+
+/** listArchivedCollectionRecords: the archived counterpart of listCollectionRecords, so a restore
+    control has something to list. Newest-archived first — that is the order
+    a curator undoing a recent mistake wants. */
+export async function listArchivedCollectionRecords(organizationId: string): Promise<readonly Collection[]> {
+  try {
+    const records = await prisma().collection.findMany({
+      where: { organizationId, archivedAt: { not: null } },
+      orderBy: [{ archivedAt: "desc" }],
+    });
+    return records.map(toCollection);
+  } catch {
+    return [];
+  }
+}
+
 export async function listExhibitionRecords(organizationId: string): Promise<readonly Exhibition[]> {
   try {
     const records = await prisma().exhibition.findMany({
@@ -1395,6 +1427,38 @@ export async function archiveExhibitionRecord(id: string, options: ProductionWri
   }
 }
 
+/** The mirror of archiveExhibitionRecord: clears archivedAt and returns the record to
+    Hidden rather than guessing it back to Public — restoring is not the same
+    as republishing, and the curator confirms visibility explicitly through
+    the normal edit form afterwards. */
+export async function unarchiveExhibitionRecord(id: string, options: ProductionWriteOptions): Promise<ProductionWriteResult<Exhibition>> {
+  try {
+    const now = options.now ? new Date(options.now) : new Date();
+    const record = await prisma().exhibition.update({
+      where: { organizationId_id: { organizationId: options.organizationId, id } },
+      data: { visibilityStatus: VisibilityStatus.Hidden, archivedAt: null, updatedAt: now },
+    });
+    return { ok: true, record: toExhibition(record), message: "Exhibition was restored from the archive." };
+  } catch (error) {
+    return failure(error, "Exhibition restore did not complete.");
+  }
+}
+
+/** listArchivedExhibitionRecords: the archived counterpart of listExhibitionRecords, so a restore
+    control has something to list. Newest-archived first — that is the order
+    a curator undoing a recent mistake wants. */
+export async function listArchivedExhibitionRecords(organizationId: string): Promise<readonly Exhibition[]> {
+  try {
+    const records = await prisma().exhibition.findMany({
+      where: { organizationId, archivedAt: { not: null } },
+      orderBy: [{ archivedAt: "desc" }],
+    });
+    return records.map(toExhibition);
+  } catch {
+    return [];
+  }
+}
+
 export async function listProjectRecords(organizationId: string): Promise<readonly Project[]> {
   try {
     const records = await prisma().project.findMany({
@@ -1698,6 +1762,38 @@ export async function archiveProjectRecord(id: string, options: ProductionWriteO
   }
 }
 
+/** The mirror of archiveProjectRecord: clears archivedAt and returns the record to
+    Hidden rather than guessing it back to Public — restoring is not the same
+    as republishing, and the curator confirms visibility explicitly through
+    the normal edit form afterwards. */
+export async function unarchiveProjectRecord(id: string, options: ProductionWriteOptions): Promise<ProductionWriteResult<Project>> {
+  try {
+    const now = options.now ? new Date(options.now) : new Date();
+    const record = await prisma().project.update({
+      where: { organizationId_id: { organizationId: options.organizationId, id } },
+      data: { visibilityStatus: VisibilityStatus.Hidden, archivedAt: null, updatedAt: now },
+    });
+    return { ok: true, record: toProject(record), message: "Project was restored from the archive." };
+  } catch (error) {
+    return failure(error, "Project restore did not complete.");
+  }
+}
+
+/** listArchivedProjectRecords: the archived counterpart of listProjectRecords, so a restore
+    control has something to list. Newest-archived first — that is the order
+    a curator undoing a recent mistake wants. */
+export async function listArchivedProjectRecords(organizationId: string): Promise<readonly Project[]> {
+  try {
+    const records = await prisma().project.findMany({
+      where: { organizationId, archivedAt: { not: null } },
+      orderBy: [{ archivedAt: "desc" }],
+    });
+    return records.map(toProject);
+  } catch {
+    return [];
+  }
+}
+
 export async function listServiceRecords(organizationId: string): Promise<readonly Service[]> {
   try {
     const records = await prisma().service.findMany({
@@ -1771,6 +1867,38 @@ export async function archiveServiceRecord(id: string, options: ProductionWriteO
     return { ok: true, record: toService(record), message: "Service was archived in PostgreSQL." };
   } catch (error) {
     return failure(error, "Service archive did not complete.");
+  }
+}
+
+/** The mirror of archiveServiceRecord: clears archivedAt and returns the record to
+    Hidden rather than guessing it back to Public — restoring is not the same
+    as republishing, and the curator confirms visibility explicitly through
+    the normal edit form afterwards. */
+export async function unarchiveServiceRecord(id: string, options: ProductionWriteOptions): Promise<ProductionWriteResult<Service>> {
+  try {
+    const now = options.now ? new Date(options.now) : new Date();
+    const record = await prisma().service.update({
+      where: { organizationId_id: { organizationId: options.organizationId, id } },
+      data: { visibilityStatus: VisibilityStatus.Hidden, archivedAt: null, updatedAt: now },
+    });
+    return { ok: true, record: toService(record), message: "Service was restored from the archive." };
+  } catch (error) {
+    return failure(error, "Service restore did not complete.");
+  }
+}
+
+/** listArchivedServiceRecords: the archived counterpart of listServiceRecords, so a restore
+    control has something to list. Newest-archived first — that is the order
+    a curator undoing a recent mistake wants. */
+export async function listArchivedServiceRecords(organizationId: string): Promise<readonly Service[]> {
+  try {
+    const records = await prisma().service.findMany({
+      where: { organizationId, archivedAt: { not: null } },
+      orderBy: [{ archivedAt: "desc" }],
+    });
+    return records.map(toService);
+  } catch {
+    return [];
   }
 }
 
@@ -1851,6 +1979,38 @@ export async function archiveNewsRecord(id: string, options: ProductionWriteOpti
   }
 }
 
+/** The mirror of archiveNewsRecord: clears archivedAt and returns the record to
+    Hidden rather than guessing it back to Public — restoring is not the same
+    as republishing, and the curator confirms visibility explicitly through
+    the normal edit form afterwards. */
+export async function unarchiveNewsRecord(id: string, options: ProductionWriteOptions): Promise<ProductionWriteResult<News>> {
+  try {
+    const now = options.now ? new Date(options.now) : new Date();
+    const record = await prisma().news.update({
+      where: { organizationId_id: { organizationId: options.organizationId, id } },
+      data: { visibilityStatus: VisibilityStatus.Hidden, archivedAt: null, updatedAt: now },
+    });
+    return { ok: true, record: toNews(record), message: "News item was restored from the archive." };
+  } catch (error) {
+    return failure(error, "News restore did not complete.");
+  }
+}
+
+/** listArchivedNewsRecords: the archived counterpart of listNewsRecords, so a
+    restore control has something to list. Newest-archived first — that is the
+    order a curator undoing a recent mistake wants. */
+export async function listArchivedNewsRecords(organizationId: string): Promise<readonly News[]> {
+  try {
+    const records = await prisma().news.findMany({
+      where: { organizationId, archivedAt: { not: null } },
+      orderBy: [{ archivedAt: "desc" }],
+    });
+    return records.map(toNews);
+  } catch {
+    return [];
+  }
+}
+
 export async function listPublicationRecords(organizationId: string): Promise<readonly Publication[]> {
   try {
     const records = await prisma().publication.findMany({
@@ -1924,6 +2084,38 @@ export async function archivePublicationRecord(id: string, options: ProductionWr
     return { ok: true, record: toPublication(record), message: "Publication was archived in PostgreSQL." };
   } catch (error) {
     return failure(error, "Publication archive did not complete.");
+  }
+}
+
+/** The mirror of archivePublicationRecord: clears archivedAt and returns the record to
+    Hidden rather than guessing it back to Public — restoring is not the same
+    as republishing, and the curator confirms visibility explicitly through
+    the normal edit form afterwards. */
+export async function unarchivePublicationRecord(id: string, options: ProductionWriteOptions): Promise<ProductionWriteResult<Publication>> {
+  try {
+    const now = options.now ? new Date(options.now) : new Date();
+    const record = await prisma().publication.update({
+      where: { organizationId_id: { organizationId: options.organizationId, id } },
+      data: { visibilityStatus: VisibilityStatus.Hidden, archivedAt: null, updatedAt: now },
+    });
+    return { ok: true, record: toPublication(record), message: "Publication was restored from the archive." };
+  } catch (error) {
+    return failure(error, "Publication restore did not complete.");
+  }
+}
+
+/** listArchivedPublicationRecords: the archived counterpart of listPublicationRecords, so a restore
+    control has something to list. Newest-archived first — that is the order
+    a curator undoing a recent mistake wants. */
+export async function listArchivedPublicationRecords(organizationId: string): Promise<readonly Publication[]> {
+  try {
+    const records = await prisma().publication.findMany({
+      where: { organizationId, archivedAt: { not: null } },
+      orderBy: [{ archivedAt: "desc" }],
+    });
+    return records.map(toPublication);
+  } catch {
+    return [];
   }
 }
 
@@ -2312,11 +2504,61 @@ export async function archiveArtworkRecord(id: string, options: ProductionWriteO
   }
 }
 
+/** The mirror of archiveArtworkRecord: clears archivedAt and returns the record to
+    Hidden rather than guessing it back to Public — restoring is not the same
+    as republishing, and the curator confirms visibility explicitly through
+    the normal edit form afterwards. */
+export async function unarchiveArtworkRecord(id: string, options: ProductionWriteOptions): Promise<ProductionWriteResult<Artwork>> {
+  try {
+    const now = options.now ? new Date(options.now) : new Date();
+    const record = await prisma().artwork.update({
+      where: { organizationId_id: { organizationId: options.organizationId, id } },
+      data: { visibilityStatus: VisibilityStatus.Hidden, archivedAt: null, updatedAt: now },
+    });
+    return { ok: true, record: toArtwork(record), message: "Artwork was restored from the archive." };
+  } catch (error) {
+    return failure(error, "Artwork restore did not complete.");
+  }
+}
+
+/** listArchivedArtworkRecords: the archived counterpart of listArtworkRecords, so a restore
+    control has something to list. Newest-archived first — that is the order
+    a curator undoing a recent mistake wants. */
+export async function listArchivedArtworkRecords(organizationId: string): Promise<readonly Artwork[]> {
+  try {
+    const records = await prisma().artwork.findMany({
+      where: { organizationId, archivedAt: { not: null } },
+      orderBy: [{ archivedAt: "desc" }],
+    });
+    return records.map(toArtwork);
+  } catch {
+    return [];
+  }
+}
+
 export async function listCertificateRecords(organizationId: string): Promise<readonly Certificate[]> {
   try {
     const records = await prisma().certificate.findMany({
       where: adminWhere(organizationId),
       orderBy: [{ issuedDate: "desc" }, { updatedAt: "desc" }],
+    });
+    return records.map(toCertificate);
+  } catch {
+    return [];
+  }
+}
+
+/** A certificate has a richer, audit-relevant lifecycle than the other
+    entities (Draft / Issued / Revoked / Reissued), so revoking one is
+    deliberately not paired with an "unarchive" — that would let a legal
+    document silently un-revoke. It still needs to stay findable, though:
+    listCertificateRecords excludes it via adminWhere's archivedAt filter,
+    so this is where a revoked certificate goes to remain visible. */
+export async function listRevokedCertificateRecords(organizationId: string): Promise<readonly Certificate[]> {
+  try {
+    const records = await prisma().certificate.findMany({
+      where: { organizationId, archivedAt: { not: null } },
+      orderBy: [{ archivedAt: "desc" }],
     });
     return records.map(toCertificate);
   } catch {

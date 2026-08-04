@@ -1,9 +1,12 @@
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
 import { AdminShell } from "@/components/admin";
 import { DataTable, type DataTableColumn } from "@/components/admin/DataTable";
 import { PageToolbar } from "@/components/admin/PageToolbar";
 import { SearchBar } from "@/components/admin/SearchBar";
+import { requireAdminServerAction } from "@/lib/auth/admin-action-security";
 import { getCmsModuleCapability } from "@/lib/cms/capabilities/capability-registry";
+import { archiveCertificateRecord } from "@/lib/cms/production-prisma";
 import { artworksRepository } from "@/lib/repositories/artworks";
 import { certificatesRepository } from "@/lib/repositories/certificates";
 import type { Artwork, Certificate } from "@/types";
@@ -11,6 +14,7 @@ import type { Artwork, Certificate } from "@/types";
 interface AdminCertificatesPageProps {
   readonly searchParams?: Promise<{
     readonly q?: string;
+    readonly view?: string;
   }>;
 }
 
@@ -58,7 +62,17 @@ function includesSearch(certificate: Certificate, artworks: readonly Artwork[], 
   ].some((value) => normalize(value).includes(query));
 }
 
-function createCertificateColumns(artworks: readonly Artwork[]): readonly DataTableColumn<Certificate>[] {
+async function revokeCertificateAction(formData: FormData): Promise<void> {
+  "use server";
+  const id = String(formData.get("certificateId") ?? "").trim();
+  const adminContext = await requireAdminServerAction("certificates.update");
+  if (!id) return;
+  await archiveCertificateRecord(id, { organizationId: adminContext.organizationId });
+  revalidatePath("/verify");
+  revalidatePath("/admin/certificates");
+}
+
+function createCertificateColumns(artworks: readonly Artwork[], mode: "active" | "revoked"): readonly DataTableColumn<Certificate>[] {
   return [
   {
     key: "certificate_number",
@@ -99,9 +113,17 @@ function createCertificateColumns(artworks: readonly Artwork[]): readonly DataTa
     key: "actions",
     header: "Actions",
     render: (certificate) => (
-      <Link className="admin-inline-link" href={`/admin/certificates/${certificate.id}/edit`}>
-        Edit
-      </Link>
+      <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+        <Link className="admin-inline-link" href={`/admin/certificates/${certificate.id}/edit`}>
+          Edit
+        </Link>
+        {mode === "active" && certificate.status !== "revoked" ? (
+          <form action={revokeCertificateAction}>
+            <input type="hidden" name="certificateId" value={certificate.id} />
+            <button type="submit">Revoke</button>
+          </form>
+        ) : null}
+      </div>
     ),
   },
 ];
@@ -111,12 +133,13 @@ export default async function AdminCertificatesPage({ searchParams }: AdminCerti
   const resolvedSearchParams = await searchParams;
   const capability = getCmsModuleCapability("certificates");
   const query = normalize(resolvedSearchParams?.q);
+  const viewingRevoked = resolvedSearchParams?.view === "revoked";
   const [certificates, artworks] = await Promise.all([
-    certificatesRepository.getAll(),
+    viewingRevoked ? certificatesRepository.getRevoked() : certificatesRepository.getAll(),
     artworksRepository.getAll(),
   ]);
   const filteredCertificates = certificates.filter((certificate) => includesSearch(certificate, artworks, query));
-  const certificateColumns = createCertificateColumns(artworks);
+  const certificateColumns = createCertificateColumns(artworks, viewingRevoked ? "revoked" : "active");
 
   return (
     <AdminShell
@@ -124,23 +147,36 @@ export default async function AdminCertificatesPage({ searchParams }: AdminCerti
       description={capability.messaging.listDescription}
     >
       <PageToolbar
-        title="Certificates"
+        title={viewingRevoked ? "Certificates — Revoked" : "Certificates"}
         capability={capability}
-        description={capability.messaging.listDescription}
+        description={viewingRevoked
+          ? "Certificates that have been revoked. Revoking is a one-way action: revoked certificates are not reissued from here."
+          : capability.messaging.listDescription}
         search={<SearchBar label="Search certificates" placeholder="Search certificate records" defaultValue={resolvedSearchParams?.q ?? ""} queryParam="q" />}
         action={
-          <Link className="admin-button admin-button--primary" href="/admin/certificates/new">
-            Create Certificate
-          </Link>
+          <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+            <Link className="admin-inline-link" href={viewingRevoked ? "/admin/certificates" : "/admin/certificates?view=revoked"}>
+              {viewingRevoked ? "Back to active certificates" : "View revoked"}
+            </Link>
+            {!viewingRevoked ? (
+              <Link className="admin-button admin-button--primary" href="/admin/certificates/new">
+                Create Certificate
+              </Link>
+            ) : null}
+          </div>
         }
       />
       <DataTable
-        caption="Certificates"
+        caption={viewingRevoked ? "Revoked certificates" : "Certificates"}
         columns={certificateColumns}
         rows={filteredCertificates}
         getRowKey={(certificate) => certificate.id}
-        emptyTitle="No certificate records are currently available."
-        emptyDescription={query ? "No certificate records match the current search query." : "Certificate records will appear here when available."}
+        emptyTitle={viewingRevoked ? "No certificates are currently revoked." : "No certificate records are currently available."}
+        emptyDescription={query
+          ? "No certificate records match the current search query."
+          : viewingRevoked
+            ? "Revoked certificates will appear here."
+            : "Certificate records will appear here when available."}
       />
     </AdminShell>
   );

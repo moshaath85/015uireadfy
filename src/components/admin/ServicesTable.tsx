@@ -7,6 +7,8 @@ import { ServiceStatusBadge } from "./ServiceStatusBadge";
 export interface ServicesTableProps {
   readonly services: readonly Service[];
   readonly archiveAction?: (formData: FormData) => void | Promise<void>;
+  readonly restoreAction?: (formData: FormData) => void | Promise<void>;
+  readonly mode?: "active" | "archived";
 }
 
 function formatValue(value?: string | number | null): string {
@@ -17,7 +19,11 @@ function getFeatureCount(service: Service): number {
   return service.features_en.length;
 }
 
-function createServiceColumns(archiveAction?: ServicesTableProps["archiveAction"]): readonly DataTableColumn<Service>[] {
+function createServiceColumns(
+  archiveAction: ServicesTableProps["archiveAction"],
+  restoreAction: ServicesTableProps["restoreAction"],
+  mode: NonNullable<ServicesTableProps["mode"]>,
+): readonly DataTableColumn<Service>[] {
   return [
   {
     key: "title",
@@ -52,27 +58,34 @@ function createServiceColumns(archiveAction?: ServicesTableProps["archiveAction"
       <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
         <Link className="admin-inline-link" href={`/admin/services/${service.id}/edit`}>Edit</Link>
         <Link className="admin-inline-link" href={`/services#${service.slug}`}>View</Link>
-        <form action={archiveAction}>
-          <input type="hidden" name="serviceId" value={service.id} />
-          <button type="submit" disabled={!archiveAction}>Archive</button>
-        </form>
+        {mode === "active" ? (
+          <form action={archiveAction}>
+            <input type="hidden" name="serviceId" value={service.id} />
+            <button type="submit" disabled={!archiveAction}>Archive</button>
+          </form>
+        ) : (
+          <form action={restoreAction}>
+            <input type="hidden" name="serviceId" value={service.id} />
+            <button type="submit" disabled={!restoreAction}>Restore</button>
+          </form>
+        )}
       </div>
     )
   }
 ];
 }
 
-export function ServicesTable({ services, archiveAction }: ServicesTableProps) {
-  const serviceColumns = createServiceColumns(archiveAction);
+export function ServicesTable({ services, archiveAction, restoreAction, mode = "active" }: ServicesTableProps) {
+  const serviceColumns = createServiceColumns(archiveAction, restoreAction, mode);
 
   return (
     <DataTable
-      caption="Services"
+      caption={mode === "archived" ? "Archived services" : "Services"}
       columns={serviceColumns}
       rows={services}
       getRowKey={(service) => service.id}
-      emptyTitle="No service records are currently available."
-      emptyDescription="Service records will appear here when they are ready."
+      emptyTitle={mode === "archived" ? "No services are currently archived." : "No service records are currently available."}
+      emptyDescription={mode === "archived" ? "Archived records will appear here after they are removed from the live site." : "Service records will appear here when they are ready."}
     />
   );
 }

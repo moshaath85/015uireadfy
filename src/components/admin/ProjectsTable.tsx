@@ -7,13 +7,19 @@ import { ProjectStatusBadge } from "./ProjectStatusBadge";
 export interface ProjectsTableProps {
   readonly projects: readonly Project[];
   readonly archiveAction?: (formData: FormData) => void | Promise<void>;
+  readonly restoreAction?: (formData: FormData) => void | Promise<void>;
+  readonly mode?: "active" | "archived";
 }
 
 function formatValue(value?: string | number | null): string {
   return value === undefined || value === null || value === "" ? "Not configured" : String(value);
 }
 
-function createProjectColumns(archiveAction?: ProjectsTableProps["archiveAction"]): readonly DataTableColumn<Project>[] {
+function createProjectColumns(
+  archiveAction: ProjectsTableProps["archiveAction"],
+  restoreAction: ProjectsTableProps["restoreAction"],
+  mode: NonNullable<ProjectsTableProps["mode"]>,
+): readonly DataTableColumn<Project>[] {
   return [
   {
     key: "title",
@@ -69,27 +75,34 @@ function createProjectColumns(archiveAction?: ProjectsTableProps["archiveAction"
       <div style={{ display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
         <Link className="admin-inline-link" href={`/admin/projects/${project.id}/edit`}>Edit</Link>
         <Link className="admin-inline-link" href={`/projects#${project.slug}`}>View</Link>
-        <form action={archiveAction}>
-          <input type="hidden" name="projectId" value={project.id} />
-          <button type="submit" disabled={!archiveAction}>Archive</button>
-        </form>
+        {mode === "active" ? (
+          <form action={archiveAction}>
+            <input type="hidden" name="projectId" value={project.id} />
+            <button type="submit" disabled={!archiveAction}>Archive</button>
+          </form>
+        ) : (
+          <form action={restoreAction}>
+            <input type="hidden" name="projectId" value={project.id} />
+            <button type="submit" disabled={!restoreAction}>Restore</button>
+          </form>
+        )}
       </div>
     )
   }
 ];
 }
 
-export function ProjectsTable({ projects, archiveAction }: ProjectsTableProps) {
-  const projectColumns = createProjectColumns(archiveAction);
+export function ProjectsTable({ projects, archiveAction, restoreAction, mode = "active" }: ProjectsTableProps) {
+  const projectColumns = createProjectColumns(archiveAction, restoreAction, mode);
 
   return (
     <DataTable
-      caption="Projects"
+      caption={mode === "archived" ? "Archived projects" : "Projects"}
       columns={projectColumns}
       rows={projects}
       getRowKey={(project) => project.id}
-      emptyTitle="No project records are currently available."
-      emptyDescription="Project records will appear here when they are ready."
+      emptyTitle={mode === "archived" ? "No projects are currently archived." : "No project records are currently available."}
+      emptyDescription={mode === "archived" ? "Archived records will appear here after they are removed from the live site." : "Project records will appear here when they are ready."}
     />
   );
 }
