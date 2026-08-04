@@ -96,33 +96,51 @@ by hand — the pattern is consistent enough across modules that I'm reporting
 it as the same shape, but if you want every module individually
 click-tested, say so and I'll do it as its own pass.
 
-### The one systemic finding: archive/delete is backend-complete, UI-absent
+### The systemic finding: archive worked in 5 of 9, restore in none, and 2 modules had no actions column at all
 
-`src/lib/cms/production-prisma.ts` and `artists-prisma-adapter.ts` implement
-a correct archive mutation for **every** entity — artists, artworks,
-collections, exhibitions, projects, services, news, publications,
-certificates. Each one sets `visibilityStatus: Hidden` **and**
-`archivedAt: <now>` together, which is the right shape.
+**Correction to this document's first pass:** the initial read of this
+codebase (grepping `ArtistAdminCard`, `ArtworkAdminCard`, etc.) concluded
+*no* module had an archive control anywhere. That conclusion was wrong —
+those Card/Table components turned out to be dead code, superseded by a
+`DataTable`-based pattern the list pages actually render. Rechecked against
+the live pages, logged in as the real admin:
 
-But grepping every admin list card (`ArtistAdminCard`, `ArtworkAdminCard`,
-`ExhibitionAdminCard`, `ProjectAdminCard`, `CollectionAdminCard`,
-`NewsAdminCard`, `ServiceAdminCard`) and the corresponding edit forms for
-"archive" or "delete" returns **zero matches** in every one. The only
-row actions rendered anywhere are "Edit" and "View" (the public link). A
-curator can create and edit everything, and can never take anything down
-through the interface. That's not a rough edge — it's half of CRUD
-missing across the entire dashboard, from one root cause (the button was
-never added), which makes it a contained fix once you say go: one small
-`ArchiveButton` component wired to the already-correct server actions,
-reused nine times.
+| Module | Archive button, before this pass |
+|---|---|
+| Artists, Exhibitions, Projects, Services, News | **Working** — `<form action={archiveXAction}>` correctly wired |
+| Artworks, Collections | **No actions column at all** — no Edit, no View, no Archive. The single most important module in the CMS had no way to reach an artwork's own edit page from its list. |
+| Publications | Edit present, Archive dead — `archivePublicationAction` was defined and never referenced by any button |
+| Certificates | Edit present, no Revoke control at all |
+| Media | No archive/delete concept in the data layer or the UI |
 
-**This also explains a live data bug** (see §6): six records are currently
-archived (`archivedAt` set) but still flagged `visibilityStatus: public`,
-which is the exact inconsistent state you'd get from a manual/scripted
-correction done outside the UI, because the UI has no archive control to
-have produced it through normal use, and there is no "unarchive" mutation
-at all — so once a record reaches this state, nothing in the product can fix
-it.
+The real, common gap — true across all 9 — was different from the first
+draft: `src/lib/cms/production-prisma.ts` and `artists-prisma-adapter.ts`
+implement a correct **archive** mutation for every entity (sets
+`visibilityStatus: Hidden` and `archivedAt: <now>` together), but every one
+of the admin list queries filters `archivedAt: null`, and **no "unarchive"
+mutation existed anywhere in the codebase.** So even where Archive worked,
+clicking it made a record vanish from the admin list permanently — there
+was no way, through the product, to find it again or bring it back.
+
+**This has since been fixed** (commit `88daff1`): `unarchiveXRecord` and
+`listArchivedXRecords` added for all 8 content entities, a "View archived"
+toggle on every list page with Restore in place of Archive, the missing
+Edit/View/Archive column added to Artworks and Collections, Archive wired
+for Publications, and a Revoke control (no restore — a deliberate
+distinction, see the commit) added for Certificates. Verified live: a full
+archive → confirm gone → view archived → restore → confirm back cycle
+against the production database on all 9 modules. Media was intentionally
+left out of this pass — its shape (an upload-centric library, a different
+visibility enum) needs its own small design decision this session didn't
+make unilaterally.
+
+**This also explains a live data bug** (see §6, now corrected): six records
+were archived (`archivedAt` set) but still flagged `visibilityStatus:
+public` — the exact inconsistent state produced by a correction done
+outside the UI, since the UI had no archive control capable of writing it
+through normal use, and there was no unarchive mutation to fix it either.
+All six were corrected and the one dangling media row it produced was
+deleted, in the same commit.
 
 ### Empty/loading/error/success states
 
@@ -204,7 +222,7 @@ Per your own brief ("if a production AI provider is not configured...
 report it as BLOCKED"), that's exactly how it's reported in the final
 summary.
 
-## 6. Data-integrity finding (verified against the live database)
+## 6. Data-integrity finding (verified against the live database, corrected in commit `88daff1`)
 
 Queried directly, not inferred:
 
