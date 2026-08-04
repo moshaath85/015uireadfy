@@ -365,6 +365,27 @@ body{background:var(--g-paper);color:var(--g-ink)}
 
 
 /* ============================================================
+   ARCHIVAL SCANS
+   Twenty-four works exist only as scans of a few hundred pixels
+   (docs/LOW_RES_ARTWORK_IMAGE_AUDIT.md). Nothing here enlarges,
+   sharpens or blurs them. The plate stops pretending to be a wall
+   and becomes a mount the size of the work — which is what a small
+   work gets in a room, and it is honest about what is on file.
+   Delete this block when the re-scan lands; the attribute goes away
+   with it, because it is derived from the source dimensions.
+   ============================================================ */
+.artwork-experience-media--hero[data-source-scale="archival"]{
+  height:auto;
+  min-height:0;
+  width:fit-content;
+  max-width:100%;
+  min-width:min(320px,100%);
+  margin-inline:auto;
+  padding:clamp(34px,5vw,76px);
+}
+
+
+/* ============================================================
    ARTIST MONOGRAM
    Sixty of seventy artists have no portrait on file. This is the
    plate that stands in for one: the artist's own initials on the
