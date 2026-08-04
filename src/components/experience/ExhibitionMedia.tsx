@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ArtistMonogram } from '@/components/public/ArtistMonogram';
 import type { ExhibitionExperienceMedia as ExhibitionMediaData } from '@/lib/experience/exhibition-experience';
 
 interface ExhibitionMediaProps {
@@ -27,6 +28,10 @@ export function ExhibitionMedia({ fallbackLabel, media, priority = false, varian
           src={visibleMedia.url}
           width={visibleMedia.width ?? undefined}
         />
+      ) : variant === 'artist' ? (
+        /* A missing portrait is answered by the artist's own initials, not by
+           a placeholder that says the gallery has not finished. */
+        <ArtistMonogram name={fallbackLabel} />
       ) : (
         <span
           aria-label={`${fallbackLabel} image unavailable`}

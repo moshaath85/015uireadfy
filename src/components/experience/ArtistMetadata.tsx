@@ -1,5 +1,6 @@
 interface ArtistMetadataProps {
   birthYear?: number | null;
+  bornLabel?: string;
   discipline?: string | null;
   nationality?: string | null;
   representationLabel: string | null;
@@ -12,13 +13,14 @@ function joinMetadata(values: Array<string | null | undefined>): string {
 
 export function ArtistMetadata({
   birthYear,
+  bornLabel = 'Born',
   discipline,
   nationality,
   representationLabel,
   variant,
 }: ArtistMetadataProps) {
   const primary = joinMetadata([discipline, nationality]);
-  const biographical = birthYear ? `Born ${birthYear}` : null;
+  const biographical = birthYear ? `${bornLabel} ${birthYear}` : null;
 
   if (variant === 'identity') {
     return (

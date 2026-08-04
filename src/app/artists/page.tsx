@@ -2,9 +2,26 @@ import { ArtistRoster, type ArtistRosterItem } from '@/components/experience';
 import { artistsRepository } from '@/lib/repositories/artists';
 import { artworksRepository } from '@/lib/repositories/artworks';
 import { mediaRepository } from '@/lib/repositories/media';
+import { getServerLanguage, getText } from '@/lib/i18n/server-language';
+import type { Language } from '@/lib/i18n/language';
 import type { Artwork } from '@/types';
 import type { Metadata } from 'next';
 import { BreadcrumbListLd } from '@/lib/jsonld';
+
+const T = {
+  title: { ar: 'قائمة الفنانين', en: 'The roster' },
+  intro_1: { ar: 'مجموعة منتقاة من الفنانين الذين يمثلهم غاليري ٠١٥.', en: 'A curated collective of artists represented by 015.' },
+  intro_2: { ar: 'لكل صوت خصوصيته. ومعًا يصوغون رؤيتنا.', en: 'Each voice is distinct. Together, they shape our vision.' },
+  viewArtist: { ar: 'عرض الفنان', en: 'View artist' },
+  selectedWorks: { ar: 'أعمال مختارة لـ', en: 'Selected works by' },
+  born: { ar: 'مواليد', en: 'Born' },
+  exclusive: { ar: 'فنان حصري', en: 'Exclusive Artist' },
+  collaborating: { ar: 'فنان متعاون', en: 'Collaborating Artist' },
+};
+
+function t(key: keyof typeof T, lang: Language): string {
+  return lang === 'ar' ? T[key].ar : T[key].en;
+}
 
 export const metadata: Metadata = {
   title: 'Artists | Gallery 015',
@@ -16,14 +33,14 @@ export const dynamic = 'force-dynamic';
 /* Only returns a label where the relationship actually distinguishes an
    artist. Every artist on a gallery's roster is a gallery artist, so the
    generic case says nothing and repeats down the whole page. */
-function representationLabel(status: string): string | null {
+function representationLabel(status: string, lang: Language): string | null {
   switch (status.trim().toLowerCase()) {
     case 'represented':
     case 'exclusive':
-      return 'Exclusive Artist';
+      return t('exclusive', lang);
     case 'collaborating':
     case 'non_exclusive':
-      return 'Collaborating Artist';
+      return t('collaborating', lang);
     default:
       return null;
   }
@@ -35,6 +52,7 @@ function compareWorks(left: Artwork, right: Artwork): number {
 }
 
 export default async function ArtistsPage() {
+  const lang = await getServerLanguage();
   const [artists, artworks] = await Promise.all([
     artistsRepository.getPublicAll(),
     artworksRepository.getPublicAll(),
@@ -49,23 +67,29 @@ export default async function ArtistsPage() {
       mediaRepository.getPublicArtistProfileMedia(artist),
       Promise.all(artistWorks.map(async (work) => {
         const media = await mediaRepository.getPublicArtworkPrimaryMedia(work);
+        const title = getText(work.title_ar, work.title_en, lang);
         return {
           id: work.slug,
-          title: work.title_en,
-          image: media ? { src: media.url, alt: media.alt_en || work.title_en } : null,
+          title,
+          image: media ? { src: media.url, alt: getText(media.alt_ar, media.alt_en, lang) || title } : null,
         };
       })),
     ]);
 
+    /* The roster read English names, biographies and nationalities on the
+       Arabic page. That was always wrong; it became visible once the missing
+       portraits started resolving to initials drawn from the name. */
+    const name = getText(artist.name_ar, artist.name_en, lang);
+
     return {
       id: artist.id,
       slug: artist.slug,
-      name: artist.name_en,
-      biography: artist.bio_en,
+      name,
+      biography: getText(artist.bio_ar, artist.bio_en, lang),
       birthYear: artist.birth_year > 1900 ? artist.birth_year : null,
-      nationality: artist.nationality_en,
-      representationLabel: representationLabel(artist.representation_status),
-      profileImage: profileMedia ? { src: profileMedia.url, alt: profileMedia.alt_en || artist.name_en } : null,
+      nationality: getText(artist.nationality_ar, artist.nationality_en, lang),
+      representationLabel: representationLabel(artist.representation_status, lang),
+      profileImage: profileMedia ? { src: profileMedia.url, alt: getText(profileMedia.alt_ar, profileMedia.alt_en, lang) || name } : null,
       works: workItems,
     };
   }));
@@ -75,11 +99,18 @@ export default async function ArtistsPage() {
       <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }, { name: 'Artists', url: 'https://gallery015.com/artists' }]} />
     <main className="artist-roster-page">
       <header className="artist-roster-hero">
-        <h1>The roster</h1>
-        <p>A curated collective of artists represented by 015.<br />Each voice is distinct. Together, they shape our vision.</p>
+        <h1>{t('title', lang)}</h1>
+        <p>{t('intro_1', lang)}<br />{t('intro_2', lang)}</p>
       </header>
-      <section className="artist-roster-section" aria-label="Artists roster">
-        <ArtistRoster artists={items} />
+      <section className="artist-roster-section" aria-label={t('title', lang)}>
+        <ArtistRoster
+          artists={items}
+          labels={{
+            viewArtist: t('viewArtist', lang),
+            selectedWorks: t('selectedWorks', lang),
+            born: t('born', lang),
+          }}
+        />
       </section>
     </main>
     </>

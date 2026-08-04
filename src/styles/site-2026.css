@@ -365,6 +365,55 @@ body{background:var(--g-paper);color:var(--g-ink)}
 
 
 /* ============================================================
+   ARTIST MONOGRAM
+   Sixty of seventy artists have no portrait on file. This is the
+   plate that stands in for one: the artist's own initials on the
+   warm ground, at whatever size its parent figure gives it.
+   Never a silhouette, never a generated face.
+   ============================================================ */
+
+.artist-monogram{
+  display:grid;place-items:center;
+  width:100%;height:100%;min-height:100%;
+  background:var(--g-monogram-ground);
+  box-shadow:inset 0 0 0 1px var(--g-hair);
+  /* so the mark can be sized against the plate rather than the page */
+  container-type:inline-size;
+}
+.artist-monogram__mark{
+  font-family:var(--g-serif);
+  font-weight:400;
+  line-height:1;
+  letter-spacing:.06em;
+  /* indent the tracking back off the right edge so the mark stays centred */
+  text-indent:.06em;
+  color:var(--g-monogram-mark);
+  /* the flat value is the floor for engines without container units */
+  font-size:1.75rem;
+  font-size:clamp(1.05rem,26cqi,4.25rem);
+  user-select:none;
+}
+/* The house mark is a fallback for the fallback — a name that yields no
+   letters at all — and is set quieter still so it never reads as initials. */
+.artist-monogram__mark--house{
+  font-family:var(--font-sans);
+  font-size:.85rem;
+  font-size:clamp(.7rem,11cqi,1.1rem);
+  letter-spacing:.22em;
+  text-indent:.22em;
+  color:var(--g-ink-40);
+}
+/* Arabic initials are set in the Arabic face; the display serif is Latin-only.
+   Keyed on the letters, not on the page direction — an Arabic page can still
+   carry a Latin name, and that name keeps the serif. */
+.artist-monogram__mark:lang(ar){font-family:var(--font-sans-arabic);letter-spacing:.02em;text-indent:0}
+
+/* The roster's portrait plates already carry their own hairline, so the
+   monogram must not draw a second one inside it. */
+.artist-roster-media .artist-monogram{box-shadow:none}
+
+
+/* ============================================================
    ARCHIVE FILTER — /artworks
    A reading room's index card drawer, not a shop's sidebar.
    One line of hairline-ruled controls, the count, and a way out.
@@ -400,21 +449,18 @@ body{background:var(--g-paper);color:var(--g-ink)}
   border-radius:0;
   transition:border-color var(--motion-ui) ease;
 }
+/* One drawn chevron rather than two CSS triangles pretending to be one —
+   inlined so it costs no request and cannot fail to load. */
 .archive-filter__field select{
   appearance:none;-webkit-appearance:none;
-  padding-inline-end:1.4rem;
-  background-image:linear-gradient(45deg,transparent 50%,var(--g-ink-quiet) 50%),
-                   linear-gradient(135deg,var(--g-ink-quiet) 50%,transparent 50%);
-  background-size:5px 5px,5px 5px;
+  padding-inline-end:1.6rem;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1.2 5 5.2 9 1.2' fill='none' stroke='%2312110F' stroke-opacity='.55' stroke-width='1.1'/%3E%3C/svg%3E");
   background-repeat:no-repeat;
-  background-position:right .35rem center,right calc(.35rem + 4px) center;
+  background-size:10px 7px;
+  background-position:right .1rem center;
   cursor:pointer;
 }
-[dir="rtl"] .archive-filter__field select{
-  background-position:left calc(.35rem + 4px) center,left .35rem center;
-  background-image:linear-gradient(135deg,transparent 50%,var(--g-ink-quiet) 50%),
-                   linear-gradient(45deg,var(--g-ink-quiet) 50%,transparent 50%);
-}
+[dir="rtl"] .archive-filter__field select{background-position:left .1rem center}
 .archive-filter__field input:hover,
 .archive-filter__field select:hover,
 .archive-filter__field input:focus,

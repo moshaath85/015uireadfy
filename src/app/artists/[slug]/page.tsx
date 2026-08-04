@@ -8,6 +8,7 @@ import { SITE } from '@/lib/metadata';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 import type { Language } from '@/lib/i18n/language';
 import { PersonLd, BreadcrumbListLd } from '@/lib/jsonld';
+import { ArtistMonogram } from '@/components/public/ArtistMonogram';
 
 interface Props { params: Promise<{ slug: string }> }
 export const dynamic = 'force-dynamic';
@@ -100,14 +101,10 @@ export default async function ArtistDetailPage({ params }: Props) {
           {profileMedia ? (
             <img src={profileMedia.url} alt={profileMedia.alt_en || artist.name_en} />
           ) : (
-            <span
-              aria-label={`${artist.name_en} image unavailable`}
-              className="experience-detail__media-fallback"
-              role="img"
-            >
-              <span aria-hidden="true">015</span>
-              <small>Image forthcoming</small>
-            </span>
+            /* An artist's own page always carries a plate. Where there is no
+               photograph it carries the artist's initials instead — which is
+               what a wall label does, and it is never an empty rectangle. */
+            <ArtistMonogram name={name} />
           )}
         </figure>
       </section>

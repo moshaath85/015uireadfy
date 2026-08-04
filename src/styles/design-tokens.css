@@ -120,6 +120,13 @@
      --g-ink-40 stays as it is: it is correct for rules and hairlines. */
   --g-ink-quiet: rgba(18, 17, 15, 0.60);
 
+  /* Ground for the monogram that stands in for a missing portrait. It sits
+     between the two warm stops the detail plate's gradient already uses
+     (#F7F5F2 and #F0EDE9), so a monogram beside a photograph reads as the
+     same material, one shade back. */
+  --g-monogram-ground: #F4F1ED;
+  --g-monogram-mark: rgba(18, 17, 15, 0.45);
+
   /* ---- Borders & Shadows ---- */
   --border-hairline: 1px solid var(--g-hair);
   --border-hairline-strong: 1px solid var(--g-hair-strong);

@@ -23,14 +23,21 @@ export interface ArtistRosterItem {
   works: ArtistRosterWork[];
 }
 
+export interface ArtistRosterLabels {
+  viewArtist: string;
+  selectedWorks: string;
+  born: string;
+}
+
 interface ArtistEntryProps {
   artist: ArtistRosterItem;
   index: number;
   isOpen: boolean;
+  labels: ArtistRosterLabels;
   onToggle: (artistId: string) => void;
 }
 
-export function ArtistEntry({ artist, index, isOpen, onToggle }: ArtistEntryProps) {
+export function ArtistEntry({ artist, index, isOpen, labels, onToggle }: ArtistEntryProps) {
   const number = String(index + 1).padStart(2, '0');
 
   return (
@@ -57,6 +64,7 @@ export function ArtistEntry({ artist, index, isOpen, onToggle }: ArtistEntryProp
             birthYear={artist.birthYear}
             discipline={artist.discipline}
             nationality={artist.nationality}
+            bornLabel={labels.born}
             representationLabel={artist.representationLabel}
             variant="identity"
           />
@@ -72,15 +80,16 @@ export function ArtistEntry({ artist, index, isOpen, onToggle }: ArtistEntryProp
             birthYear={artist.birthYear}
             discipline={artist.discipline}
             nationality={artist.nationality}
+            bornLabel={labels.born}
             representationLabel={artist.representationLabel}
             variant="panel"
           />
           <p className="artist-roster-entry__biography">{artist.biography}</p>
           <Link className="artist-roster-entry__link" href={`/artists/${artist.slug}`}>
-            <span>View artist</span><span aria-hidden="true">↗</span>
+            <span>{labels.viewArtist}</span><span aria-hidden="true">↗</span>
           </Link>
           {artist.works.length ? (
-            <div className="artist-roster-entry__works" aria-label={`Selected works by ${artist.name}`}>
+            <div className="artist-roster-entry__works" aria-label={`${labels.selectedWorks} ${artist.name}`}>
               {artist.works.map((work) => (
                 <Link href={`/artworks/${work.id}`} key={work.id} aria-label={`View ${work.title}`}>
                   <ArtistMedia image={work.image} variant="work" fallbackLabel={work.title} />

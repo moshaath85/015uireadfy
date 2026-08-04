@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ArtistMonogram } from '@/components/public/ArtistMonogram';
 
 export interface ArtistMediaSource {
   src: string;
@@ -29,11 +30,15 @@ export function ArtistMedia({ image, priority = false, variant, fallbackLabel }:
           onError={() => setFailedSource(visibleImage.src)}
           src={visibleImage.src}
         />
-      ) : (
+      ) : variant === 'work' ? (
+        /* An artwork plate is not a portrait: a monogram there would read as
+           the work's own title. It keeps the house mark. */
         <span className="artist-roster-media__fallback" role="img" aria-label={`${fallbackLabel} image unavailable`}>
           <span aria-hidden="true">015</span>
           <small>Image forthcoming</small>
         </span>
+      ) : (
+        <ArtistMonogram name={fallbackLabel} />
       )}
     </figure>
   );

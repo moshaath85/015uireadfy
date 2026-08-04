@@ -1,13 +1,14 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { ArtistEntry, type ArtistRosterItem } from './ArtistEntry';
+import { ArtistEntry, type ArtistRosterItem, type ArtistRosterLabels } from './ArtistEntry';
 
 interface ArtistRosterProps {
   artists: ArtistRosterItem[];
+  labels: ArtistRosterLabels;
 }
 
-export function ArtistRoster({ artists }: ArtistRosterProps) {
+export function ArtistRoster({ artists, labels }: ArtistRosterProps) {
   const [openArtistId, setOpenArtistId] = useState<string | null>(null);
 
   const handleToggle = useCallback((artistId: string) => {
@@ -26,6 +27,7 @@ export function ArtistRoster({ artists }: ArtistRosterProps) {
           index={index}
           isOpen={openArtistId === artist.id}
           key={artist.id}
+          labels={labels}
           onToggle={handleToggle}
         />
       ))}

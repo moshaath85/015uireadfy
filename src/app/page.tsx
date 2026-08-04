@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import '@/styles/home-2026.css';
 import HeroRotator, { type HeroSlide } from '@/components/public/home/HeroRotator';
+import { ArtistMonogram } from '@/components/public/ArtistMonogram';
 import { OrganizationLd, ArtGalleryLd, BreadcrumbListLd } from '@/lib/jsonld';
 import { artistsRepository } from '@/lib/repositories/artists';
 import { artworksRepository } from '@/lib/repositories/artworks';
@@ -261,7 +262,11 @@ export default async function HomePage() {
               {portraitArtists.map(({ artist, portrait }) => (
                 <Link href={`/artists/${artist.slug}`} key={artist.id}>
                   <figure className="hp-artist__media">
-                    <img src={portrait!.url} alt={portrait!.alt_en || artist.name_en} loading="lazy" decoding="async" />
+                    {portrait ? (
+                      <img src={portrait.url} alt={portrait.alt_en || artist.name_en} loading="lazy" decoding="async" />
+                    ) : (
+                      <ArtistMonogram name={artist.name_en} />
+                    )}
                   </figure>
                   <div className="hp-artist__cap">
                     <h3>{artist.name_en}</h3>
