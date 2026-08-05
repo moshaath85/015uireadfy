@@ -59,15 +59,14 @@ export default function AutoArtworkFrame({ imageUrl, position, title, artist, me
       if (!ok) return;
       const ar = img.naturalWidth / img.naturalHeight;
       let fw: number, fh: number;
-      const scaleCfg = hero ? FRAME_SCALE.hero : FRAME_SCALE.secondary;
       const physical = physicalDimensions?.match(/([\d.]+)\s*[×xX]\s*([\d.]+)/);
       const physicalW = physical ? Number(physical[1]) / 100 : 0;
       const physicalH = physical ? Number(physical[2]) / 100 : 0;
       if (physicalW > 0 && physicalH > 0) {
-        const scale = Math.min(scaleCfg.physicalScale, scaleCfg.physicalMax / Math.max(physicalW, physicalH));
-        fw = physicalW * scale; fh = physicalH * scale;
-      } else if (ar >= 1) { fw = hero ? 2.2 : 1.45; fh = fw / ar; }
-      else { fh = hero ? 2.4 : 1.7; fw = fh * ar; }
+        // 1 recorded metre = 1 model metre. No per-work or per-tier inflation.
+        fw = physicalW; fh = physicalH;
+      } else if (ar >= 1) { fw = FRAME_SCALE.unrecordedLongEdge; fh = fw / ar; }
+      else { fh = FRAME_SCALE.unrecordedLongEdge; fw = fh * ar; }
       fw = Math.max(MIN, Math.min(MAX_W, fw));
       fh = Math.max(MIN, Math.min(MAX_H, fh));
       const border = detectBorder(img);
