@@ -24,18 +24,24 @@ function WallPlane({ size, position, rotation, material }: { size: [number, numb
   return <mesh position={position} rotation={rotation} receiveShadow><planeGeometry args={size} /><primitive object={material} attach="material" /></mesh>;
 }
 
+const HERO_AND_SIDE_WALL_IDS = ['aw-013', 'aw-128', 'aw-175', 'aw-029'];
+
 export default function GalleryHall({ artworks }: { artworks: ArtworkData[] }) {
   const curatedById = new Map(artworks.map((work) => [work.id, work]));
-  const curated = ['aw-013', 'aw-128', 'aw-175', 'aw-029']
+  const curated = HERO_AND_SIDE_WALL_IDS
     .map((id) => curatedById.get(id))
     .filter(Boolean) as ArtworkData[];
   const [heroLeft, heroRight, leftWall, rightWall] = curated;
-  const supporting = curated.length >= 8 ? curated.slice(4) : [
-    { id: 'aw-006', slug: 'abdulrahman-al-suleiman-01', title: 'Untitled', artist: 'Abdulrahman Al-Suleiman', year: 2020, medium: 'Mixed media', dimensions: 'Dimensions available on request', imageUrl: '/images/artworks/abdulrahman-al-suleiman-01.png', sceneRole: 'secondary' as const },
-    { id: 'aw-037', slug: 'fahad-al-hijailan-01', title: 'Untitled', artist: 'Fahad Al-Hijailan', year: 2020, medium: 'Mixed media', dimensions: 'Dimensions available on request', imageUrl: '/images/artworks/fahad-al-hijailan-01.png', sceneRole: 'secondary' as const },
-    { id: 'aw-030', slug: 'abdullah-al-barrak-02', title: 'The Horse Riders', artist: 'Abdullah Al-Barrak', year: 2020, medium: 'Oil on Canvas', dimensions: '55 × 45 cm', imageUrl: '/images/artworks/abdullah-al-barrak-02.png', sceneRole: 'secondary' as const },
-    { id: 'aw-038', slug: 'abdulrahman-al-suleiman-02', title: 'Untitled', artist: 'Abdulrahman Al-Suleiman', year: 2020, medium: 'Mixed media', dimensions: 'Dimensions available on request', imageUrl: '/images/artworks/abdulrahman-al-suleiman-02.png', sceneRole: 'secondary' as const },
-  ];
+  /* The remaining works in the exhibition, in the order the page already
+     curated them — src/app/museum/page.tsx resolves every entry's real
+     image and real dimensions from the database (or the offline catalog if
+     the database is unreachable), so there is nothing left to guess here.
+     A hand-typed fallback used to live in this spot with the wrong file
+     extension on every entry (.png where the real assets are .webp) and
+     "Dimensions available on request" hardcoded onto two works that do
+     have real dimensions on file — a second, silently stale copy of data
+     the page already got right once. */
+  const supporting = artworks.filter((work) => !HERO_AND_SIDE_WALL_IDS.includes(work.id));
   const logoTexture = useTexture('/brand/015-logo-white.svg');
   const { wallMaterial, floorMaterial, ceilingMaterial } = useMuseumMaterials();
 
