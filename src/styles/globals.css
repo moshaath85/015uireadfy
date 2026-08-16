@@ -2555,7 +2555,7 @@ body:has(.g-nav-overlay.is-open) .g-header{z-index:60}
 .g-footer__bottom{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;max-width:var(--content-max);margin:clamp(3rem,5vw,5rem) auto 0;padding-top:1.2rem;border-top:1px solid rgba(255,255,255,.1);font-size:var(--type-label-small);letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--g-surface-dark-text);opacity:.5}.g-footer__bottom span:nth-child(2){text-align:center}.g-footer__bottom a{text-align:right}.g-footer__legal{display:flex;justify-content:flex-end;gap:1.25rem}
 
 /* Header responsive */
-@media(max-width:1120px){
+@media(max-width:1300px){
   .g-header{grid-template-columns:1fr auto;min-height:72px;gap:1rem}
   .g-header__nav{display:none}
   .g-header__cta{display:none}

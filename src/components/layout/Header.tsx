@@ -14,6 +14,7 @@ const mainLinks = [
   { href: '/projects', label: 'Projects', labelAr: 'المشاريع' },
   { href: '/news', label: 'Journal', labelAr: 'المجلة' },
   { href: '/services', label: 'Services', labelAr: 'الخدمات' },
+  { href: '/verify', label: 'Certificates', labelAr: 'الشهادات' },
 ];
 
 const secondaryLinks = [
