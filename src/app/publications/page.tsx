@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: 'Catalogues, texts, and published references connected to the Gallery 015 programme.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat('en', {

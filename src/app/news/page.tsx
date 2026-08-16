@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: 'Essays, criticism, interviews, and gallery notes on the Saudi and regional art scene — the 015 Journal.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 const monthYear = (value: string, lang: Language) => {
   const date = new Date(value);

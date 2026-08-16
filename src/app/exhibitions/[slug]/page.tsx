@@ -6,7 +6,7 @@ import type { ExhibitionExperienceData } from '@/lib/experience/exhibition-exper
 import { ExhibitionEventLd, BreadcrumbListLd } from '@/lib/jsonld';
 
 interface Props { params: Promise<{ slug: string }> }
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 function localizeData(data: ExhibitionExperienceData, ar: boolean): ExhibitionExperienceData {
   // English view shows no Arabic: the secondary Arabic title line is

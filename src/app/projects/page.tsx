@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: 'Commissioned art programmes for institutions, hospitals, and cultural landmarks across Saudi Arabia.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export default async function ProjectsPage() {
   const lang = await getServerLanguage();

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: 'Current, forthcoming, and archival exhibitions presented by Gallery 015 with clarity and context.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 const longDate = (value: string, lang: Language) => {
   const date = new Date(value);

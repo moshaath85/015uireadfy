@@ -8,7 +8,7 @@ import type { ArtworkExperienceData } from '@/lib/experience/artwork-experience'
 import { VisualArtworkLd, BreadcrumbListLd } from '@/lib/jsonld';
 
 interface Props { params: Promise<{ slug: string }> }
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

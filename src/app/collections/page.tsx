@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   description: 'Curated collections at Gallery 015 — works brought together through material, memory, place, and artistic dialogue.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export default async function CollectionsPage() {
   const lang = await getServerLanguage();

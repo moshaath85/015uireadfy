@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   description: 'Advisory, commissioning, and collection services offered through Gallery 015.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 function formatLabel(value: string): string {
   return value.split('_').map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');

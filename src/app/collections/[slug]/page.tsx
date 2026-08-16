@@ -3,7 +3,7 @@ import { CollectionExperience } from '@/components/experience';
 import { collectionsRepository } from '@/lib/repositories/collections';
 
 interface Props { params: Promise<{ slug: string }> }
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export default async function CollectionDetailPage({ params }: Props) {
   const { slug } = await params;

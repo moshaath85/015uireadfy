@@ -21,7 +21,7 @@ const T = {
 function t(key: keyof typeof T, lang: Language): string { return lang === "ar" ? T[key].ar : T[key].en; }
 
 interface Props { params: Promise<{ slug: string }> }
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 function formatDate(value: string, ar: boolean): string {
   const date = new Date(`${value}T00:00:00.000Z`);

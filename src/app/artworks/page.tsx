@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   description: 'The archive of contemporary and modern works held by Gallery 015 in Riyadh — searchable by artist, medium, and year.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 /** "Oil on canvas" and "Oil on Canvas" are the same medium; "-" is not one. */
 function mediumKey(value: string): string {

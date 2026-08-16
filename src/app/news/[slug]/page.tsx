@@ -23,7 +23,7 @@ const T = {
 function t(key: keyof typeof T, lang: Language): string { return lang === 'ar' ? T[key].ar : T[key].en; }
 
 interface Props { params: Promise<{ slug: string }> }
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

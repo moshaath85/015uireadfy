@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   description: 'Browse the roster of artists represented by Gallery 015 — from the founding generation of Saudi modernism to contemporary and international voices.',
 };
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 /* Only returns a label where the relationship actually distinguishes an
    artist. Every artist on a gallery's roster is a gallery artist, so the

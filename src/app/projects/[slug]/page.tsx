@@ -4,7 +4,7 @@ import { projectsRepository } from '@/lib/repositories/projects';
 import { getServerLanguage } from '@/lib/i18n/server-language';
 
 interface Props { params: Promise<{ slug: string }> }
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export default async function ProjectDetailPage({ params }: Props) {
   const { slug } = await params;

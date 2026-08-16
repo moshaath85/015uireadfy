@@ -22,3 +22,17 @@
   for = "/_next/static/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Static media is versioned by deploy (new files get new hashes), so browsers
+# can cache it for a year. Without this, images served from /images/* default
+# to "max-age=0, must-revalidate" and are re-downloaded on every visit — a
+# major source of the site feeling heavy.
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/brand/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

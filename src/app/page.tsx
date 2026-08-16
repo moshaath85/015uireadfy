@@ -58,7 +58,10 @@ export const metadata: Metadata = {
   },
 };
 
-export const dynamic = 'force-dynamic';
+/* ISR: build once, serve from CDN, revalidate every 5 min. Removes the ~5s
+   server TTFB of force-dynamic on the serverless host while keeping content
+   fresh. */
+export const revalidate = 300;
 
 const longDate = (value: string) => {
   const date = new Date(value);

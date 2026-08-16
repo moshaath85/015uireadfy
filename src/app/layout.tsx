@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
 import '@/styles/design-tokens.css';
 import '@/styles/globals.css';
 import '@/styles/site-2026.css';
@@ -57,7 +56,10 @@ export const metadata: Metadata = {
   },
 };
 
-export const dynamic = 'force-dynamic';
+/* Serve statically from the CDN. The language is applied client-side by
+   LanguageProvider after hydration, so the server render is always English and
+   can be cached — removing the force-dynamic ~5s TTFB on serverless. */
+export const revalidate = 300;
 
 /* A nav link to an empty section is worse than no link: the visitor clicks
    Collections or Publications and lands on a blank page. Only advertise
@@ -77,13 +79,9 @@ async function sectionsWithContent(): Promise<string[]> {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const emptySections = await sectionsWithContent();
-  const cookieStore = await cookies();
-  const langCookie = cookieStore.get('gallery-lang');
-  const initialLang = langCookie?.value === 'ar' ? 'ar' : 'en';
-  const isRtl = initialLang === 'ar';
 
   return (
-    <html lang={initialLang} dir={isRtl ? 'rtl' : 'ltr'} className={`${ibmPlexSans.variable} ${ebGaramond.variable}`}>
+    <html lang="en" dir="ltr" className={`${ibmPlexSans.variable} ${ebGaramond.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -93,7 +91,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body>
-        <LanguageProvider initialLang={initialLang}>
+        <LanguageProvider initialLang="en">
           <SiteChrome emptySections={emptySections}>{children}</SiteChrome>
         </LanguageProvider>
       </body>
