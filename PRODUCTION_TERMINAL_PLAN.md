@@ -88,14 +88,14 @@ git init
 git add .
 git commit -m "release: Gallery 015 production baseline"
 git branch -M main
-git remote add origin https://github.com/moshaath85/galary015.git
+git remote add origin https://github.com/moshaath85/015uireadfy.git
 git push -u origin main
 ```
 
 If `origin` already exists:
 
 ```bash
-git remote set-url origin https://github.com/moshaath85/galary015.git
+git remote set-url origin https://github.com/moshaath85/015uireadfy.git
 git push -u origin main
 ```
 

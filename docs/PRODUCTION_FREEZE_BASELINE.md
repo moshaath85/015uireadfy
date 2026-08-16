@@ -12,6 +12,21 @@ content or production work causes a regression.
 - **Created:** Phase 6 (production & content readiness pass)
 - **UI/UX score at freeze:** 95/100 (institutional benchmark)
 
+## Canonicalization (one repo / one source of truth)
+
+Owner decision: Gallery 015 must be ONE repo / folder / branch / site / DB.
+
+- **Canonical local folder:** `/Users/apple/Downloads/015_Gallery_GitHub_Ready_Sprint_01`
+- **Canonical repository:** `https://github.com/moshaath85/015uireadfy.git`
+- **Canonical production branch:** `main`
+- **Recovery tag (pre-canonicalization):** `gallery015-pre-canonicalization`
+  → commit `b2bff68` (includes all approved UI/UX + Phase 6.1 XLSX/content work)
+- Local `main` was fast-forwarded to `b2bff68` (identical to `uiux-controlled-99`).
+- **Status of push to origin/main:** BLOCKED by this environment (the git
+  smart-HTTP receive-pack endpoint to GitHub hangs; API/raw HTTPS work). The
+  push must be run from a machine with push network access:
+  `git push origin main` (fast-forward; no force needed).
+
 > The UI/UX is frozen. Do not redesign pages, change typography, spacing,
 > homepage hierarchy, navigation, animations, colors, or public components
 > unless fixing a proven functional bug.

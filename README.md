@@ -22,12 +22,11 @@
 
 | Field | Value |
 |---|---|
-| Branch | `sprint-02b-media-upload-ui` |
-| Latest commit | `61abe3c` — "Add CTO handoff documentation for CMS experience phase" |
-| Remote origin | `https://github.com/moshaath85/015uireadfy.git` |
-| Prior commits | `aece409` (migrate legacy content to PostgreSQL), `5a37501` (production baseline) |
-
-Working tree has uncommitted changes — the currently running state (CMS media-upload UI phase) is ahead of the last commit.
+| Branch | `main` (canonical production branch) |
+| Latest commit | `b2bff68` — "feat(import): xlsx support, master templates, content readiness" |
+| Remote origin | `https://github.com/moshaath85/015uireadfy.git` (canonical) |
+| Recovery tag | `gallery015-pre-canonicalization` |
+| Prior commits | `aece409` (migrate legacy content to PostgreSQL), `e80b5c1` (museum fixes) |
 
 ## 3. Run Instructions
 
@@ -50,8 +49,8 @@ npm run start            # serve production build
 
 | Field | Value |
 |---|---|
-| URL | `http://localhost:3001` |
-| Health check | HTTP `200` (verified 2026-08-01) |
+| URL | `http://localhost:3000` |
+| Health check | HTTP `200` |
 | Server process | `next dev` (Turbopack) |
 
 ## 5. Lock Rules
