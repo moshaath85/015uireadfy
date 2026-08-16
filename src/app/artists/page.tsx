@@ -53,28 +53,35 @@ function compareWorks(left: Artwork, right: Artwork): number {
 
 export default async function ArtistsPage() {
   const lang = await getServerLanguage();
-  const [artists, artworks] = await Promise.all([
+  const [artists, artworks, allMedia] = await Promise.all([
     artistsRepository.getPublicAll(),
     artworksRepository.getPublicAll(),
+    mediaRepository.getPublicAll(),
   ]);
 
-  const items: ArtistRosterItem[] = await Promise.all(artists.map(async (artist) => {
+  /* Resolve every portrait and work image in memory instead of issuing one
+     database query per artist per work. The old per-call lookups were ~300
+     sequential queries, which blew past the Netlify serverless function
+     timeout and rendered /artists empty on the live site. */
+  const mediaById = new Map(allMedia.map((media) => [media.id, media]));
+  const mediaFor = (id: string | null | undefined) => (id ? mediaById.get(id) ?? null : null);
+
+  const items: ArtistRosterItem[] = artists.map((artist) => {
     const artistWorks = artworks
       .filter((work) => work.artist_id === artist.id)
       .sort(compareWorks)
       .slice(0, 4);
-    const [profileMedia, workItems] = await Promise.all([
-      mediaRepository.getPublicArtistProfileMedia(artist),
-      Promise.all(artistWorks.map(async (work) => {
-        const media = await mediaRepository.getPublicArtworkPrimaryMedia(work);
-        const title = getText(work.title_ar, work.title_en, lang);
-        return {
-          id: work.slug,
-          title,
-          image: media ? { src: media.url, alt: getText(media.alt_ar, media.alt_en, lang) || title } : null,
-        };
-      })),
-    ]);
+    const profileMedia = mediaFor(artist.profile_image_id);
+
+    const workItems = artistWorks.map((work) => {
+      const media = mediaFor(work.primary_image_id);
+      const title = getText(work.title_ar, work.title_en, lang);
+      return {
+        id: work.slug,
+        title,
+        image: media ? { src: media.url, alt: getText(media.alt_ar, media.alt_en, lang) || title } : null,
+      };
+    });
 
     /* The roster read English names, biographies and nationalities on the
        Arabic page. That was always wrong; it became visible once the missing
@@ -92,7 +99,7 @@ export default async function ArtistsPage() {
       profileImage: profileMedia ? { src: profileMedia.url, alt: getText(profileMedia.alt_ar, profileMedia.alt_en, lang) || name } : null,
       works: workItems,
     };
-  }));
+  });
 
   return (
     <>
