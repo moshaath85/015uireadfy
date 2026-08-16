@@ -30,7 +30,6 @@ export function OrganizationLd(): ReactNode {
           addressCountry: "SA",
           addressLocality: "Riyadh",
         },
-        sameAs: ["https://www.instagram.com/gallery015/"],
       }}
     />
   );

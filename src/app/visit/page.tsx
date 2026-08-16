@@ -67,7 +67,6 @@ export default async function VisitPage() {
           <div className="g-page__section">
             <h2>{t('contact', lang)}</h2>
             <a href="mailto:info@gallery015.com">info@gallery015.com</a>
-            <a href="tel:+966123456789">+966 12 345 6789</a>
           </div>
 
           <div className="g-page__section">

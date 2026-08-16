@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { MediaType, MediaVisibility } from "@prisma/client";
 import { getTex7PrismaClient } from "@/lib/tex7/database/providers/prisma-client";
 import { ensureProductionOrganization } from "@/lib/cms/production-prisma";
+import { parseXlsxWorkbook, XLSX_MAX_BYTES } from "@/lib/cms/xlsx-parser";
 
 export type BulkImportModule =
   | "artists"
@@ -377,6 +378,30 @@ async function requireEntityReferences(config: BulkModuleConfig, organizationId:
   return errors;
 }
 
+/** Returns the id of the record that already owns a given slug, or null. */
+async function findSlugOwner(module: BulkImportModule, organizationId: string, slug: string): Promise<string | null> {
+  const where = { organizationId, slug, archivedAt: null };
+
+  switch (module) {
+    case "artists":
+      return (await prisma().artist.findFirst({ where, select: { id: true } }))?.id ?? null;
+    case "artworks":
+      return (await prisma().artwork.findFirst({ where, select: { id: true } }))?.id ?? null;
+    case "collections":
+      return (await prisma().collection.findFirst({ where, select: { id: true } }))?.id ?? null;
+    case "exhibitions":
+      return (await prisma().exhibition.findFirst({ where, select: { id: true } }))?.id ?? null;
+    case "projects":
+      return (await prisma().project.findFirst({ where, select: { id: true } }))?.id ?? null;
+    case "services":
+      return (await prisma().service.findFirst({ where, select: { id: true } }))?.id ?? null;
+    case "news":
+      return (await prisma().news.findFirst({ where, select: { id: true } }))?.id ?? null;
+    case "publications":
+      return (await prisma().publication.findFirst({ where, select: { id: true } }))?.id ?? null;
+  }
+}
+
 export function createExcelTemplate(module: BulkImportModule): string {
   const config = getBulkModuleConfig(module);
   const header = config.fields.map((field) => `<Cell><Data ss:Type="String">${cell(field.key)}</Data></Cell>`).join("");
@@ -470,12 +495,23 @@ function parseExcelXml(content: string): readonly BulkRow[] {
     .map((values) => Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ""])));
 }
 
-export async function parseBulkWorkbook(file: File): Promise<readonly BulkRow[]> {
-  const bytes = await file.arrayBuffer();
+export async function parseBulkWorkbook(
+  file: File,
+  module: BulkImportModule = "artists",
+): Promise<readonly BulkRow[]> {
+  if (file.size > XLSX_MAX_BYTES) {
+    throw new Error(
+      `Sheet: (file)\nRow: -\nColumn: -\nValue: ${file.size} bytes\nError: File exceeds the ${Math.round(XLSX_MAX_BYTES / (1024 * 1024))} MB size limit.\nExpected: a workbook smaller than the import limit.`,
+    );
+  }
+
+  const bytes = new Uint8Array(await file.arrayBuffer());
   const content = new TextDecoder().decode(bytes);
 
+  // Binary .xlsx (ZIP magic "PK").
   if (content.startsWith("PK")) {
-    return [];
+    const parsed = await parseXlsxWorkbook(bytes, module);
+    return parsed.rows;
   }
 
   return content.includes("<Workbook") || content.includes("<ss:Workbook") ? parseExcelXml(content) : parseDelimited(content);
@@ -936,6 +972,20 @@ export async function importBulkRows(module: BulkImportModule, organizationId: s
 
     rowErrors.push(...(await requireMediaReferences(config, organizationId, row, index)));
     rowErrors.push(...(await requireEntityReferences(config, organizationId, row, index)));
+
+    /* A slug that already belongs to another record would trip Prisma's
+       (organization_id, slug) unique constraint and surface as a raw P2002
+       stack. Check it here so the CMS can report a clean per-row message
+       instead. The id is already unique by construction, so only the slug
+       needs a guard. */
+    if (row.slug) {
+      const slugOwner = await findSlugOwner(module, organizationId, row.slug);
+      if (slugOwner && slugOwner !== row.id) {
+        rowErrors.push(
+          `${config.label} row ${index}: Column slug, Value "${row.slug}", Error: slug already exists on record ${slugOwner}. Expected: a unique URL-safe slug.`,
+        );
+      }
+    }
 
     if (rowErrors.length > 0) {
       skipped += 1;

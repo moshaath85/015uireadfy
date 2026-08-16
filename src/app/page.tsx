@@ -181,11 +181,11 @@ export default async function HomePage() {
       {programme ? (
         <section className="hp-programme">
           <div className="hp-wrap">
-            <div className="hp-sec-head" data-reveal="">
+            <div className="hp-sec-head" data-reveal="" suppressHydrationWarning>
               <h2>{t(programmeIsCurrent ? 'now_on_view' : 'from_programme', lang)}</h2>
               <p className="hp-note">{t('exhibitions_note', lang)}</p>
             </div>
-            <Link className="hp-programme__grid" data-reveal="" href={`/exhibitions/${programme.exhibition.slug}`}>
+            <Link className="hp-programme__grid" data-reveal="" href={`/exhibitions/${programme.exhibition.slug}`} suppressHydrationWarning>
               <figure className="hp-programme__media">
                 <img
                   src={programme.cover!.url}
@@ -217,11 +217,11 @@ export default async function HomePage() {
       {selectedWorks.length ? (
         <section className="hp-works">
           <div className="hp-wrap">
-            <div className="hp-sec-head" data-reveal="">
+            <div className="hp-sec-head" data-reveal="" suppressHydrationWarning>
               <h2>{t('selected_works', lang)}</h2>
               <p className="hp-note">{t('selected_works_note', lang)}</p>
             </div>
-            <div className="hp-works__grid" data-reveal-group="">
+            <div className="hp-works__grid" data-reveal-group="" suppressHydrationWarning>
               {selectedWorks.map((work, index) => {
                 const cover = media(work.primary_image_id)!;
                 return (
@@ -252,13 +252,13 @@ export default async function HomePage() {
       {portraitArtists.length ? (
         <section className="hp-artists">
           <div className="hp-wrap">
-            <div className="hp-sec-head" data-reveal="">
+            <div className="hp-sec-head" data-reveal="" suppressHydrationWarning>
               <h2>{t('the_roster', lang)}</h2>
               <p className="hp-note">
                 {artists.length} {lang === 'ar' ? 'فنانًا — الجيل المؤسس للحداثة السعودية إلى جانب أصوات معاصرة وعالمية.' : `artists — the founding generation of Saudi modernism alongside contemporary and international voices.`}
               </p>
             </div>
-            <div className="hp-artists__grid" data-reveal-group="">
+            <div className="hp-artists__grid" data-reveal-group="" suppressHydrationWarning>
               {portraitArtists.map(({ artist, portrait }) => (
                 <Link href={`/artists/${artist.slug}`} key={artist.id}>
                   <figure className="hp-artist__media">
@@ -292,11 +292,11 @@ export default async function HomePage() {
       {featuredProjects.length ? (
         <section className="hp-projects">
           <div className="hp-wrap">
-            <div className="hp-sec-head" data-reveal="">
+            <div className="hp-sec-head" data-reveal="" suppressHydrationWarning>
               <h2>{t('art_in_context', lang)}</h2>
               <p className="hp-note">{t('context_note', lang)}</p>
             </div>
-            <div className="hp-projects__grid" data-reveal-group="">
+            <div className="hp-projects__grid" data-reveal-group="" suppressHydrationWarning>
               {featuredProjects.map(({ project, cover }) => (
                 <Link href={`/projects/${project.slug}`} key={project.id}>
                   <figure className="hp-proj__media">
@@ -320,11 +320,11 @@ export default async function HomePage() {
       {journal.length ? (
         <section className="hp-journal">
           <div className="hp-wrap">
-            <div className="hp-sec-head" data-reveal="">
+            <div className="hp-sec-head" data-reveal="" suppressHydrationWarning>
               <h2>{t('journal_title', lang)}</h2>
               <p className="hp-note">{t('journal_note', lang)}</p>
             </div>
-            <div className="hp-journal__list" data-reveal-group="">
+            <div className="hp-journal__list" data-reveal-group="" suppressHydrationWarning>
               {journal.map((item) => (
                 <Link className="hp-entry" href={`/news/${item.slug}`} key={item.id}>
                   <time>{monthYear(item.publish_date)}</time>
@@ -343,7 +343,7 @@ export default async function HomePage() {
 
       {/* VISIT */}
       <section className="hp-visit">
-        <div className="hp-wrap hp-visit__grid" data-reveal="">
+        <div className="hp-wrap hp-visit__grid" data-reveal="" suppressHydrationWarning>
           <div>
             <p className="hp-label">Visit</p>
             <h2>{t('visit_title', lang)}</h2>

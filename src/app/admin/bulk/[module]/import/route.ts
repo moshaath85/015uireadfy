@@ -25,10 +25,19 @@ export async function POST(request: Request, context: { params: Promise<{ module
     return new Response("A non-empty Excel-compatible file is required.", { status: 400 });
   }
 
-  const rows = await parseBulkWorkbook(file);
+  let rows: Awaited<ReturnType<typeof parseBulkWorkbook>>;
+  try {
+    rows = await parseBulkWorkbook(file, module);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to parse the uploaded file.";
+    return new Response(message, { status: 400 });
+  }
 
   if (rows.length === 0) {
-    return new Response("No import rows were found. Use the downloaded Excel template, or export CSV and re-import it.", { status: 400 });
+    return new Response(
+      "No import rows were found. The importer reads .xlsx, the downloaded .xls template, or a CSV export. Ensure the workbook has a header row in row 1 followed by data, then re-import.",
+      { status: 400 },
+    );
   }
 
   const summary = await importBulkRows(module, adminContext.organizationId, rows);

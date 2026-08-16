@@ -16,7 +16,6 @@ const T = {
   visit: { ar: 'زيارة الغاليري', en: 'Visit the gallery' },
   by_appointment: { ar: 'المشاهدة الخاصة بموعد مسبق', en: 'Private viewing by appointment' },
   direct_contact: { ar: 'تواصل مباشر', en: 'Direct contact' },
-  follow: { ar: 'تابعنا', en: 'Follow' },
 };
 
 function t(key: keyof typeof T, lang: Language) { return lang === 'ar' ? T[key].ar : T[key].en; }
@@ -42,11 +41,6 @@ export default async function ContactPage() {
           <div className="g-contact__info">
             <h2>{t('direct_contact', lang)}</h2>
             <a href="mailto:info@gallery015.com">info@gallery015.com</a>
-            <a href="tel:+966123456789">+966 12 345 6789</a>
-          </div>
-          <div className="g-contact__info">
-            <h2>{t('follow', lang)}</h2>
-            <p>Instagram · Twitter · LinkedIn</p>
           </div>
         </div>
         <div className="g-contact__form-wrap">

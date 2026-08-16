@@ -65,7 +65,11 @@ export default function Footer({ emptySections = [] }: { emptySections?: string[
       <div className="g-footer__bottom">
         <span>{t('rights').replace('{year}', String(year))}</span>
         <span>{t('location')}</span>
-        <Link href="/contact">{t('contact')}</Link>
+        <span className="g-footer__legal">
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+          <Link href="/contact">{t('contact')}</Link>
+        </span>
       </div>
     </footer>
   );

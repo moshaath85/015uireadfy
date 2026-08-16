@@ -1,7 +1,7 @@
 {
   "mode": "execute",
   "organizationId": "gallery-015",
-  "startedAt": "2026-08-01T16:20:40.772Z",
+  "startedAt": "2026-08-03T17:53:36.721Z",
   "sources": {
     "settings": "settings.json",
     "media": "media.json",
@@ -27,15 +27,15 @@
       "skipped": 0
     },
     "media": {
-      "found": 277,
+      "found": 309,
       "inserted": 0,
-      "updated": 277,
+      "updated": 309,
       "skipped": 0
     },
     "artists": {
-      "found": 68,
+      "found": 69,
       "inserted": 0,
-      "updated": 68,
+      "updated": 69,
       "skipped": 0
     },
     "collections": {
@@ -45,9 +45,9 @@
       "skipped": 0
     },
     "artworks": {
-      "found": 237,
+      "found": 269,
       "inserted": 0,
-      "updated": 237,
+      "updated": 269,
       "skipped": 0
     },
     "exhibitions": {
@@ -113,5 +113,5 @@
   },
   "warnings": [],
   "errors": [],
-  "completedAt": "2026-08-01T16:22:49.316Z"
+  "completedAt": "2026-08-03T17:55:58.391Z"
 }
