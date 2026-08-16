@@ -267,7 +267,8 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 .artwork-experience-hero{padding-bottom:clamp(80px,11vw,150px)}
 .artwork-experience-media{display:grid;margin:0;overflow:hidden;place-items:center;background:#e3ded5}
 .artwork-experience-media img{display:block;width:100%;height:100%;object-fit:contain}
-.artwork-experience-media--hero{width:100%;height:min(78svh,920px);min-height:560px;padding:clamp(24px,4vw,62px)}
+.artwork-experience-media--hero{width:fit-content;max-width:100%;margin-inline:auto;padding:clamp(24px,4vw,62px)}
+.artwork-experience-media--hero img{width:auto;height:auto;max-width:100%;max-height:82svh;object-fit:contain}
 .artwork-experience-media--related{aspect-ratio:4/5;padding:clamp(12px,2vw,28px)}
 .artwork-experience-media__fallback{display:grid;width:100%;height:100%;place-content:center;gap:10px;text-align:center;color:#9a948b;background:#fcfcfb;box-shadow:inset 0 0 0 1px rgba(18,17,15,.10)}
 .artwork-experience-media__fallback>span{font-family:var(--font-serif);font-size:clamp(34px,5vw,72px);letter-spacing:-.055em}
@@ -325,7 +326,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 @media(max-width:700px){
   .artwork-experience-page{padding:0 22px}
   .artwork-experience-back{padding:22px 0 18px}
-  .artwork-experience-media--hero{height:72svh;min-height:420px;padding:18px}
+  .artwork-experience-media--hero{padding:18px}
   .artwork-experience-hero{padding-bottom:80px}
   .artwork-experience-identity,.artwork-experience-story,.artwork-experience-details,.artwork-experience-connections>header,.artwork-experience-inquiry{grid-template-columns:1fr}
   .artwork-experience-identity{gap:20px;padding-top:28px}
@@ -345,7 +346,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 }
 
 @media(max-width:460px){
-  .artwork-experience-media--hero{height:60svh;min-height:360px;padding:12px}
+  .artwork-experience-media--hero{padding:12px}
   .artwork-experience-details__list>div{grid-template-columns:100px minmax(0,1fr);gap:16px}
   .artwork-experience-related__grid{grid-template-columns:1fr;gap:45px}
   .artwork-experience-media--related{aspect-ratio:1/1}
@@ -1982,9 +1983,13 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 }
 
 .artwork-experience-media--hero{
-  height:min(82svh,980px);
-  min-height:620px;
+  /* A portrait-dominant collection shown whole in a full-width plate leaves a
+     large void either side of each work. Let the work size its own plate:
+     the container wraps the (never-cropped) image, so the artwork fills the
+     frame regardless of its orientation instead of floating in whitespace. */
+  margin-inline:auto;
   padding:clamp(20px,3.2vw,54px);
+  width:fit-content;
 }
 
 .artwork-experience-identity{
@@ -2171,7 +2176,6 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 }
 
 @media(max-width:900px){
-  .artwork-experience-media--hero{min-height:520px}
   .artwork-experience-connections__groups{grid-template-columns:1fr 1fr}
   .artwork-experience-related__grid{grid-template-columns:1fr 1fr;gap:46px 22px}
   .artwork-experience-related__entry:nth-child(1),
@@ -2183,7 +2187,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 @media(max-width:700px){
   .artwork-experience-back{padding:24px 0 20px}
   .artwork-experience-hero--catalogue{padding-bottom:82px}
-  .artwork-experience-media--hero{height:74svh;min-height:440px;padding:16px}
+  .artwork-experience-media--hero{padding:16px}
   .artwork-experience-identity{gap:14px;padding-top:30px}
   .artwork-experience-identity h1{max-width:100%;font-size:clamp(52px,16vw,88px)}
   .artwork-experience-identity__facts{grid-column:1;margin-top:0;font-size:12px;line-height:1.55}
@@ -2197,7 +2201,7 @@ body:has(.admin-shell)>main{padding:0;background:var(--admin-paper)}
 }
 
 @media(max-width:460px){
-  .artwork-experience-media--hero{height:62svh;min-height:368px;padding:12px}
+  .artwork-experience-media--hero{padding:12px}
   .artwork-experience-identity__artist a{font-size:24px}
   .artwork-experience-details__list>div{grid-template-columns:94px minmax(0,1fr);gap:14px}
   .artwork-experience-details__value--year,
