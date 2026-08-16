@@ -216,7 +216,7 @@
    exactly so the photo edge disappears — one clean field, no double frame.
    A hairline keeps the plate defined against the warm paper page. */
 .hp-plate{
-  width:100%;aspect-ratio:1/1;background:#FFFFFF;
+  width:100%;aspect-ratio:4/5;background:#FFFFFF;
   border:1px solid rgba(18,17,15,.13);
   display:grid;place-items:center;padding:clamp(20px,2.4vw,44px);overflow:hidden;margin:0;
 }
