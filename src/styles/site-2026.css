@@ -39,14 +39,12 @@ body{background:var(--g-paper);color:var(--g-ink)}
    Paintings and works on paper are shown whole, centred on white, with a
    museum shadow. Documentary photography (installation views, portraits,
    project sites) still fills its frame, which is correct for photography. */
-.experience-index--grid .experience-card__media,
 .artwork-experience-media,
 .experience-related figure{
   display:grid;place-items:center;
   padding:clamp(16px,2vw,38px);
   overflow:hidden;
 }
-.experience-index--grid .experience-card__media img,
 .artwork-experience-media img,
 .experience-related figure img{
   max-width:100%;max-height:100%;
@@ -58,8 +56,43 @@ body{background:var(--g-paper);color:var(--g-ink)}
     0 24px 52px rgba(18,17,15,.09);
 }
 /* the hover zoom from the legacy sheet would crop a contained work */
-.experience-index--grid .experience-card:hover .experience-card__media img,
 .experience-related a:hover img{transform:none;opacity:.92}
+
+/* ---- 4b. Artworks index — proportions stay visible ----
+   The artworks grid is a reading room, not a shop grid. Instead of forcing every
+   plate into an equal 4:5 box (so portrait and landscape collapse to the same
+   tile), flow the cards through CSS columns: each plate hugs its work's own
+   ratio, so a portrait reads tall, a landscape reads wide, and the page gets
+   the calm vertical rhythm of works hung on a wall. */
+.experience-index--grid{
+  columns:2;
+  column-gap:clamp(1.5rem,4vw,4rem);
+  display:block;
+  padding-top:clamp(2.5rem,4.5vw,4.5rem);
+}
+.experience-index--grid .experience-card{
+  display:block;
+  break-inside:avoid;
+  margin-bottom:clamp(3rem,7vw,7rem);
+}
+.experience-index--grid .experience-card__media{
+  display:grid;place-items:center;
+  width:100%;height:auto;
+  min-height:0;
+  aspect-ratio:auto;
+  padding:clamp(14px,1.8vw,30px);
+  overflow:hidden;
+}
+.experience-index--grid .experience-card__media img{
+  max-width:100%;max-height:88vh;
+  width:auto;height:auto;
+  object-fit:contain;
+  box-shadow:
+    0 1px 3px rgba(18,17,15,.08),
+    0 8px 18px rgba(18,17,15,.07),
+    0 24px 52px rgba(18,17,15,.09);
+}
+.experience-index--grid .experience-card:hover .experience-card__media img{transform:none;opacity:.92}
 
 /* ---- 5. Detail hero: give the work room ---- */
 .experience-detail__media{
@@ -592,4 +625,9 @@ body{background:var(--g-paper);color:var(--g-ink)}
 }
 @media(max-width:520px){
   .archive-filter__controls{grid-template-columns:1fr;gap:1.4rem}
+}
+
+/* Single column on mobile — two narrow columns read as clutter at 390px */
+@media (max-width:760px){
+  .experience-index--grid{columns:1}
 }

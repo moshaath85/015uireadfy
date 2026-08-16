@@ -208,20 +208,28 @@
 
 /* ---------------- WORKS ---------------- */
 .hp-works{padding-bottom:var(--hp-sp-section)}
+/* Selected works flow through columns so each plate hugs its own work's ratio —
+   portrait reads tall, landscape reads wide — instead of collapsing into
+   identical tiles. The artwork defines the footprint. */
 .hp-works__grid{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:clamp(28px,3.2vw,56px) clamp(20px,2.4vw,40px);
+  columns:3;
+  column-gap:clamp(20px,2.4vw,40px);
+}
+.hp-works__grid > a{
+  display:block;
+  break-inside:avoid;
+  margin-bottom:clamp(28px,3.2vw,56px);
 }
 /* Artwork photography is shot on pure white. The plate matches that white
    exactly so the photo edge disappears — one clean field, no double frame.
    A hairline keeps the plate defined against the warm paper page. */
 .hp-plate{
-  width:100%;aspect-ratio:4/5;background:#FFFFFF;
+  width:100%;height:auto;aspect-ratio:auto;background:#FFFFFF;
   border:1px solid rgba(18,17,15,.13);
   display:grid;place-items:center;padding:clamp(20px,2.4vw,44px);overflow:hidden;margin:0;
 }
 .hp-plate img{
-  max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;
+  max-width:100%;max-height:88vh;width:auto;height:auto;object-fit:contain;
   transition:transform .9s cubic-bezier(.16,1,.3,1);
 }
 .hp-works a:hover .hp-plate img{transform:scale(1.025)}
@@ -229,8 +237,8 @@
 .hp-cap .hp-idx{font-size:10px;letter-spacing:.18em;color:var(--hp-ink-40)}
 .hp-cap h3{font-family:var(--hp-serif);font-weight:400;margin:0;font-size:clamp(19px,1.5vw,25px);line-height:1.16}
 .hp-cap .hp-spec{font-size:13px;color:var(--hp-ink-60);margin:0}
-@media(max-width:1000px){.hp-works__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:600px){.hp-works__grid{grid-template-columns:1fr}}
+@media(max-width:1000px){.hp-works__grid{columns:2}}
+@media(max-width:600px){.hp-works__grid{columns:1}}
 
 /* ---------------- ARTISTS ---------------- */
 .hp-artists{padding-bottom:var(--hp-sp-section)}
