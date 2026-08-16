@@ -43,32 +43,32 @@ export default function Footer({ emptySections = [] }: { emptySections?: string[
           <h3>{t('visit')}</h3>
           <address>Gallery 015<br />{t('location')}</address>
           <a href="mailto:info@gallery015.com">info@gallery015.com</a>
-          <Link href="/contact">{t('plan_visit')}</Link>
+          <Link href="/contact" prefetch={false}>{t('plan_visit')}</Link>
         </div>
         <nav className="g-footer__col" aria-label={t('programme_nav')}>
           <h3>{t('programme')}</h3>
-          <Link href="/artists">{t('artists')}</Link>
-          <Link href="/exhibitions">{t('exhibitions')}</Link>
-          <Link href="/artworks">{t('artworks')}</Link>
-          {emptySections.includes('/collections') ? null : <Link href="/collections">{t('collections')}</Link>}
-          <Link href="/projects">{t('projects')}</Link>
-          <Link href="/news">{t('journal')}</Link>
+          <Link href="/artists" prefetch={false}>{t('artists')}</Link>
+          <Link href="/exhibitions" prefetch={false}>{t('exhibitions')}</Link>
+          <Link href="/artworks" prefetch={false}>{t('artworks')}</Link>
+          {emptySections.includes('/collections') ? null : <Link href="/collections" prefetch={false}>{t('collections')}</Link>}
+          <Link href="/projects" prefetch={false}>{t('projects')}</Link>
+          <Link href="/news" prefetch={false}>{t('journal')}</Link>
         </nav>
         <nav className="g-footer__col" aria-label={t('about_nav')}>
           <h3>{t('about')}</h3>
-          <Link href="/services">{t('services')}</Link>
-          {emptySections.includes('/publications') ? null : <Link href="/publications">{t('publications')}</Link>}
-          <Link href="/contact">{t('contact')}</Link>
-          <Link href="/verify">{t('certificates')}</Link>
+          <Link href="/services" prefetch={false}>{t('services')}</Link>
+          {emptySections.includes('/publications') ? null : <Link href="/publications" prefetch={false}>{t('publications')}</Link>}
+          <Link href="/contact" prefetch={false}>{t('contact')}</Link>
+          <Link href="/verify" prefetch={false}>{t('certificates')}</Link>
         </nav>
       </div>
       <div className="g-footer__bottom">
         <span>{t('rights').replace('{year}', String(year))}</span>
         <span>{t('location')}</span>
         <span className="g-footer__legal">
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
-          <Link href="/contact">{t('contact')}</Link>
+          <Link href="/privacy" prefetch={false}>Privacy</Link>
+          <Link href="/terms" prefetch={false}>Terms</Link>
+          <Link href="/contact" prefetch={false}>{t('contact')}</Link>
         </span>
       </div>
     </footer>

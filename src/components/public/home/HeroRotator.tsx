@@ -66,7 +66,7 @@ export default function HeroRotator({ slides, labels }: { slides: HeroSlide[]; l
           </div>
         </div>
 
-        <Link className="hp-link" href={`/artworks/${current.slug}`}>
+        <Link className="hp-link" href={`/artworks/${current.slug}`} prefetch={false}>
           {labels.viewThisWork} <span aria-hidden="true">↗</span>
         </Link>
 
@@ -96,6 +96,7 @@ export default function HeroRotator({ slides, labels }: { slides: HeroSlide[]; l
           <Link
             className={`hp-slide${i === index ? ' is-on' : ''}`}
             href={`/artworks/${slide.slug}`}
+            prefetch={false}
             key={slide.id}
             aria-hidden={i !== index}
             tabIndex={i === index ? undefined : -1}

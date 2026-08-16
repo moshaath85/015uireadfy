@@ -77,6 +77,7 @@ export default function Header({ emptySections = [] }: { emptySections?: string[
               <li key={link.href}>
                 <Link
                   href={link.href}
+                  prefetch={false}
                   className={isActive(link.href) ? 'is-active' : undefined}
                   aria-current={isActive(link.href) ? 'page' : undefined}
                 >

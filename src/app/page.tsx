@@ -185,7 +185,7 @@ export default async function HomePage() {
               <h2>{t(programmeIsCurrent ? 'now_on_view' : 'from_programme', lang)}</h2>
               <p className="hp-note">{t('exhibitions_note', lang)}</p>
             </div>
-            <Link className="hp-programme__grid" data-reveal="" href={`/exhibitions/${programme.exhibition.slug}`} suppressHydrationWarning>
+            <Link className="hp-programme__grid" data-reveal="" href={`/exhibitions/${programme.exhibition.slug}`} prefetch={false} suppressHydrationWarning>
               <figure className="hp-programme__media">
                 <img
                   src={programme.cover!.url}
@@ -225,7 +225,7 @@ export default async function HomePage() {
               {selectedWorks.map((work, index) => {
                 const cover = media(work.primary_image_id)!;
                 return (
-                  <Link href={`/artworks/${work.slug}`} key={work.id}>
+                  <Link href={`/artworks/${work.slug}`} prefetch={false} key={work.id}>
                     <figure className="hp-plate">
                       <img src={cover.url} alt={cover.alt_en || work.title_en} loading="lazy" decoding="async" />
                     </figure>
@@ -242,7 +242,7 @@ export default async function HomePage() {
               })}
             </div>
             <div className="hp-more">
-              <Link className="hp-link" href="/artworks">All artworks <span aria-hidden="true">↗</span></Link>
+              <Link className="hp-link" href="/artworks" prefetch={false}>All artworks <span aria-hidden="true">↗</span></Link>
             </div>
           </div>
         </section>
@@ -260,7 +260,7 @@ export default async function HomePage() {
             </div>
             <div className="hp-artists__grid" data-reveal-group="" suppressHydrationWarning>
               {portraitArtists.map(({ artist, portrait }) => (
-                <Link href={`/artists/${artist.slug}`} key={artist.id}>
+                <Link href={`/artists/${artist.slug}`} prefetch={false} key={artist.id}>
                   <figure className="hp-artist__media">
                     {portrait ? (
                       <img src={portrait.url} alt={portrait.alt_en || artist.name_en} loading="lazy" decoding="async" />
@@ -275,7 +275,7 @@ export default async function HomePage() {
                   </div>
                 </Link>
               ))}
-              <Link href="/artists">
+              <Link href="/artists" prefetch={false}>
                 <figure className="hp-artist__media">
                   <span className="hp-label" style={{ textAlign: 'center' }}>
                     {Math.max(artists.length - portraitArtists.length, 0)} more<br />artists
@@ -298,7 +298,7 @@ export default async function HomePage() {
             </div>
             <div className="hp-projects__grid" data-reveal-group="" suppressHydrationWarning>
               {featuredProjects.map(({ project, cover }) => (
-                <Link href={`/projects/${project.slug}`} key={project.id}>
+                <Link href={`/projects/${project.slug}`} prefetch={false} key={project.id}>
                   <figure className="hp-proj__media">
                     <img src={cover!.url} alt={cover!.alt_en || project.title_en} loading="lazy" decoding="async" />
                   </figure>
@@ -310,7 +310,7 @@ export default async function HomePage() {
               ))}
             </div>
             <div className="hp-more">
-              <Link className="hp-link" href="/projects">All projects <span aria-hidden="true">↗</span></Link>
+              <Link className="hp-link" href="/projects" prefetch={false}>All projects <span aria-hidden="true">↗</span></Link>
             </div>
           </div>
         </section>
@@ -326,7 +326,7 @@ export default async function HomePage() {
             </div>
             <div className="hp-journal__list" data-reveal-group="" suppressHydrationWarning>
               {journal.map((item) => (
-                <Link className="hp-entry" href={`/news/${item.slug}`} key={item.id}>
+                <Link className="hp-entry" href={`/news/${item.slug}`} prefetch={false} key={item.id}>
                   <time>{monthYear(item.publish_date)}</time>
                   <h3>{item.title_en}</h3>
                   <p>{item.excerpt_en}</p>
@@ -335,7 +335,7 @@ export default async function HomePage() {
               ))}
             </div>
             <div className="hp-more">
-              <Link className="hp-link" href="/news">Enter the journal <span aria-hidden="true">↗</span></Link>
+              <Link className="hp-link" href="/news" prefetch={false}>Enter the journal <span aria-hidden="true">↗</span></Link>
             </div>
           </div>
         </section>
@@ -349,8 +349,8 @@ export default async function HomePage() {
             <h2>{t('visit_title', lang)}</h2>
           </div>
           <div className="hp-visit__links">
-            <Link className="hp-link" href="/contact">{t('private_viewing', lang)} <span aria-hidden="true">↗</span></Link>
-            <Link className="hp-link" href="/services">{t('our_services', lang)} <span aria-hidden="true">↗</span></Link>
+            <Link className="hp-link" href="/contact" prefetch={false}>{t('private_viewing', lang)} <span aria-hidden="true">↗</span></Link>
+            <Link className="hp-link" href="/services" prefetch={false}>{t('our_services', lang)} <span aria-hidden="true">↗</span></Link>
           </div>
         </div>
       </section>
