@@ -65,25 +65,27 @@ body{background:var(--g-paper);color:var(--g-ink)}
     Each plate hugs its work's own ratio (portrait tall, landscape wide) while
     rows stay aligned — no masonry packing, no orphaned captions, no vertical
     voids. */
- /* The artworks explorer grid is `experience-index--grid` on <main> wrapping
-    an inner `.experience-index__grid` (2-col default in globals.css). Drive it
-    to a controlled three-column editorial grid: real ratios, aligned rows,
-    no masonry voids, captions attached. */
- .experience-index--grid .experience-index__grid{
+ /* The artworks explorer renders independent vertical lanes on desktop so no
+    shared grid row can create blank space: each artwork stays in its own
+    column, and a tall work never pushes down neighbours in other lanes. */
+ .experience-index--grid .experience-index__lanes{
    display:grid;
    grid-template-columns:repeat(3,minmax(0,1fr));
    column-gap:clamp(1.5rem,3vw,3rem);
-   row-gap:clamp(3.5rem,6vw,6rem);
+   align-items:start;
    padding-top:clamp(2.5rem,4.5vw,4.5rem);
+ }
+ .experience-index--grid .experience-index__lane{
+   display:flex;
+   flex-direction:column;
+   gap:clamp(3.5rem,6vw,6rem);
+   min-width:0;
  }
  .experience-index--grid .experience-card{
    display:grid;
    gap:clamp(0.9rem,1.2vw,1.1rem);
    min-width:0;
  }
- /* Curatorial variation — deterministic, index-free: only every 4th item gets a
-    little top air so the sequence breathes without breaking the rhythm. */
- .experience-index--grid .experience-card:nth-child(4n){margin-top:clamp(1.5rem,3vw,3rem)}
  .experience-index--grid .experience-card__media{
    display:grid;place-items:center;
    width:100%;height:auto;
@@ -654,10 +656,15 @@ body{background:var(--g-paper);color:var(--g-ink)}
   .archive-filter__controls{grid-template-columns:1fr;gap:1.4rem}
 }
 
-/* Artworks grid responsive — 3 / 2 / 1 columns */
-@media (max-width:1180px){
-  .experience-index--grid .experience-index__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
+/* Artworks lanes responsive — desktop 3, tablet 2, mobile 1 flat stack */
+.experience-index--grid .experience-index__lanes[data-lanes="tablet"]{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media (max-width:760px){
-  .experience-index--grid .experience-index__grid{grid-template-columns:1fr}
+  .experience-index--grid .experience-index__lanes{display:none}
+  /* Mobile renders one ordered flat stack (read order 1,2,3,4,5,6…) */
+  .experience-index--grid .experience-index__grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:clamp(3.5rem,8vw,5rem);
+    padding-top:clamp(2.5rem,5vw,3.5rem);
+  }
 }

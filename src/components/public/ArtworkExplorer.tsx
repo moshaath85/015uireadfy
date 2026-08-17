@@ -86,8 +86,24 @@ export default function ArtworkExplorer({
   const [filters, setFilters] = useState<Filters>(EMPTY);
   const [batch, setBatch] = useState(BATCH_DESKTOP);
   const [visible, setVisible] = useState(BATCH_DESKTOP);
+  const [layout, setLayout] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const gridRef = useRef<HTMLDivElement | null>(null);
   const firstRender = useRef(true);
+
+  /* The archive renders as independent vertical lanes (no shared grid row, so
+     no blank space) on desktop (3 lanes) and tablet (2 lanes), and as one
+     natural ordered stack on mobile (read order 1,2,3,4,5,6). */
+  useEffect(() => {
+    const resolve = () => {
+      const w = window.innerWidth;
+      if (w < 768) setLayout('mobile');
+      else if (w < 1200) setLayout('tablet');
+      else setLayout('desktop');
+    };
+    resolve();
+    window.addEventListener('resize', resolve);
+    return () => window.removeEventListener('resize', resolve);
+  }, []);
 
   /* Deep links carry filter state, but the server renders the unfiltered
      archive so the markup is cacheable and correct without JavaScript.
@@ -144,6 +160,19 @@ export default function ArtworkExplorer({
   const active = filters.q !== '' || filters.artist !== '' || filters.medium !== '' || filters.year !== '';
   const shown = results.slice(0, visible);
   const remaining = results.length - shown.length;
+
+  /* Deterministic lane distribution: index 0→lane0, 1→lane1, 2→lane2, 3→lane0…
+     Each lane renders as an independent vertical column, so a tall artwork in
+     one lane never pushes down artworks in the other lanes — no row-generated
+     blank zones. Desktop uses 3 lanes, tablet 2; mobile renders the flat
+     ordered list instead. */
+  const lanes = useMemo(() => {
+    const laneCount = layout === 'desktop' ? 3 : 2;
+    const out: ExplorerWork[][] = Array.from({ length: laneCount }, () => []);
+    shown.forEach((work, index) => { out[index % laneCount].push(work); });
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shown, layout]);
 
   const loadMore = () => {
     /* Anchor on the last card already on screen so the eye is not thrown to
@@ -229,11 +258,25 @@ export default function ArtworkExplorer({
 
       {shown.length ? (
         <>
-          <div className="experience-index__grid" ref={gridRef}>
-            {shown.map((work, index) => (
-              <EditorialCard item={work} eager={index < 2} key={work.id} />
-            ))}
-          </div>
+          {/* Desktop/tablet: independent vertical lanes. Mobile: one ordered
+              stack. Rendering one or the other (not both) keeps the DOM clean. */}
+          {layout === 'mobile' ? (
+            <div className="experience-index__grid" ref={gridRef}>
+              {shown.map((work, index) => (
+                <EditorialCard item={work} eager={index < 2} key={work.id} />
+              ))}
+            </div>
+          ) : (
+            <div className="experience-index__lanes" ref={gridRef} data-lanes={layout}>
+              {lanes.map((lane, laneIndex) => (
+                <div className="experience-index__lane" key={laneIndex}>
+                  {lane.map((work, i) => (
+                    <EditorialCard item={work} eager={laneIndex === 0 && i < 1} key={work.id} />
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
           {remaining > 0 ? (
             <div className="archive-more">
               <button type="button" className="archive-more__button" onClick={loadMore}>
