@@ -81,6 +81,13 @@ body{background:var(--g-paper);color:var(--g-ink)}
    gap:clamp(3.5rem,6vw,6rem);
    min-width:0;
  }
+ /* The old 4n+2/4n+3 staggered margin belonged to the shared-row grid and now
+    doubles up with the lane's own gap — remove it inside the lanes so card
+    spacing stays the single controlled gap. */
+ .experience-index--grid .experience-index__lane .experience-card:nth-child(4n+2),
+ .experience-index--grid .experience-index__lane .experience-card:nth-child(4n+3){
+   margin-top:0;
+ }
  .experience-index--grid .experience-card{
    display:grid;
    gap:clamp(0.9rem,1.2vw,1.1rem);

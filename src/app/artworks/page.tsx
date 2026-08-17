@@ -89,7 +89,7 @@ export default async function ArtworksPage() {
       kicker: artwork.availability_status?.replaceAll('_', ' '),
       meta: [artistName, year || null, medium].filter(Boolean).join(' · '),
       description: getText(artwork.description_ar, artwork.description_en, lang),
-      image: media ? { src: media.url, alt: getText(media.alt_ar, media.alt_en, lang) || title } : null,
+      image: media ? { src: media.url, alt: getText(media.alt_ar, media.alt_en, lang) || title, width: media.width, height: media.height } : null,
       artistId: artwork.artist_id,
       mediumKey: mediumKey(artwork.medium_en) || UNRECORDED,
       mediumLabel: medium,

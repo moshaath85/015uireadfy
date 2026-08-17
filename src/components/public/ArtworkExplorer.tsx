@@ -161,15 +161,39 @@ export default function ArtworkExplorer({
   const shown = results.slice(0, visible);
   const remaining = results.length - shown.length;
 
-  /* Deterministic lane distribution: index 0→lane0, 1→lane1, 2→lane2, 3→lane0…
-     Each lane renders as an independent vertical column, so a tall artwork in
-     one lane never pushes down artworks in the other lanes — no row-generated
-     blank zones. Desktop uses 3 lanes, tablet 2; mobile renders the flat
-     ordered list instead. */
+  /* Deterministic height-aware lane balancing. Each artwork (in original order)
+     is assigned to the currently shortest lane, so no shared grid row and no
+     modulo imbalance: a tall work lands in the lane that is lowest so far, and
+     the three columns end at similar heights without giant accidental voids.
+     Card height is estimated from the artwork's intrinsic ratio, the lane width,
+     the plate padding, and a fixed caption/gap allowance. Assignment is
+     deterministic and never reorders items inside a lane. Mobile renders the
+     flat ordered list instead. */
   const lanes = useMemo(() => {
+    if (layout === 'mobile') return [];
     const laneCount = layout === 'desktop' ? 3 : 2;
+    const laneHeights = Array(laneCount).fill(0);
     const out: ExplorerWork[][] = Array.from({ length: laneCount }, () => []);
-    shown.forEach((work, index) => { out[index % laneCount].push(work); });
+    /* Approximate the shared frame constants that fix card height in CSS. */
+    const CAPTION_EST = 118;    // title + meta + gap + view link
+    const PLATE_PAD = 20;       // horizontal padding inside the plate (px)
+    const CARD_GAP = 72;        // vertical gap between cards in a lane
+    const estHeight = (work: ExplorerWork, laneWidth: number) => {
+      const w = work.image?.width || 3;
+      const h = work.image?.height || 4;
+      const inner = Math.max(0, laneWidth - PLATE_PAD * 2);
+      const imgH = inner * (h / w);
+      return imgH + CAPTION_EST + CARD_GAP;
+    };
+    /* The available lane width depends on the container; use a representative
+       fraction so the estimate stays stable across renders. */
+    const laneWidth = layout === 'desktop' ? 420 : 460;
+    shown.forEach((work) => {
+      let target = 0;
+      for (let i = 1; i < laneCount; i++) if (laneHeights[i] < laneHeights[target]) target = i;
+      out[target].push(work);
+      laneHeights[target] += estHeight(work, laneWidth);
+    });
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shown, layout]);

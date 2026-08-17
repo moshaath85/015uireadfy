@@ -4,6 +4,9 @@ import type { ReactNode } from 'react';
 export interface EditorialImage {
   src: string;
   alt: string;
+  /** Intrinsic dimensions — used to estimate a card's height for lane balancing. */
+  width?: number;
+  height?: number;
 }
 
 export interface EditorialIndexItem {
