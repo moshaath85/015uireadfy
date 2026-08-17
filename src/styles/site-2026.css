@@ -72,15 +72,15 @@ body{background:var(--g-paper);color:var(--g-ink)}
    display:grid;
    grid-template-columns:repeat(3,minmax(0,1fr));
    column-gap:clamp(1.5rem,3vw,3rem);
-   align-items:start;
-   padding-top:clamp(2.5rem,4.5vw,4.5rem);
- }
- .experience-index--grid .experience-index__lane{
-   display:flex;
-   flex-direction:column;
-   gap:clamp(3.5rem,6vw,6rem);
-   min-width:0;
- }
+    align-items:start;
+    padding-top:clamp(1.25rem,2vw,2rem);
+  }
+  .experience-index--grid .experience-index__lane{
+    display:flex;
+    flex-direction:column;
+    gap:clamp(1.75rem,3.6vw,3.25rem);
+    min-width:0;
+  }
  /* The old 4n+2/4n+3 staggered margin belonged to the shared-row grid and now
     doubles up with the lane's own gap — remove it inside the lanes so card
     spacing stays the single controlled gap. */
@@ -173,7 +173,7 @@ body{background:var(--g-paper);color:var(--g-ink)}
    115px at 1440, so 230px of empty space sat between the title and the first
    work — roughly a quarter of the viewport on every index page. */
 .experience-index__intro{padding-bottom:clamp(2.5rem,4.5vw,4.5rem)}
-.experience-index__grid{padding-top:clamp(2.5rem,4.5vw,4.5rem)}
+.experience-index__grid{padding-top:clamp(1.25rem,2vw,2rem)}
 .experience-index{padding-top:clamp(3rem,5vw,5rem)}
 
 /* ---- 11. Legibility floor ----
