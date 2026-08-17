@@ -61,38 +61,65 @@ body{background:var(--g-paper);color:var(--g-ink)}
 /* ---- 4b. Artworks index — proportions stay visible ----
    The artworks grid is a reading room, not a shop grid. Instead of forcing every
    plate into an equal 4:5 box (so portrait and landscape collapse to the same
-   tile), flow the cards through CSS columns: each plate hugs its work's own
-   ratio, so a portrait reads tall, a landscape reads wide, and the page gets
-   the calm vertical rhythm of works hung on a wall. */
-.experience-index--grid{
-  columns:2;
-  column-gap:clamp(1.5rem,4vw,4rem);
-  display:block;
-  padding-top:clamp(2.5rem,4.5vw,4.5rem);
-}
-.experience-index--grid .experience-card{
-  display:block;
-  break-inside:avoid;
-  margin-bottom:clamp(3rem,7vw,7rem);
-}
-.experience-index--grid .experience-card__media{
-  display:grid;place-items:center;
-  width:100%;height:auto;
-  min-height:0;
-  aspect-ratio:auto;
-  padding:clamp(14px,1.8vw,30px);
-  overflow:hidden;
-}
-.experience-index--grid .experience-card__media img{
-  max-width:100%;max-height:88vh;
-  width:auto;height:auto;
-  object-fit:contain;
-  box-shadow:
-    0 1px 3px rgba(18,17,15,.08),
-    0 8px 18px rgba(18,17,15,.07),
-    0 24px 52px rgba(18,17,15,.09);
-}
-.experience-index--grid .experience-card:hover .experience-card__media img{transform:none;opacity:.92}
+    tile), flow the cards through a controlled three-column editorial grid.
+    Each plate hugs its work's own ratio (portrait tall, landscape wide) while
+    rows stay aligned — no masonry packing, no orphaned captions, no vertical
+    voids. */
+ /* The artworks explorer grid is `experience-index--grid` on <main> wrapping
+    an inner `.experience-index__grid` (2-col default in globals.css). Drive it
+    to a controlled three-column editorial grid: real ratios, aligned rows,
+    no masonry voids, captions attached. */
+ .experience-index--grid .experience-index__grid{
+   display:grid;
+   grid-template-columns:repeat(3,minmax(0,1fr));
+   column-gap:clamp(1.5rem,3vw,3rem);
+   row-gap:clamp(3.5rem,6vw,6rem);
+   padding-top:clamp(2.5rem,4.5vw,4.5rem);
+ }
+ .experience-index--grid .experience-card{
+   display:grid;
+   gap:clamp(0.9rem,1.2vw,1.1rem);
+   min-width:0;
+ }
+ /* Curatorial variation — deterministic, index-free: only every 4th item gets a
+    little top air so the sequence breathes without breaking the rhythm. */
+ .experience-index--grid .experience-card:nth-child(4n){margin-top:clamp(1.5rem,3vw,3rem)}
+ .experience-index--grid .experience-card__media{
+   display:grid;place-items:center;
+   width:100%;height:auto;
+   min-height:0;
+   aspect-ratio:auto;
+   padding:clamp(10px,1.2vw,20px);
+   overflow:hidden;
+ }
+ .experience-index--grid .experience-card__media img{
+   max-width:100%;max-height:78vh;
+   width:auto;height:auto;
+   object-fit:contain;
+   box-shadow:
+     0 1px 3px rgba(18,17,15,.08),
+     0 6px 16px rgba(18,17,15,.07),
+     0 18px 40px rgba(18,17,15,.08);
+ }
+ .experience-index--grid .experience-card:hover .experience-card__media img{transform:none;opacity:.92}
+ /* Caption stays attached to its artwork — sits directly below the image. */
+ .experience-index--grid .experience-card__copy{
+   display:grid;
+   align-content:start;
+   gap:0.35rem;
+   padding-top:0.25rem;
+ }
+ .experience-index--grid .experience-card__copy h2{margin:0}
+ .experience-index--grid .experience-card__copy .experience-card__meta{
+   margin:0;color:var(--g-ink-quiet);
+ }
+ .experience-index--grid .experience-card__copy > span{
+   width:max-content;
+   margin-top:0.6rem;
+   padding-bottom:0.2rem;
+   border-bottom:1px solid #111;
+   font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;
+ }
 
 /* ---- 5. Detail hero: give the work room ---- */
 .experience-detail__media{
@@ -242,7 +269,7 @@ body{background:var(--g-paper);color:var(--g-ink)}
    82px band a shade warmer than the paper beneath it. On a site whose ground
    has to match the white the artwork is photographed on, that band is the
    first thing the eye finds. */
-.g-header{background:rgba(255,255,255,.96)}
+.g-header{background:#FFFFFF}
 
 /* ---- 16. A plate with no photograph is not a plate ----
    Nine of nine journal entries have no image, so the index drew nine 641x677
@@ -627,7 +654,10 @@ body{background:var(--g-paper);color:var(--g-ink)}
   .archive-filter__controls{grid-template-columns:1fr;gap:1.4rem}
 }
 
-/* Single column on mobile — two narrow columns read as clutter at 390px */
+/* Artworks grid responsive — 3 / 2 / 1 columns */
+@media (max-width:1180px){
+  .experience-index--grid .experience-index__grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 @media (max-width:760px){
-  .experience-index--grid{columns:1}
+  .experience-index--grid .experience-index__grid{grid-template-columns:1fr}
 }
