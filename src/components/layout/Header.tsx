@@ -5,16 +5,20 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/components/layout/LanguageProvider';
 
-const menuLinks = [
-  { href: '/', label: 'Home', labelAr: 'الرئيسية' },
+const mainLinks = [
   { href: '/museum', label: 'Museum', labelAr: 'المتحف' },
   { href: '/artists', label: 'Artists', labelAr: 'الفنانون' },
-  { href: '/artworks', label: 'Artworks', labelAr: 'الأعمال' },
   { href: '/exhibitions', label: 'Exhibitions', labelAr: 'المعارض' },
+  { href: '/artworks', label: 'Artworks', labelAr: 'الأعمال' },
   { href: '/collections', label: 'Collections', labelAr: 'المجموعات' },
   { href: '/projects', label: 'Projects', labelAr: 'المشاريع' },
   { href: '/news', label: 'Journal', labelAr: 'المجلة' },
   { href: '/services', label: 'Services', labelAr: 'الخدمات' },
+];
+
+const menuLinks = [
+  { href: '/', label: 'Home', labelAr: 'الرئيسية' },
+  ...mainLinks,
   { href: '/publications', label: 'Publications', labelAr: 'الإصدارات' },
   { href: '/contact', label: 'Contact', labelAr: 'تواصل' },
   { href: '/verify', label: 'Certificates', labelAr: 'الشهادات' },
@@ -69,6 +73,23 @@ export default function Header({ emptySections = [] }: { emptySections?: string[
           <img src="/brand/015-logo-black.svg" alt="Gallery 015" />
         </Link>
 
+        <nav className="g-header__nav" aria-label="Primary">
+          <ul>
+            {mainLinks.filter(visible).map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  prefetch={false}
+                  className={isActive(link.href) ? 'is-active' : undefined}
+                  aria-current={isActive(link.href) ? 'page' : undefined}
+                >
+                  {lang === 'ar' ? link.labelAr : link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
         <div className="g-header__actions">
           <Link
             href="/search"
@@ -88,6 +109,7 @@ export default function Header({ emptySections = [] }: { emptySections?: string[
           >
             {lang === 'en' ? 'AR' : 'EN'}
           </button>
+          <Link href="/contact" className="g-header__cta">{lang === 'ar' ? 'تواصل' : 'Contact'}</Link>
           <button
             type="button"
             className={`g-header__toggle${menuOpen ? ' is-open' : ''}`}

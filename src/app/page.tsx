@@ -2,7 +2,6 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import '@/styles/home-2026.css';
 import HeroRotator, { type HeroSlide } from '@/components/public/home/HeroRotator';
-import { HomeArrivalGate } from '@/components/public/home/HomeArrivalGate';
 import { ArtistMonogram } from '@/components/public/ArtistMonogram';
 import { OrganizationLd, ArtGalleryLd, BreadcrumbListLd } from '@/lib/jsonld';
 import { artistsRepository } from '@/lib/repositories/artists';
@@ -161,10 +160,6 @@ export default async function HomePage() {
       <OrganizationLd />
       <ArtGalleryLd />
       <BreadcrumbListLd items={[{ name: 'Gallery 015', url: 'https://gallery015.com' }]} />
-      <HomeArrivalGate
-        works={heroSlides.map((slide) => ({ src: slide.src, alt: slide.alt }))}
-        enterLabel={lang === 'ar' ? 'دخول' : 'Enter'}
-      >
       <div className="hp">
 
       <HeroRotator
@@ -364,7 +359,6 @@ export default async function HomePage() {
       </section>
 
     </div>
-      </HomeArrivalGate>
     </>
   );
 }
