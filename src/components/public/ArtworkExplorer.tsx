@@ -161,33 +161,78 @@ export default function ArtworkExplorer({
   const shown = results.slice(0, visible);
   const remaining = results.length - shown.length;
 
+  /* The lane width the estimator targets. Re-measured on resize (the lanes
+     container width) so the estimate tracks the real rendered lane width at
+     every breakpoint instead of a hard-coded guess. */
+  const [laneW, setLaneW] = useState(400);
+  useLayoutEffect(() => {
+    const el = gridRef.current;
+    if (!el || layout === 'mobile') return;
+    const lane = el.querySelector('.experience-index__lane');
+    if (!lane) return;
+    const update = () => setLaneW(Math.round(lane.getBoundingClientRect().width));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(lane);
+    return () => ro.disconnect();
+  }, [layout]);
+
   /* Deterministic height-aware lane balancing. Each artwork (in original order)
      is assigned to the currently shortest lane, so no shared grid row and no
      modulo imbalance: a tall work lands in the lane that is lowest so far, and
      the three columns end at similar heights without giant accidental voids.
-     Card height is estimated from the artwork's intrinsic ratio, the lane width,
-     the plate padding, and a fixed caption/gap allowance. Assignment is
-     deterministic and never reorders items inside a lane. Mobile renders the
-     flat ordered list instead. */
+
+     The estimated card height models every block of the card: the image rendered
+     from its real width/height ratio at the lane's inner width, plus the plate
+     padding/border, the kicker, the title (wrapped to line count at the lane
+     width), the meta, the description (wrapped), the View link, and the fixed
+     inter-card gap. Assignment is deterministic and never reorders items inside
+     a lane. Mobile renders the flat ordered list instead. */
   const lanes = useMemo(() => {
     if (layout === 'mobile') return [];
     const laneCount = layout === 'desktop' ? 3 : 2;
     const laneHeights = Array(laneCount).fill(0);
     const out: ExplorerWork[][] = Array.from({ length: laneCount }, () => []);
-    /* Approximate the shared frame constants that fix card height in CSS. */
-    const CAPTION_EST = 118;    // title + meta + gap + view link
-    const PLATE_PAD = 20;       // horizontal padding inside the plate (px)
-    const CARD_GAP = 72;        // vertical gap between cards in a lane
+
+    /* Real CSS frame constants (calibrated against the rendered plate at 1440
+       and 1024): plate padding 1.2vw (capped 20px), 1px border each side, the
+       figure→copy gap 1.2vw (capped 1.1rem), the copy row gap 0.35rem, the
+       copy top padding 0.25rem, and line heights for each block. The image is
+       width 100% of the plate interior and capped at 78vh. */
+    const PLATE_BORDER = 2;
+    const IMG_MAX_H = Math.round(0.78 * (typeof window !== 'undefined' ? window.innerHeight : 900));
+    const COPY_GAP = 5.6; // 0.35rem
+    const COPY_PT = 4;    // 0.25rem
+    const TITLE_LH = 37;  // h2 line height
+    const SMALL_LH = 20;  // kicker / meta / view nominal line
+    const DESC_LH = 24;   // description line height
+    const charsPerLine = (laneWidth: number) => Math.max(6, Math.floor(laneWidth / 13));
+    const descPerLine = (laneWidth: number) => Math.max(10, Math.floor(laneWidth / 8));
+    const linesOf = (text: string | undefined, perLine: number) => {
+      if (!text) return 0;
+      return Math.max(1, Math.ceil(text.length / perLine));
+    };
+
     const estHeight = (work: ExplorerWork, laneWidth: number) => {
+      const PLATE_PAD = Math.min(20, Math.max(10, Math.round(laneWidth * 0.018)));
+      const CARD_GAP = Math.round(laneWidth * 0.2); // ~6vw inter-card gap in a lane
+      const FIG_GAP = Math.min(17.6, Math.max(14.4, laneWidth * 0.04)); // figure→copy
       const w = work.image?.width || 3;
       const h = work.image?.height || 4;
-      const inner = Math.max(0, laneWidth - PLATE_PAD * 2);
-      const imgH = inner * (h / w);
-      return imgH + CAPTION_EST + CARD_GAP;
+      const inner = Math.max(1, laneWidth - PLATE_PAD * 2 - PLATE_BORDER);
+      const imgH = Math.min(inner * (h / w), IMG_MAX_H);
+      const figureH = imgH + PLATE_PAD * 2 + PLATE_BORDER;
+      const kicker = work.kicker ? SMALL_LH : 0;
+      const title = linesOf(work.title, charsPerLine(laneWidth)) * TITLE_LH;
+      const meta = work.meta ? SMALL_LH : 0;
+      const desc = linesOf(work.description, descPerLine(laneWidth)) * DESC_LH;
+      const view = SMALL_LH;
+      const rows = [kicker, title, meta, desc, view].filter((v) => v > 0).length;
+      const copy = COPY_PT + kicker + title + meta + desc + view + (rows > 0 ? (rows - 1) * COPY_GAP : 0);
+      return figureH + FIG_GAP + copy + CARD_GAP;
     };
-    /* The available lane width depends on the container; use a representative
-       fraction so the estimate stays stable across renders. */
-    const laneWidth = layout === 'desktop' ? 420 : 460;
+
+    const laneWidth = laneW || (layout === 'desktop' ? 400 : 470);
     shown.forEach((work) => {
       let target = 0;
       for (let i = 1; i < laneCount; i++) if (laneHeights[i] < laneHeights[target]) target = i;
@@ -196,7 +241,7 @@ export default function ArtworkExplorer({
     });
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shown, layout]);
+  }, [shown, layout, laneW]);
 
   const loadMore = () => {
     /* Anchor on the last card already on screen so the eye is not thrown to
